@@ -1,4 +1,4 @@
-package zeroframework
+package main
 
 import (
 	"zero-framework/database"
