@@ -7,7 +7,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	cfg "zero-framework/config"
+
+	cfg "github.com/0meet1/zero-framework/config"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"

@@ -3,7 +3,8 @@ package database
 import (
 	"fmt"
 	"time"
-	"zero-framework/global"
+
+	"github.com/0meet1/zero-framework/global"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

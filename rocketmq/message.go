@@ -3,8 +3,8 @@ package rocketmq
 import (
 	"encoding/json"
 	"time"
-	"zero-framework/structs"
 
+	"github.com/0meet1/zero-framework/structs"
 	"github.com/gofrs/uuid"
 )
 

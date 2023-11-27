@@ -8,8 +8,9 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	cfg "zero-framework/config"
-	"zero-framework/log"
+
+	cfg "github.com/0meet1/zero-framework/config"
+	"github.com/0meet1/zero-framework/log"
 )
 
 const ZERO_FRAMEWORK_BANNER = `

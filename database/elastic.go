@@ -8,7 +8,8 @@ import (
 	"io"
 	"net/http"
 	"path"
-	"zero-framework/global"
+
+	"github.com/0meet1/zero-framework/global"
 )
 
 var (

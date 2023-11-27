@@ -1,10 +1,10 @@
 package main
 
 import (
-	"zero-framework/database"
-	"zero-framework/processors"
-	"zero-framework/rocketmq"
-	"zero-framework/structs"
+	"github.com/0meet1/zero-framework/database"
+	"github.com/0meet1/zero-framework/processors"
+	"github.com/0meet1/zero-framework/rocketmq"
+	"github.com/0meet1/zero-framework/structs"
 )
 
 type Date = structs.Date

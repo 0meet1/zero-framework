@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"zero-framework/global"
-	"zero-framework/structs"
+
+	"github.com/0meet1/zero-framework/global"
+	"github.com/0meet1/zero-framework/structs"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"

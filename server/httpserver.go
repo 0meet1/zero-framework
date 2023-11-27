@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"zero-framework/global"
-	"zero-framework/structs"
+
+	"github.com/0meet1/zero-framework/global"
+	"github.com/0meet1/zero-framework/structs"
 )
 
 var (

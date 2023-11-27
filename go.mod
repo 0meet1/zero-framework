@@ -1,4 +1,4 @@
-module zero-framework
+module github.com/0meet1/zero-framework
 
 go 1.20
 
