@@ -83,14 +83,17 @@ func RunHttpServer(handlers ...*XhttpExecutor) {
 	if len(prefix) == 0 {
 		prefix = "/zeroapi"
 	}
-	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port")))
+
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
 		if handler.funcmode {
-			http.HandleFunc(handler.path, handler.executorfunc)
+			http.HandleFunc(path.Join(prefix, handler.path, handler.path), handler.executorfunc)
+			global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path, handler.path)))
 		} else {
-			http.Handle(handler.path, handler.executor)
+			http.Handle(path.Join(prefix, handler.path, handler.path), handler.executor)
+			global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path, handler.path)))
 		}
 	}
+	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d%s", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"), prefix))
 	server.ListenAndServe()
 }
