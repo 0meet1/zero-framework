@@ -79,11 +79,7 @@ func XhttpHandle(handler http.Handler, path ...string) *XhttpExecutor {
 }
 
 func RunHttpServer(handlers ...*XhttpExecutor) {
-	prefix = global.StringValue("zero.httpserver.prefix")
-	if len(prefix) == 0 {
-		prefix = "/zeroapi"
-	}
-
+	prefix = path.Join("/", global.StringValue("zero.httpserver.prefix"))
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
 		if handler.funcmode {
