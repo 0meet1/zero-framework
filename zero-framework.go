@@ -1,4 +1,4 @@
-package main
+package zeroframework
 
 import (
 	"github.com/0meet1/zero-framework/database"
