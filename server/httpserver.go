@@ -55,19 +55,30 @@ func responseMessages(writer http.ResponseWriter, code int, message string) {
 	responseDatas(writer, code, message, nil, nil)
 }
 
-type xHttpHandler struct {
-	path  string
-	funcx func(http.ResponseWriter, *http.Request)
+type XhttpExecutor struct {
+	funcmode     bool
+	path         string
+	executorfunc func(http.ResponseWriter, *http.Request)
+	executor     http.Handler
 }
 
-func HttpHandler(funcx func(http.ResponseWriter, *http.Request), path ...string) *xHttpHandler {
-	return &xHttpHandler{
-		path:  mkuri(path...),
-		funcx: funcx,
+func XhttpFuncHandle(funcx func(http.ResponseWriter, *http.Request), path ...string) *XhttpExecutor {
+	return &XhttpExecutor{
+		funcmode:     true,
+		path:         mkuri(path...),
+		executorfunc: funcx,
 	}
 }
 
-func RunHttpServer(handlers ...*xHttpHandler) {
+func XhttpHandle(handler http.Handler, path ...string) *XhttpExecutor {
+	return &XhttpExecutor{
+		funcmode: false,
+		path:     mkuri(path...),
+		executor: handler,
+	}
+}
+
+func RunHttpServer(handlers ...*XhttpExecutor) {
 	prefix = global.StringValue("zero.server.prefix")
 	if len(prefix) == 0 {
 		prefix = "/zeroapi"
@@ -75,7 +86,11 @@ func RunHttpServer(handlers ...*xHttpHandler) {
 	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port")))
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
-		http.HandleFunc(handler.path, handler.funcx)
+		if handler.funcmode {
+			http.HandleFunc(handler.path, handler.executorfunc)
+		} else {
+			http.Handle(handler.path, handler.executor)
+		}
 	}
 	server.ListenAndServe()
 }
