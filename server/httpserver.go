@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/structs"
@@ -15,11 +16,18 @@ var (
 )
 
 func mkuri(args ...string) string {
-	uri := path.Join("/", prefix)
+	uri := ""
 	for _, arg := range args {
-		uri = path.Join(uri, arg)
+		if len(strings.TrimSpace(arg)) > 0 {
+			uri = path.Join(uri, arg)
+		}
 	}
-	return uri
+
+	if strings.HasSuffix(args[len(args)-1], "/") {
+		return fmt.Sprintf("/%s/", uri)
+	} else {
+		return fmt.Sprintf("/%s", uri)
+	}
 }
 
 func XhttpResponseMaps(writer http.ResponseWriter, code int, message string, datas []map[string]interface{}, expands map[string]interface{}) {
