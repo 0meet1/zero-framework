@@ -91,11 +91,21 @@ func RunHttpServer(handlers ...*XhttpExecutor) {
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
 		if handler.funcmode {
-			http.HandleFunc(path.Join(prefix, handler.path), handler.executorfunc)
-			global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
+			if strings.HasSuffix(handler.path, "/") {
+				http.HandleFunc(fmt.Sprintf("%s/", path.Join(prefix, handler.path)), handler.executorfunc)
+				global.Logger().Info(fmt.Sprintf("http server register path : %s", fmt.Sprintf("%s/", path.Join(prefix, handler.path))))
+			} else {
+				http.HandleFunc(path.Join(prefix, handler.path), handler.executorfunc)
+				global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
+			}
 		} else {
-			http.Handle(path.Join(prefix, handler.path), handler.executor)
-			global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
+			if strings.HasSuffix(handler.path, "/") {
+				http.Handle(fmt.Sprintf("%s/", path.Join(prefix, handler.path)), handler.executor)
+				global.Logger().Info(fmt.Sprintf("http server register path : %s", fmt.Sprintf("%s/", path.Join(prefix, handler.path))))
+			} else {
+				http.Handle(path.Join(prefix, handler.path), handler.executor)
+				global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
+			}
 		}
 	}
 	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d%s", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"), prefix))
