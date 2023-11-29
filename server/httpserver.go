@@ -22,7 +22,7 @@ func mkuri(args ...string) string {
 	return uri
 }
 
-func responseMaps(writer http.ResponseWriter, code int, message string, datas []map[string]interface{}, expands map[string]interface{}) {
+func XresponseMaps(writer http.ResponseWriter, code int, message string, datas []map[string]interface{}, expands map[string]interface{}) {
 	response := make(map[string]interface{})
 	response["code"] = code
 	response["message"] = message
@@ -37,7 +37,7 @@ func responseMaps(writer http.ResponseWriter, code int, message string, datas []
 	writer.Write(bytes)
 }
 
-func responseDatas(writer http.ResponseWriter, code int, message string, datas []interface{}, expands map[string]interface{}) {
+func XresponseDatas(writer http.ResponseWriter, code int, message string, datas []interface{}, expands map[string]interface{}) {
 	bytes, err := json.Marshal(structs.ZeroResponse{
 		Code:    code,
 		Message: message,
@@ -51,8 +51,8 @@ func responseDatas(writer http.ResponseWriter, code int, message string, datas [
 	writer.Write(bytes)
 }
 
-func responseMessages(writer http.ResponseWriter, code int, message string) {
-	responseDatas(writer, code, message, nil, nil)
+func XresponseMessages(writer http.ResponseWriter, code int, message string) {
+	XresponseDatas(writer, code, message, nil, nil)
 }
 
 type XhttpExecutor struct {
