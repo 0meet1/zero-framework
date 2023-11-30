@@ -7,7 +7,17 @@ import (
 	"time"
 )
 
-func parser(rows *sql.Rows) []map[string]interface{} {
+type ZeroCoreProcessor struct {
+	transaction *sql.Tx
+	prepares    map[string]*sql.Stmt
+}
+
+func (processor *ZeroCoreProcessor) Build(transaction *sql.Tx) {
+	processor.transaction = transaction
+	processor.prepares = make(map[string]*sql.Stmt)
+}
+
+func (processor *ZeroCoreProcessor) Parser(rows *sql.Rows) []map[string]interface{} {
 	columns, err := rows.Columns()
 	if err != nil {
 		panic(err)
@@ -36,16 +46,6 @@ func parser(rows *sql.Rows) []map[string]interface{} {
 	return rowsArray
 }
 
-type ZeroCoreProcessor struct {
-	transaction *sql.Tx
-	prepares    map[string]*sql.Stmt
-}
-
-func (processor *ZeroCoreProcessor) Build(transaction *sql.Tx) {
-	processor.transaction = transaction
-	processor.prepares = make(map[string]*sql.Stmt)
-}
-
 func (processor *ZeroCoreProcessor) registeyPreparedStatement(preparedSQL string) error {
 	stmt, err := processor.transaction.Prepare(preparedSQL)
 	if err != nil {
@@ -60,7 +60,7 @@ func (processor *ZeroCoreProcessor) existsPreparedStatement(preparedSQL string) 
 	return ok
 }
 
-func (processor *ZeroCoreProcessor) preparedStmt(preparedSQL string) *sql.Stmt {
+func (processor *ZeroCoreProcessor) PreparedStmt(preparedSQL string) *sql.Stmt {
 	if !processor.existsPreparedStatement(preparedSQL) {
 		err := processor.registeyPreparedStatement(preparedSQL)
 		if err != nil {
@@ -76,7 +76,7 @@ func (processor *ZeroCoreProcessor) preparedStmt(preparedSQL string) *sql.Stmt {
 
 func (processor *ZeroCoreProcessor) DatabaseDatetime() (*time.Time, error) {
 	const FETCH_DATE_SQL = "SELECT current_timestamp FROM DUAL"
-	rows, err := processor.preparedStmt(FETCH_DATE_SQL).Query()
+	rows, err := processor.PreparedStmt(FETCH_DATE_SQL).Query()
 	defer func() {
 		if rows != nil {
 			rows.Close()
