@@ -306,7 +306,7 @@ func (opera *ZeroQueryOperation) makeQueryCountSQL() string {
 func (opera *ZeroQueryOperation) Exec() ([]map[string]interface{}, map[string]interface{}) {
 	queryCountSQL := opera.makeQueryCountSQL()
 
-	rows, err := opera.preparedStmt(queryCountSQL).Query()
+	rows, err := opera.PreparedStmt(queryCountSQL).Query()
 	defer func() {
 		if rows != nil {
 			rows.Close()
@@ -326,9 +326,9 @@ func (opera *ZeroQueryOperation) Exec() ([]map[string]interface{}, map[string]in
 	rows.Close()
 
 	querySQL := opera.makeQuerySQL()
-	rows, err = opera.preparedStmt(querySQL).Query()
+	rows, err = opera.PreparedStmt(querySQL).Query()
 
-	rowsmap := parser(rows)
+	rowsmap := opera.Parser(rows)
 	expands := make(map[string]interface{})
 	expands["start"] = strconv.Itoa(opera.Start)
 	expands["length"] = strconv.Itoa(opera.Length)
