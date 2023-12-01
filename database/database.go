@@ -6,15 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type xConnectPool struct {
+type DataSource struct {
 	database *gorm.DB
 }
 
-func (cp *xConnectPool) init(database *gorm.DB) {
+func (cp *DataSource) init(database *gorm.DB) {
 	cp.database = database
 }
 
-func (cp *xConnectPool) Connect() *sql.DB {
+func (cp *DataSource) Connect() *sql.DB {
 	connect, err := cp.database.DB()
 	if err != nil {
 		panic(err)
@@ -25,7 +25,7 @@ func (cp *xConnectPool) Connect() *sql.DB {
 	return connect
 }
 
-func (cp *xConnectPool) Transaction() *sql.Tx {
+func (cp *DataSource) Transaction() *sql.Tx {
 	transaction, err := cp.Connect().Begin()
 	if err != nil {
 		panic(err)

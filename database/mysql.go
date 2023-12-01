@@ -51,7 +51,7 @@ func InitMYSQLDatabase() {
 		global.IntValue("zero.mysql.maxIdleConns"),
 		global.IntValue("zero.mysql.maxOpenConns"),
 		global.IntValue("zero.mysql.maxLifetime")))
-	connectPool := &xConnectPool{}
-	connectPool.init(database)
-	global.Key(DATABASE_MYSQL, connectPool)
+	dataSource := &DataSource{}
+	dataSource.init(database)
+	global.Key(DATABASE_MYSQL, dataSource)
 }

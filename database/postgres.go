@@ -48,7 +48,7 @@ func InitPostgresDatabase() {
 		global.IntValue("zero.postgres.maxIdleConns"),
 		global.IntValue("zero.postgres.maxOpenConns"),
 		global.IntValue("zero.postgres.maxLifetime")))
-	connectPool := &xConnectPool{}
-	connectPool.init(database)
-	global.Key(DATABASE_POSTGRES, connectPool)
+	dataSource := &DataSource{}
+	dataSource.init(database)
+	global.Key(DATABASE_POSTGRES, dataSource)
 }
