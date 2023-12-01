@@ -22,6 +22,7 @@ type ZeroQueryOperation = processors.ZeroQueryOperation
 type EQueryRequest = database.EQueryRequest
 type EQueryResponse = database.EQueryResponse
 type EQuerySearch = database.EQuerySearch
+type DataSource = database.DataSource
 
 type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
