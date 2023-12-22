@@ -138,7 +138,9 @@ func (zSock *ZeroSocketConnect) OnMessage(datas []byte) error {
 }
 
 func (zSock *ZeroSocketConnect) Write(datas []byte) error {
+	zSock.connectMutex.Lock()
 	_, err := zSock.connect.Write(datas)
+	zSock.connectMutex.Unlock()
 	return err
 }
 
