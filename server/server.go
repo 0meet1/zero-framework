@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -14,6 +15,7 @@ type ZeroServ interface {
 	OnConnect(ZeroConnect) error
 	OnDisconnect(ZeroConnect) error
 	OnAuthorized(ZeroConnect) error
+	UseConnect(string) (ZeroConnect, error)
 }
 
 type ZeroDataChecker interface {
@@ -211,6 +213,16 @@ func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
 	sockServer.connectMutex.Unlock()
 
 	return nil
+}
+
+func (sockServer *ZeroSocketServer) UseConnect(registerId string) (ZeroConnect, error) {
+	sockServer.connectMutex.RLock()
+	connect, ok := sockServer.connects[registerId]
+	sockServer.connectMutex.RUnlock()
+	if ok {
+		return connect, nil
+	}
+	return nil, errors.New(fmt.Sprintf("connect %s not found", registerId))
 }
 
 func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
