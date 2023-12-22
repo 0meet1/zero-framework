@@ -170,7 +170,7 @@ type ZeroSocketServer struct {
 
 	heartbeatTimer *time.Timer
 
-	connectBuilder ZeroConnectBuilder
+	ConnectBuilder ZeroConnectBuilder
 }
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
@@ -241,7 +241,7 @@ func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
 }
 
 func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
-	connect := sockServer.connectBuilder.NewConnect()
+	connect := sockServer.ConnectBuilder.NewConnect()
 	connect.Accept(sockServer, conn)
 
 	global.Logger().Info(fmt.Sprintf("sock server accept connect -> %s", connect.ConnectId()))
@@ -287,8 +287,8 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 }
 
 func (sockServer *ZeroSocketServer) RunServer() {
-	if sockServer.connectBuilder == nil {
-		sockServer.connectBuilder = &xDefaultConnectBuilder{}
+	if sockServer.ConnectBuilder == nil {
+		sockServer.ConnectBuilder = &xDefaultConnectBuilder{}
 	}
 	go sockServer.initHeartbeatTimer()
 }
