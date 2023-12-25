@@ -64,7 +64,7 @@ type ZeroSocketConnect struct {
 
 func (zSock *ZeroSocketConnect) This() interface{} {
 	if zSock.ZeroMeta.This() == nil {
-		return zSock
+		zSock.ThisDef(zSock)
 	}
 	return zSock.ZeroMeta.This()
 }
