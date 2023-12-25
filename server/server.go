@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/0meet1/zero-framework/global"
+	"github.com/0meet1/zero-framework/structs"
 	"github.com/gofrs/uuid"
 )
 
@@ -27,11 +28,13 @@ type ZeroConnectBuilder interface {
 }
 
 type ZeroConnect interface {
+	structs.ZeroMetaDef
+
 	Accept(ZeroServ, net.Conn) error
 	RegisterId() string
 	ConnectId() string
 	RemoteAddr() string
-	HeartbeatCheck(heartbeatSeconds int64) bool
+	HeartbeatCheck(int64) bool
 	Active() bool
 	Heartbeat()
 	Close() error
@@ -43,6 +46,8 @@ type ZeroConnect interface {
 }
 
 type ZeroSocketConnect struct {
+	structs.ZeroMeta
+
 	connectId  string
 	acceptTime int64
 
@@ -55,6 +60,15 @@ type ZeroSocketConnect struct {
 	active  bool
 	zserv   ZeroServ
 	checker ZeroDataChecker
+}
+
+func (zSock *ZeroSocketConnect) This() interface{} {
+	if zSock.Meta == nil {
+		zSock.Meta = &structs.ZeroMetaPtr{
+			MetaPtr: zSock,
+		}
+	}
+	return zSock.ZeroMeta.This()
 }
 
 func (zSock *ZeroSocketConnect) Accept(zserv ZeroServ, connect net.Conn) error {
@@ -177,7 +191,7 @@ type ZeroSocketServer struct {
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
 	sockServer.acceptMutex.Lock()
-	sockServer.accepts[conn.RegisterId()] = conn
+	sockServer.accepts[conn.RegisterId()] = conn.This().(ZeroConnect)
 	sockServer.acceptMutex.Unlock()
 	return nil
 }
@@ -209,7 +223,7 @@ func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
 	sockServer.acceptMutex.Unlock()
 
 	sockServer.connectMutex.Lock()
-	sockServer.connects[conn.RegisterId()] = conn
+	sockServer.connects[conn.RegisterId()] = conn.This().(ZeroConnect)
 	sockServer.connectMutex.Unlock()
 
 	return nil

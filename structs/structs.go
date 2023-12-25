@@ -11,6 +11,33 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+type ZeroMetaPtr struct {
+	MetaPtr interface{}
+}
+
+func (meta *ZeroMetaPtr) This() interface{} {
+	return meta.MetaPtr
+}
+
+func (meta *ZeroMetaPtr) Meta(m interface{}) {
+	meta.MetaPtr = m
+}
+
+type ZeroMetaDef interface {
+	This() interface{}
+}
+
+type ZeroMeta struct {
+	Meta *ZeroMetaPtr
+}
+
+func (meta *ZeroMeta) This() interface{} {
+	if meta.Meta != nil {
+		return meta.Meta.MetaPtr
+	}
+	return nil
+}
+
 const DateFormat = "2006-01-02T15:04:05Z"
 
 type Date time.Time
