@@ -32,7 +32,7 @@ func (meta *ZeroMeta) This() interface{} {
 }
 
 func (meta *ZeroMeta) ThisDef(_self interface{}) {
-	meta.metaptr._self = _self
+	meta.metaptr = &ZeroMetaPtr{_self: _self}
 }
 
 const DateFormat = "2006-01-02T15:04:05Z"
