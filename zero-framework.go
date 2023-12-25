@@ -9,6 +9,9 @@ import (
 )
 
 type Date = structs.Date
+type ZeroMetaDef = structs.ZeroMetaDef
+type ZeroMetaPtr = structs.ZeroMetaPtr
+type ZeroMeta = structs.ZeroMeta
 type ZeroCoreStructs = structs.ZeroCoreStructs
 type ZeroRequest = structs.ZeroRequest
 type ZeroResponse = structs.ZeroResponse
