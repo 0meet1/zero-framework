@@ -37,7 +37,7 @@ func (tcpserv *TCPServer) RunServer() {
 	}
 	tcpserv.tcpServer = tcpServer
 
-	global.Logger().Info(fmt.Sprintf("tcp server start success on tcp://%s", global.StringValue("zero.mqttserv.address")))
+	global.Logger().Info(fmt.Sprintf("tcp server start success on tcp://%s", tcpserv.address))
 
 	for {
 		conn, err := tcpServer.Accept()
