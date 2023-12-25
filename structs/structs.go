@@ -12,30 +12,27 @@ import (
 )
 
 type ZeroMetaPtr struct {
-	MetaPtr interface{}
-}
-
-func (meta *ZeroMetaPtr) This() interface{} {
-	return meta.MetaPtr
-}
-
-func (meta *ZeroMetaPtr) Meta(m interface{}) {
-	meta.MetaPtr = m
+	_self interface{}
 }
 
 type ZeroMetaDef interface {
 	This() interface{}
+	ThisDef(interface{})
 }
 
 type ZeroMeta struct {
-	Meta *ZeroMetaPtr
+	metaptr *ZeroMetaPtr
 }
 
 func (meta *ZeroMeta) This() interface{} {
-	if meta.Meta != nil {
-		return meta.Meta.MetaPtr
+	if meta.metaptr != nil {
+		return meta.metaptr._self
 	}
 	return nil
+}
+
+func (meta *ZeroMeta) ThisDef(_self interface{}) {
+	meta.metaptr._self = _self
 }
 
 const DateFormat = "2006-01-02T15:04:05Z"

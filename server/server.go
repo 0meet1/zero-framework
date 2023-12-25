@@ -63,10 +63,8 @@ type ZeroSocketConnect struct {
 }
 
 func (zSock *ZeroSocketConnect) This() interface{} {
-	if zSock.Meta == nil {
-		zSock.Meta = &structs.ZeroMetaPtr{
-			MetaPtr: zSock,
-		}
+	if zSock.ZeroMeta.This() == nil {
+		return zSock
 	}
 	return zSock.ZeroMeta.This()
 }
