@@ -42,6 +42,8 @@ type ZeroConnect interface {
 
 	Authorized(authMessage ...byte) bool
 	OnMessage(datas []byte) error
+
+	AddChecker(ZeroDataChecker)
 	CheckPackageData(data []byte) []byte
 }
 
@@ -156,6 +158,10 @@ func (zSock *ZeroSocketConnect) Write(datas []byte) error {
 	_, err := zSock.connect.Write(datas)
 	zSock.connectMutex.Unlock()
 	return err
+}
+
+func (zSock *ZeroSocketConnect) AddChecker(checker ZeroDataChecker) {
+	zSock.checker = checker
 }
 
 func (zSock *ZeroSocketConnect) CheckPackageData(data []byte) []byte {
