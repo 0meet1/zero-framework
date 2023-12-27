@@ -138,7 +138,7 @@ func (zSock *ZeroSocketConnect) HeartbeatCheck(heartbeatSeconds int64) bool {
 
 	if time.Now().Unix()-zSock.heartbeatTime > heartbeatSeconds {
 		global.Logger().Info(fmt.Sprintf("ipc connect %s exceeding heartbeat time, acceptTime %s ,heartbeatTime %s ,now %s ,heartbeat interval %ds",
-			zSock.ConnectId(),
+			zSock.RegisterId(),
 			time.Unix(zSock.acceptTime, 0).Format("2006-01-02 15:04:05"),
 			time.Unix(zSock.heartbeatTime, 0).Format("2006-01-02 15:04:05"),
 			time.Now().Format("2006-01-02 15:04:05"),
@@ -260,10 +260,10 @@ func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
 			sockServer.connectMutex.RUnlock()
 
 			for _, conn := range removes {
-				global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.ConnectId()))
+				global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.RegisterId()))
 				err := conn.Close()
 				if err != nil {
-					global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.ConnectId(), err.Error()))
+					global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.RegisterId(), err.Error()))
 				}
 			}
 			global.Logger().Info(fmt.Sprintf("sock heartbeat check finished"))
@@ -275,34 +275,34 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 	connect := sockServer.ConnectBuilder.NewConnect()
 	connect.Accept(sockServer, conn)
 
-	global.Logger().Info(fmt.Sprintf("sock server accept connect -> %s", connect.ConnectId()))
+	global.Logger().Info(fmt.Sprintf("sock server accept connect -> %s", connect.RegisterId()))
 
 	time.AfterFunc(time.Duration(sockServer.authWaitSeconds)*time.Second, func() {
 		sockServer.connectMutex.RLock()
-		_, ok := sockServer.connects[connect.ConnectId()]
+		_, ok := sockServer.connects[connect.RegisterId()]
 		sockServer.connectMutex.RUnlock()
 		if !ok {
 			connect.Close()
-			global.Logger().Info(fmt.Sprintf("scok server connect auth time out -> %s", connect.ConnectId()))
+			global.Logger().Info(fmt.Sprintf("scok server connect auth time out -> %s", connect.RegisterId()))
 		} else {
-			global.Logger().Info(fmt.Sprintf("sock server connect auth checked -> %s", connect.ConnectId()))
+			global.Logger().Info(fmt.Sprintf("sock server connect auth checked -> %s", connect.RegisterId()))
 		}
 	})
 
 	defer func() {
 		connect.Close()
-		global.Logger().Info(fmt.Sprintf("ipc server connect close -> %s", connect.ConnectId()))
+		global.Logger().Info(fmt.Sprintf("sock server connect close -> %s", connect.RegisterId()))
 	}()
 	dataBuf := make([]byte, sockServer.bufferSize)
 	for {
 		if !connect.Active() {
-			global.Logger().Error(fmt.Sprintf("ipc server connect %s is already closed", connect.ConnectId()))
+			global.Logger().Error(fmt.Sprintf("sock server connect %s is already closed", connect.RegisterId()))
 			break
 		}
 
 		dataLen, err := conn.Read(dataBuf[:])
 		if err != nil {
-			global.Logger().Error(fmt.Sprintf("ipc server connect %s on message error %s", connect.ConnectId(), err.Error()))
+			global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.RegisterId(), err.Error()))
 			break
 		}
 
@@ -311,7 +311,7 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 		if messageDatas != nil {
 			err = connect.OnMessage(messageDatas)
 			if err != nil {
-				global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.ConnectId(), err.Error()))
+				global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.RegisterId(), err.Error()))
 			}
 		}
 	}
