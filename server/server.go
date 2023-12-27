@@ -178,6 +178,7 @@ func (xDefault *xDefaultConnectBuilder) NewConnect() ZeroConnect {
 }
 
 type ZeroSocketServer struct {
+	authWaitSeconds        int64
 	heartbeatSeconds       int64
 	heartbeatCheckInterval int64
 	bufferSize             int
@@ -276,7 +277,7 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 
 	global.Logger().Info(fmt.Sprintf("sock server accept connect -> %s", connect.ConnectId()))
 
-	time.AfterFunc(5*time.Second, func() {
+	time.AfterFunc(time.Duration(sockServer.authWaitSeconds)*time.Second, func() {
 		sockServer.connectMutex.RLock()
 		_, ok := sockServer.connects[connect.ConnectId()]
 		sockServer.connectMutex.RUnlock()

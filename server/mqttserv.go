@@ -195,9 +195,9 @@ type MqttServer struct {
 	topicsMapMutex sync.RWMutex
 }
 
-func NewMqttServer(address string, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *MqttServer {
+func NewMqttServer(address string, authWaitSeconds int64, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *MqttServer {
 	return &MqttServer{
-		TCPServer: *NewTCPServer(address, heartbeatSeconds, heartbeatCheckInterval, bufferSize),
+		TCPServer: *NewTCPServer(address, authWaitSeconds, heartbeatSeconds, heartbeatCheckInterval, bufferSize),
 		topicsMap: make(map[string]map[string]*MqttConnect),
 	}
 }
