@@ -131,7 +131,7 @@ func (zSock *ZeroSocketConnect) Heartbeat() {
 	zSock.heartbeatMutex.Lock()
 	zSock.heartbeatTime = time.Now().Unix()
 	zSock.heartbeatMutex.Unlock()
-	global.Logger().Info(fmt.Sprintf("sock connect %s on heartbeat", zSock.ConnectId()))
+	global.Logger().Info(fmt.Sprintf("sock connect %s on heartbeat", zSock.RegisterId()))
 }
 
 func (zSock *ZeroSocketConnect) HeartbeatCheck(heartbeatSeconds int64) bool {
