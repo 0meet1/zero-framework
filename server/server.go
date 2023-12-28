@@ -131,14 +131,14 @@ func (zSock *ZeroSocketConnect) Heartbeat() {
 	zSock.heartbeatMutex.Lock()
 	zSock.heartbeatTime = time.Now().Unix()
 	zSock.heartbeatMutex.Unlock()
-	global.Logger().Info(fmt.Sprintf("sock connect %s on heartbeat", zSock.RegisterId()))
+	global.Logger().Info(fmt.Sprintf("sock connect %s on heartbeat", zSock.This().(ZeroConnect).RegisterId()))
 }
 
 func (zSock *ZeroSocketConnect) HeartbeatCheck(heartbeatSeconds int64) bool {
 
 	if time.Now().Unix()-zSock.heartbeatTime > heartbeatSeconds {
 		global.Logger().Info(fmt.Sprintf("ipc connect %s exceeding heartbeat time, acceptTime %s ,heartbeatTime %s ,now %s ,heartbeat interval %ds",
-			zSock.RegisterId(),
+			zSock.This().(ZeroConnect).RegisterId(),
 			time.Unix(zSock.acceptTime, 0).Format("2006-01-02 15:04:05"),
 			time.Unix(zSock.heartbeatTime, 0).Format("2006-01-02 15:04:05"),
 			time.Now().Format("2006-01-02 15:04:05"),
@@ -196,7 +196,7 @@ type ZeroSocketServer struct {
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
 	sockServer.acceptMutex.Lock()
-	sockServer.accepts[conn.RegisterId()] = conn.This().(ZeroConnect)
+	sockServer.accepts[conn.This().(ZeroConnect).RegisterId()] = conn.This().(ZeroConnect)
 	sockServer.acceptMutex.Unlock()
 	return nil
 }
