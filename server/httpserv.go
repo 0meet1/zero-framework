@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/0meet1/zero-framework/global"
+	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/structs"
 )
 
@@ -80,6 +82,25 @@ func XhttpZeroRequest(req *http.Request) (*structs.ZeroRequest, error) {
 		return nil, err
 	}
 	return &request, nil
+}
+
+func XhttpZeroQuery(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error) {
+	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+		return nil, errors.New("missing necessary parameter `query[0]`")
+	}
+
+	bytes, err := json.Marshal(xRequest.Querys[0])
+	if err != nil {
+		return nil, err
+	}
+
+	var query processors.ZeroQuery
+	err = json.Unmarshal(bytes, &query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &query, nil
 }
 
 type XhttpExecutor struct {
