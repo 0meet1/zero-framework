@@ -23,6 +23,10 @@ type ZeroOrderBy = processors.ZeroOrderBy
 type ZeroLimit = processors.ZeroLimit
 type ZeroQueryOperation = processors.ZeroQueryOperation
 
+const DATABASE_MYSQL = database.DATABASE_MYSQL
+const DATABASE_POSTGRES = database.DATABASE_POSTGRES
+const DATABASE_REDIS = database.DATABASE_REDIS
+
 type EQueryRequest = database.EQueryRequest
 type EQueryResponse = database.EQueryResponse
 type EQuerySearch = database.EQuerySearch
