@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"strings"
@@ -61,6 +62,20 @@ func XhttpResponseDatas(writer http.ResponseWriter, code int, message string, da
 
 func XhttpResponseMessages(writer http.ResponseWriter, code int, message string) {
 	XhttpResponseDatas(writer, code, message, nil, nil)
+}
+
+func XhttpZeroRequest(req *http.Request) (*structs.ZeroRequest, error) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var request structs.ZeroRequest
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		return nil, err
+	}
+	return &request, nil
 }
 
 type XhttpExecutor struct {
