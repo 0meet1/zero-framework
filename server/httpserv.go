@@ -42,6 +42,8 @@ func XhttpResponseMaps(writer http.ResponseWriter, code int, message string, dat
 	if err != nil {
 		panic(err)
 	}
+
+	writer.WriteHeader(code)
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(bytes)
 }
@@ -56,6 +58,8 @@ func XhttpResponseDatas(writer http.ResponseWriter, code int, message string, da
 	if err != nil {
 		panic(err)
 	}
+
+	writer.WriteHeader(code)
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(bytes)
 }
