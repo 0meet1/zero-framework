@@ -187,3 +187,14 @@ func SexWithIDCard(idCard string) (int, error) {
 	}
 	return c17 % 2, nil
 }
+
+func BytesString(bytes ...byte) string {
+	bytesString := ""
+	for i, b := range bytes {
+		if i != 0 && i%8 == 0 {
+			bytesString = fmt.Sprintf("%s\n ", bytesString)
+		}
+		bytesString = fmt.Sprintf("%s 0x%02X", bytesString, b)
+	}
+	return fmt.Sprintf("{%s }\n", bytesString)
+}

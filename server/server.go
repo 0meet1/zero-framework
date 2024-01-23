@@ -137,7 +137,7 @@ func (zSock *ZeroSocketConnect) Heartbeat() {
 func (zSock *ZeroSocketConnect) HeartbeatCheck(heartbeatSeconds int64) bool {
 
 	if time.Now().Unix()-zSock.heartbeatTime > heartbeatSeconds {
-		global.Logger().Info(fmt.Sprintf("ipc connect %s exceeding heartbeat time, acceptTime %s ,heartbeatTime %s ,now %s ,heartbeat interval %ds",
+		global.Logger().Info(fmt.Sprintf("sock connect %s exceeding heartbeat time, acceptTime %s ,heartbeatTime %s ,now %s ,heartbeat interval %ds",
 			zSock.This().(ZeroConnect).RegisterId(),
 			time.Unix(zSock.acceptTime, 0).Format("2006-01-02 15:04:05"),
 			time.Unix(zSock.heartbeatTime, 0).Format("2006-01-02 15:04:05"),
@@ -322,4 +322,28 @@ func (sockServer *ZeroSocketServer) RunServer() {
 		sockServer.ConnectBuilder = &xDefaultConnectBuilder{}
 	}
 	go sockServer.initHeartbeatTimer()
+}
+
+type ZeroClientListener interface {
+	OnConnect(ZeroClientConnect) error
+	OnHeartbeat(ZeroClientConnect) error
+}
+
+type ZeroClientConnect interface {
+	structs.ZeroMetaDef
+
+	Connect() error
+	RemoteAddr() string
+	HeartbeatCheck(int64) bool
+	Active() bool
+	Heartbeat()
+	Close() error
+	Write([]byte) error
+
+	OnMessage([]byte) error
+
+	AddChecker(ZeroDataChecker)
+	CheckPackageData([]byte) []byte
+
+	AddListener(ZeroClientListener)
 }

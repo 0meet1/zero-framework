@@ -3,6 +3,7 @@ package zeroframework
 import (
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/processors"
+	"github.com/0meet1/zero-framework/protocol"
 	"github.com/0meet1/zero-framework/rocketmq"
 	"github.com/0meet1/zero-framework/server"
 	"github.com/0meet1/zero-framework/structs"
@@ -42,12 +43,16 @@ type ZeroConnect = server.ZeroConnect
 
 type ZeroSocketConnect = server.ZeroSocketConnect
 type ZeroSocketServer = server.ZeroSocketServer
+type ZeroClientListener = server.ZeroClientListener
+type ZeroClientConnect = server.ZeroClientConnect
 
 type UDPMessageProcesser = server.UDPMessageProcesser
 
 type IPCServer = server.IPCServer
 type TCPServer = server.TCPServer
 type UDPServer = server.UDPServer
+
+type TCPClient = server.TCPClient
 
 type MqttFixedHeader = server.MqttFixedHeader
 type MqttCoreVariableHeader = server.MqttCoreVariableHeader
@@ -67,3 +72,11 @@ type MqttTopic = server.MqttTopic
 type MqttMessageProcessor = server.MqttMessageProcessor
 type MqttConnect = server.MqttConnect
 type MqttServer = server.MqttServer
+
+const ZEROV1SERV_KEEPER = protocol.ZEROV1SERV_KEEPER
+const ZEROV1SERV_CLIENT = protocol.ZEROV1SERV_CLIENT
+
+type ZeroV1ServKeeper = protocol.ZeroV1ServKeeper
+type ZeroV1MessageOperator = protocol.ZeroV1MessageOperator
+
+type ZeroV1Message = protocol.ZeroV1Message
