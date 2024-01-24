@@ -61,7 +61,11 @@ func (client *TCPClient) Connect() {
 }
 
 func (client *TCPClient) RemoteAddr() string {
-	return client.connect.RemoteAddr().String()
+	if client.connect != nil {
+		return client.connect.RemoteAddr().String()
+	} else {
+		return "disconnect"
+	}
 }
 
 func (client *TCPClient) HeartbeatCheck(heartbeatSeconds int64) bool {

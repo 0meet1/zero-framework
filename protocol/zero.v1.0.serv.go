@@ -82,10 +82,6 @@ type xZeroV1Connect struct {
 func (v1conn *xZeroV1Connect) Authorized(datas ...byte) bool {
 	authMessage := ParseV1Message(datas)
 
-	global.Logger().Info(fmt.Sprintf("zerov1 connect %s authorized", v1conn.RemoteAddr()))
-	v1conn.Heartbeat()
-	v1conn.ZeroSocketConnect.Authorized()
-
 	ackMessage := NewV1AckMessage(MESSAGE_TYPE_CONNACK, authMessage.MessageId(), make([]byte, 0))
 
 	err := ackMessage.Complete()
@@ -104,6 +100,10 @@ func (v1conn *xZeroV1Connect) Authorized(datas ...byte) bool {
 	if err == nil && conn != nil {
 		conn.Close()
 	}
+
+	global.Logger().Info(fmt.Sprintf("zerov1 connect %s authorized", v1conn.RemoteAddr()))
+	v1conn.Heartbeat()
+	v1conn.ZeroSocketConnect.Authorized()
 
 	return true
 }
