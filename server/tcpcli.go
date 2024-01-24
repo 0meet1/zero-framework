@@ -126,7 +126,6 @@ func (client *TCPClient) receive() {
 		client.connect.Close()
 		global.Logger().Info(fmt.Sprintf("tcp client connect close -> %s", client.RemoteAddr()))
 
-		global.Logger().Warn(fmt.Sprintf("tcp client will restart after 5s -> %s", client.RemoteAddr()))
 		client.connect = nil
 		client.startingLoop()
 	}()
@@ -153,10 +152,13 @@ func (client *TCPClient) receive() {
 func (client *TCPClient) startingLoop() {
 	for {
 		<-time.After(time.Duration(time.Second * 5))
+		global.Logger().Info(fmt.Sprintf("tcp client starting -> %s", client.connAddr))
 		err := client.start()
 		if err != nil {
 			global.Logger().Error(err.Error())
+			global.Logger().Info(fmt.Sprintf("tcp client will restart after 5s -> %s", client.connAddr))
 		} else {
+			global.Logger().Info(fmt.Sprintf("tcp client start success -> %s", client.connAddr))
 			break
 		}
 	}
@@ -165,6 +167,7 @@ func (client *TCPClient) startingLoop() {
 func (client *TCPClient) start() error {
 	if client.heartbeatTimer != nil {
 		client.heartbeatTimer.Stop()
+		client.heartbeatTimer = nil
 	}
 
 	conn, err := net.DialTimeout("tcp", client.connAddr, time.Second*time.Duration(30))
