@@ -147,6 +147,7 @@ func RunZeroV1Client(addr string, heartbeatTime int, heartbeatCheckInterval int,
 		),
 		operator: operator,
 	}
+	zerov1cli.ThisDef(zerov1cli)
 	global.Key(ZEROV1SERV_CLIENT, zerov1cli)
 	zerov1cli.Connect()
 }
