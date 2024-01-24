@@ -124,7 +124,7 @@ func (v1msg *ZeroV1Message) MessageBody() []byte {
 
 func (v1msg *ZeroV1Message) Complete() error {
 	binary.BigEndian.PutUint32(v1msg.bodyLength, uint32(len(v1msg.messageBody)))
-	binary.BigEndian.PutUint32(v1msg.dataLength, uint32(21+len(v1msg.messageBody)))
+	binary.BigEndian.PutUint32(v1msg.dataLength, uint32(53+len(v1msg.messageBody)))
 
 	bodys := make([]byte, 0)
 	bodys = append(bodys, v1msg.head...)
