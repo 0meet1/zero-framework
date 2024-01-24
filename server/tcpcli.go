@@ -177,7 +177,7 @@ func (client *TCPClient) start() error {
 	client.connect = conn
 	go client.receive()
 
-	if client.xListener == nil {
+	if client.xListener != nil {
 		err := client.xListener.OnConnect(client.This().(ZeroClientConnect))
 		if err != nil {
 			return err
