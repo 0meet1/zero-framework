@@ -180,7 +180,7 @@ func (v1conn *xZeroV1Connect) OnMessage(datas []byte) error {
 		if v1conn.keeper.operator == nil {
 			callback()
 		} else {
-			ok, err := v1conn.keeper.operator.Operation(uMessage)
+			ok, err := v1conn.keeper.operator.Operation(v1conn, uMessage)
 			if err != nil {
 				return err
 			}

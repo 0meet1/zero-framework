@@ -1,5 +1,7 @@
 package protocol
 
+import "github.com/0meet1/zero-framework/server"
+
 const (
 	ZEROV1SERV_KEEPER = "ZEROV1SERV_KEEPER"
 	ZEROV1SERV_CLIENT = "ZEROV1SERV_CLIENT"
@@ -16,5 +18,5 @@ type ZeroV1ServKeeper interface {
 }
 
 type ZeroV1MessageOperator interface {
-	Operation(*ZeroV1Message) (bool, error)
+	Operation(server.ZeroConnect, *ZeroV1Message) (bool, error)
 }

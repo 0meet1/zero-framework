@@ -118,7 +118,7 @@ func (client *xZeroV1Client) OnMessage(datas []byte) error {
 		if client.operator == nil {
 			callback()
 		} else {
-			ok, err := client.operator.Operation(uMessage)
+			ok, err := client.operator.Operation(nil, uMessage)
 			if err != nil {
 				return err
 			}
