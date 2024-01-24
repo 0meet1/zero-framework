@@ -37,15 +37,20 @@ func (client *TCPClient) initHeartbeatTimer() {
 	for {
 		select {
 		case <-client.heartbeatTimer.C:
-			if !client.HeartbeatCheck(client.heartbeatSeconds) {
+			if client.connect == nil || !client.HeartbeatCheck(client.heartbeatSeconds) {
 				client.connect.Close()
-			} else if client.xListener != nil {
+				client.heartbeatTimer = nil
+				break
+			}
+
+			if client.xListener != nil {
 				err := client.xListener.OnHeartbeat(client.This().(ZeroClientConnect))
 				if err != nil {
 					global.Logger().Error(err.Error())
 				}
 			}
 		}
+		client.heartbeatTimer = time.NewTimer(time.Second * time.Duration(client.heartbeatCheckInterval))
 	}
 }
 
@@ -169,11 +174,6 @@ func (client *TCPClient) startingLoop() {
 }
 
 func (client *TCPClient) start() error {
-	if client.heartbeatTimer != nil {
-		client.heartbeatTimer.Stop()
-		client.heartbeatTimer = nil
-	}
-
 	conn, err := net.DialTimeout("tcp", client.connAddr, time.Second*time.Duration(30))
 	if err != nil {
 		return err
@@ -187,7 +187,11 @@ func (client *TCPClient) start() error {
 			return err
 		}
 	}
+
 	client.connectTime = time.Now().Unix()
+	if client.heartbeatTimer == nil {
+		go client.initHeartbeatTimer()
+	}
 	return nil
 }
 

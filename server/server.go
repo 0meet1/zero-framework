@@ -268,6 +268,7 @@ func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
 			}
 			global.Logger().Info(fmt.Sprintf("sock heartbeat check finished"))
 		}
+		sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
 	}
 }
 
