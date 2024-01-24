@@ -17,6 +17,10 @@ func (xListener *xZeroV1ClientListener) OnConnect(conn server.ZeroClientConnect)
 	if err != nil {
 		return err
 	}
+	err = connectMessage.Complete()
+	if err != nil {
+		return err
+	}
 	conn.(*xZeroV1Client).connectMessage = connectMessage
 
 	<-time.After(time.Duration(time.Second * 1))
@@ -24,6 +28,7 @@ func (xListener *xZeroV1ClientListener) OnConnect(conn server.ZeroClientConnect)
 	if err != nil {
 		return err
 	}
+	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send connect message \n%s", conn.(*xZeroV1Client).RemoteAddr(), connectMessage.String()))
 	return nil
 }
 
@@ -32,10 +37,16 @@ func (xListener *xZeroV1ClientListener) OnHeartbeat(conn server.ZeroClientConnec
 	if err != nil {
 		return err
 	}
+	err = beatMessage.Complete()
+	if err != nil {
+		return err
+	}
+
 	err = conn.(*xZeroV1Client).PushMessage(beatMessage)
 	if err != nil {
 		return err
 	}
+	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send heartbeat message \n%s", conn.(*xZeroV1Client).RemoteAddr(), beatMessage.String()))
 	return nil
 }
 
