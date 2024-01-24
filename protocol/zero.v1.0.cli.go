@@ -130,10 +130,10 @@ func (client *xZeroV1Client) OnMessage(datas []byte) error {
 	return nil
 }
 
-func (client *xZeroV1Client) Connect() error {
+func (client *xZeroV1Client) Connect() {
 	client.AddListener(&xZeroV1ClientListener{})
 	client.AddChecker(&xZeroV1DataChecker{})
-	return client.TCPClient.Connect()
+	client.TCPClient.Connect()
 }
 
 func RunZeroV1Client(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroV1MessageOperator) {

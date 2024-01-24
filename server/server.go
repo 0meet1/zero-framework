@@ -332,7 +332,7 @@ type ZeroClientListener interface {
 type ZeroClientConnect interface {
 	structs.ZeroMetaDef
 
-	Connect() error
+	Connect()
 	RemoteAddr() string
 	HeartbeatCheck(int64) bool
 	Active() bool

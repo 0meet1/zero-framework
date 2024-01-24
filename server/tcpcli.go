@@ -56,8 +56,8 @@ func (client *TCPClient) This() interface{} {
 	return client.ZeroMeta.This()
 }
 
-func (client *TCPClient) Connect() error {
-	return client.start()
+func (client *TCPClient) Connect() {
+	client.startingLoop()
 }
 
 func (client *TCPClient) RemoteAddr() string {
@@ -128,15 +128,7 @@ func (client *TCPClient) receive() {
 
 		global.Logger().Warn(fmt.Sprintf("tcp client will restart after 5s -> %s", client.RemoteAddr()))
 		client.connect = nil
-		for {
-			<-time.After(time.Duration(time.Second * 5))
-			err := client.start()
-			if err != nil {
-				global.Logger().Error(err.Error())
-			} else {
-				break
-			}
-		}
+		client.startingLoop()
 	}()
 
 	dataBuf := make([]byte, client.bufferSize)
@@ -158,12 +150,24 @@ func (client *TCPClient) receive() {
 	}
 }
 
+func (client *TCPClient) startingLoop() {
+	for {
+		<-time.After(time.Duration(time.Second * 5))
+		err := client.start()
+		if err != nil {
+			global.Logger().Error(err.Error())
+		} else {
+			break
+		}
+	}
+}
+
 func (client *TCPClient) start() error {
 	if client.heartbeatTimer != nil {
 		client.heartbeatTimer.Stop()
 	}
 
-	conn, err := net.Dial("tcp", client.connAddr)
+	conn, err := net.DialTimeout("tcp", client.connAddr, time.Second*time.Duration(30))
 	if err != nil {
 		return err
 	}
