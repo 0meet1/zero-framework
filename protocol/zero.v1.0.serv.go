@@ -53,7 +53,7 @@ func (checker *xZeroV1DataChecker) CheckPackageData(data []byte) []byte {
 		checker.cachebytes = append(checker.cachebytes, data...)
 	}
 
-	if len(checker.cachebytes) > 0 && reflect.DeepEqual(checker.cachebytes[len(checker.cachebytes)-2:], xZERO_MESSAGE_END) {
+	if len(checker.cachebytes) > 0 && reflect.DeepEqual(checker.cachebytes[len(checker.cachebytes)-4:], xZERO_MESSAGE_END) {
 		bts := make([]byte, len(checker.cachebytes))
 		copy(bts, checker.cachebytes)
 		v1msg := ParseV1Message(bts)
