@@ -32,7 +32,7 @@ func (xListener *xZeroV1ClientListener) OnHeartbeat(conn server.ZeroClientConnec
 	if err != nil {
 		return err
 	}
-	err = conn.(*xZeroV1Client).pushMessage(beatMessage)
+	err = conn.(*xZeroV1Client).PushMessage(beatMessage)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (client *xZeroV1Client) Active() bool {
 	return client.connectMessage == nil
 }
 
-func (client *xZeroV1Client) execMessage(message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
+func (client *xZeroV1Client) ExecMessage(message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
 	if client.responseChan != nil {
 		return nil, errors.New(fmt.Sprintf("0protocol/1.0 client connect %s is busying", client.RemoteAddr()))
 	}
@@ -92,7 +92,7 @@ func (client *xZeroV1Client) execMessage(message *ZeroV1Message, withSecond int)
 	}
 }
 
-func (client *xZeroV1Client) pushMessage(message *ZeroV1Message) error {
+func (client *xZeroV1Client) PushMessage(message *ZeroV1Message) error {
 	return client.Write(message.Bytes())
 }
 

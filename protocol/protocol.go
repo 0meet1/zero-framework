@@ -17,6 +17,11 @@ type ZeroV1ServKeeper interface {
 	PushMessage(string, *ZeroV1Message) error
 }
 
+type ZeroV1Client interface {
+	ExecMessage(*ZeroV1Message, int) (*ZeroV1Message, error)
+	PushMessage(*ZeroV1Message) error
+}
+
 type ZeroV1MessageOperator interface {
 	Operation(server.ZeroConnect, *ZeroV1Message) (bool, error)
 }
