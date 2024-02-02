@@ -2,6 +2,7 @@ package zeroframework
 
 import (
 	"github.com/0meet1/zero-framework/database"
+	"github.com/0meet1/zero-framework/mfgrc"
 	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/protocol"
 	"github.com/0meet1/zero-framework/rocketmq"
@@ -80,3 +81,36 @@ type ZeroV1ServKeeper = protocol.ZeroV1ServKeeper
 type ZeroV1MessageOperator = protocol.ZeroV1MessageOperator
 
 type ZeroV1Message = protocol.ZeroV1Message
+
+const WORKER_MONO_STATUS_READY = mfgrc.WORKER_MONO_STATUS_READY
+const WORKER_MONO_STATUS_PENDING = mfgrc.WORKER_MONO_STATUS_PENDING
+const WORKER_MONO_STATUS_EXECUTING = mfgrc.WORKER_MONO_STATUS_EXECUTING
+const WORKER_MONO_STATUS_RETRYING = mfgrc.WORKER_MONO_STATUS_RETRYING
+const WORKER_MONO_STATUS_COMPLETE = mfgrc.WORKER_MONO_STATUS_COMPLETE
+const WORKER_MONO_STATUS_FAILED = mfgrc.WORKER_MONO_STATUS_FAILED
+const WORKER_MONO_STATUS_REVOKE = mfgrc.WORKER_MONO_STATUS_REVOKE
+const WORKER_MONO_STATUS_TIMEOUT = mfgrc.WORKER_MONO_STATUS_TIMEOUT
+
+const WORKER_MONOGROUP_STATUS_READY = mfgrc.WORKER_MONOGROUP_STATUS_READY
+const WORKER_MONOGROUP_STATUS_PENDING = mfgrc.WORKER_MONOGROUP_STATUS_PENDING
+const WORKER_MONOGROUP_STATUS_EXECUTING = mfgrc.WORKER_MONOGROUP_STATUS_EXECUTING
+const WORKER_MONOGROUP_STATUS_COMPLETE = mfgrc.WORKER_MONOGROUP_STATUS_COMPLETE
+const WORKER_MONOGROUP_STATUS_FAILED = mfgrc.WORKER_MONOGROUP_STATUS_FAILED
+
+type MfgrcMono = mfgrc.MfgrcMono
+type MfgrcGroup = mfgrc.MfgrcGroup
+type ZeroMfgrcMonoStore = mfgrc.ZeroMfgrcMonoStore
+type ZeroMfgrcMonoEventListener = mfgrc.ZeroMfgrcMonoEventListener
+type ZeroMfgrcMonoProgressListener = mfgrc.ZeroMfgrcMonoProgressListener
+type ZeroMfgrcKeeperOpts = mfgrc.ZeroMfgrcKeeperOpts
+
+type ZeroMfgrcMono = mfgrc.ZeroMfgrcMono
+type ZeroMfgrcFlux = mfgrc.ZeroMfgrcFlux
+type ZeroMfgrcWorker = mfgrc.ZeroMfgrcWorker
+type ZeroMfgrcKeeper = mfgrc.ZeroMfgrcKeeper
+type ZeroMfgrcGroupKeeperOpts = mfgrc.ZeroMfgrcGroupKeeperOpts
+type ZeroMfgrcGroupStore = mfgrc.ZeroMfgrcGroupStore
+type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
+type ZeroMfgrcGroup = mfgrc.ZeroMfgrcGroup
+type ZeroMfgrcGroupWorker = mfgrc.ZeroMfgrcGroupWorker
+type ZeroMfgrcGroupKeeper = mfgrc.ZeroMfgrcGroupKeeper

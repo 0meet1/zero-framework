@@ -72,6 +72,8 @@ type ZeroResponse struct {
 }
 
 type ZeroCoreStructs struct {
+	ZeroMeta
+
 	ID         string                 `json:"id,omitempty"`
 	CreateTime Date                   `json:"createTime,omitempty"`
 	UpdateTime Date                   `json:"updateTime,omitempty"`
