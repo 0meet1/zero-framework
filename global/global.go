@@ -24,7 +24,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.9.0.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.9.1.RELEASE )  **/
 
 `
 
@@ -104,8 +104,8 @@ func systemAbsPath() string {
 	_, filename, _, ok := runtime.Caller(2)
 	if ok {
 		dir, file := path.Split(filename)
-		if !strings.HasPrefix(file, _appName) {
-			panic("global context must be initialized in `main func` and appname must same as `main package filename` .")
+		if !strings.HasPrefix(file, _appName) && !strings.HasPrefix(file, "main") {
+			panic("global context must be initialized in `main func` and appname must same as `main package filename or 'main'` .")
 		}
 		return dir
 	}
