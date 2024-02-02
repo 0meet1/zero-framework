@@ -1,6 +1,10 @@
 package mfgrc
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
 
 const (
 	xKEEPER_STATUS_RUNNING  = "running"
@@ -94,4 +98,45 @@ type ZeroMfgrcGroupStore interface {
 	AddGroupMono(MfgrcGroup, MfgrcMono) error
 	MonoStore() ZeroMfgrcMonoStore
 	NewSerial(string, string) (int64, error)
+}
+
+type ZeroMfgrcMonoActuator struct {
+	keeper  *ZeroMfgrcKeeper
+	mono    MfgrcMono
+	errchan chan error
+}
+
+func (act *ZeroMfgrcMonoActuator) Exec(mono MfgrcMono) chan error {
+	act.mono = mono
+	act.errchan = make(chan error, 1)
+
+	act.mono.EventListener(act)
+	err := act.keeper.AddMono(act.mono)
+	if err != nil {
+		go func() {
+			time.After(time.Millisecond * time.Duration(100))
+			act.errchan <- err
+		}()
+	}
+	return act.errchan
+}
+
+func (act *ZeroMfgrcMonoActuator) Mono() MfgrcMono {
+	return act.mono
+}
+
+func (act *ZeroMfgrcMonoActuator) OnPending(MfgrcMono) error   { return nil }
+func (act *ZeroMfgrcMonoActuator) OnExecuting(MfgrcMono) error { return nil }
+func (act *ZeroMfgrcMonoActuator) OnRetrying(MfgrcMono) error  { return nil }
+func (act *ZeroMfgrcMonoActuator) OnRevoke(mono MfgrcMono) error {
+	act.errchan <- errors.New(fmt.Sprintf("mono `%s` is already revoke", act.mono.XmonoId()))
+	return nil
+}
+func (act *ZeroMfgrcMonoActuator) OnComplete(MfgrcMono) error {
+	act.errchan <- nil
+	return nil
+}
+func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error {
+	act.errchan <- errors.New(fmt.Sprintf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason))
+	return nil
 }
