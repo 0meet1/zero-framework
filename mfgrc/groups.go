@@ -209,7 +209,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 	worker.status = xWORKER_STATUS_RUNNING
 	worker.statusMutex.Unlock()
 
-	global.Logger().Info(fmt.Sprintf("[%s] workergroup is waiting for task assignment", worker.workName))
+	global.Logger().Info(fmt.Sprintf("[%s] workergroup is ready and waiting", worker.workName))
 	for xGroup := range worker.keeper.groupChan {
 		worker.statusMutex.Lock()
 		xstatus := worker.status
@@ -290,7 +290,7 @@ func (keeper *ZeroMfgrcGroupKeeper) RunGroupWorker() {
 	}
 
 	for i := 0; i < keeper.maxGroupQueues; i++ {
-		worker := newMfgrcGroupWorker(fmt.Sprintf("%s-gorutine-%03d::", keeper.keeperName, i), keeper)
+		worker := newMfgrcGroupWorker(fmt.Sprintf("%s-group-%03d::", keeper.keeperName, i), keeper)
 
 		keeper.workerMutex.Lock()
 		keeper.workerMap[worker.workName] = worker
@@ -320,6 +320,8 @@ func (keeper *ZeroMfgrcGroupKeeper) revokeMonoGroups() {
 	keeper.statusMutex.Lock()
 	defer keeper.statusMutex.Unlock()
 	keeper.status = xKEEPER_STATUS_RUNNING
+
+	global.Logger().Info(fmt.Sprintf(" workergroup check and resume monos complete "))
 }
 
 func (keeper *ZeroMfgrcGroupKeeper) closeWorker(worker *ZeroMfgrcGroupWorker) {

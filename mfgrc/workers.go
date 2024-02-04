@@ -194,7 +194,7 @@ func (worker *ZeroMfgrcWorker) Start() {
 	worker.status = xWORKER_STATUS_RUNNING
 	worker.statusMutex.Unlock()
 
-	global.Logger().Info(fmt.Sprintf("[%s] worker is waiting for task assignment", worker.workName))
+	global.Logger().Info(fmt.Sprintf("[%s] worker is ready and waiting", worker.workName))
 	for xQueue := range worker.keeper.mfgrcChan {
 		worker.statusMutex.Lock()
 		xstatus := worker.status
@@ -337,6 +337,8 @@ func (keeper *ZeroMfgrcKeeper) resumeMonos() {
 	keeper.statusMutex.Lock()
 	defer keeper.statusMutex.Unlock()
 	keeper.status = xKEEPER_STATUS_RUNNING
+
+	global.Logger().Info(fmt.Sprintf(" worker check and resume monos complete "))
 }
 
 func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
