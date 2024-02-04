@@ -81,7 +81,7 @@ type ZeroMfgrcMonoProgressListener interface {
 }
 
 type ZeroMfgrcKeeperOpts interface {
-	FetchUncompleteMonos() ([]*ZeroMfgrcMono, error)
+	FetchUncompleteMonos() ([]MfgrcMono, error)
 	DatebaseDatetime() (*time.Time, error)
 	MonoStore() ZeroMfgrcMonoStore
 }
