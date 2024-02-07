@@ -24,7 +24,6 @@ type MfgrcMono interface {
 	Xprogress() int
 
 	State() string
-	Response() interface{}
 
 	Pending(*ZeroMfgrcFlux) error
 	Revoke() error

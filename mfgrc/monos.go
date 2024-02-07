@@ -33,7 +33,6 @@ type ZeroMfgrcMono struct {
 	reason          string
 	maxExecuteTimes int
 	executeTimes    int
-	response        interface{}
 
 	xStore    ZeroMfgrcMonoStore
 	xListener ZeroMfgrcMonoEventListener
@@ -102,10 +101,6 @@ func (mono *ZeroMfgrcMono) State() string {
 
 func (mono *ZeroMfgrcMono) FromFlux() *ZeroMfgrcFlux {
 	return mono.fromFlux
-}
-
-func (mono *ZeroMfgrcMono) Response() interface{} {
-	return mono.response
 }
 
 func (mono *ZeroMfgrcMono) Store(store ZeroMfgrcMonoStore) {
@@ -313,9 +308,6 @@ func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {
 	jsonMap["reason"] = mono.reason
 	jsonMap["maxExecuteTimes"] = mono.maxExecuteTimes
 	jsonMap["executeTimes"] = mono.executeTimes
-	if mono.response != nil {
-		jsonMap["response"] = mono.response
-	}
 
 	return jsonMap, nil
 }
