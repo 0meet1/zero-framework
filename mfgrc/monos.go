@@ -118,7 +118,7 @@ func (mono *ZeroMfgrcMono) Ready(store ...ZeroMfgrcMonoStore) error {
 		mono.xStore = store[0]
 	}
 	if mono.xStore != nil {
-		return mono.xStore.UpdateMono(mono)
+		return mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 	}
 	global.Logger().Info(fmt.Sprintf("mono `%s` on ready", mono.MonoID))
 	return nil
