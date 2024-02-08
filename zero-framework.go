@@ -109,8 +109,11 @@ type ZeroMfgrcWorker = mfgrc.ZeroMfgrcWorker
 type ZeroMfgrcKeeper = mfgrc.ZeroMfgrcKeeper
 type ZeroMfgrcGroupKeeperOpts = mfgrc.ZeroMfgrcGroupKeeperOpts
 type ZeroMfgrcGroupStore = mfgrc.ZeroMfgrcGroupStore
-type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
 type ZeroMfgrcGroup = mfgrc.ZeroMfgrcGroup
 type ZeroMfgrcGroupWorker = mfgrc.ZeroMfgrcGroupWorker
 type ZeroMfgrcGroupKeeper = mfgrc.ZeroMfgrcGroupKeeper
 type ZeroMfgrcGroupEventListener = mfgrc.ZeroMfgrcGroupEventListener
+
+type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
+type ZeroMfgrcGroupActuator = mfgrc.ZeroMfgrcGroupActuator
+type ZeroMfgrcMonoQueueActuator = mfgrc.ZeroMfgrcMonoQueueActuator
