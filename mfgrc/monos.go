@@ -36,7 +36,9 @@ type ZeroMfgrcMono struct {
 
 	xStore    ZeroMfgrcMonoStore
 	xListener ZeroMfgrcMonoEventListener
-	fromFlux  *ZeroMfgrcFlux
+
+	keeper   *ZeroMfgrcKeeper
+	fromFlux *ZeroMfgrcFlux
 }
 
 func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
@@ -110,7 +112,9 @@ func (mono *ZeroMfgrcMono) EventListener(eventListener ZeroMfgrcMonoEventListene
 	mono.xListener = eventListener
 }
 
-func (mono *ZeroMfgrcMono) Ready(store ...ZeroMfgrcMonoStore) error {
+func (mono *ZeroMfgrcMono) Ready(keeper *ZeroMfgrcKeeper, store ...ZeroMfgrcMonoStore) error {
+	mono.keeper = keeper
+	mono.maxExecuteTimes = mono.keeper.taskRetryTimes + 1
 	mono.status = WORKER_MONO_STATUS_READY
 	mono.executeTimes = 0
 	mono.reason = ""
@@ -185,8 +189,6 @@ func (mono *ZeroMfgrcMono) Timeout() error {
 }
 
 func (mono *ZeroMfgrcMono) Executing() error {
-	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
-
 	if mono.status != WORKER_MONO_STATUS_PENDING {
 		return errors.New(fmt.Sprintf("could not executing mono `%s` status `%s`", mono.MonoID, mono.status))
 	}
