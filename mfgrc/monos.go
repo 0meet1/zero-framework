@@ -132,13 +132,13 @@ func (mono *ZeroMfgrcMono) Pending(flux *ZeroMfgrcFlux) error {
 	mono.status = WORKER_MONO_STATUS_PENDING
 	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnPending(mono)
+		err := mono.xListener.OnPending(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -151,13 +151,13 @@ func (mono *ZeroMfgrcMono) Revoke() error {
 	mono.status = WORKER_MONO_STATUS_REVOKE
 
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnRevoke(mono)
+		err := mono.xListener.OnRevoke(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -170,13 +170,13 @@ func (mono *ZeroMfgrcMono) Timeout() error {
 	mono.status = WORKER_MONO_STATUS_TIMEOUT
 
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnRevoke(mono)
+		err := mono.xListener.OnRevoke(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -195,13 +195,13 @@ func (mono *ZeroMfgrcMono) Executing() error {
 	mono.status = WORKER_MONO_STATUS_EXECUTING
 	mono.executeTimes++
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnExecuting(mono)
+		err := mono.xListener.OnExecuting(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -221,13 +221,13 @@ func (mono *ZeroMfgrcMono) Retrying(reason string) error {
 	mono.status = WORKER_MONO_STATUS_RETRYING
 	mono.executeTimes++
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnRetrying(mono)
+		err := mono.xListener.OnRetrying(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -242,13 +242,13 @@ func (mono *ZeroMfgrcMono) Complete() error {
 	}
 	mono.status = WORKER_MONO_STATUS_COMPLETE
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnComplete(mono)
+		err := mono.xListener.OnComplete(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -261,13 +261,13 @@ func (mono *ZeroMfgrcMono) Failed(reason string) error {
 	mono.reason = reason
 	mono.status = WORKER_MONO_STATUS_FAILED
 	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono)
+		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
 	}
 	if mono.xListener != nil {
-		err := mono.xListener.OnFailed(mono, reason)
+		err := mono.xListener.OnFailed(mono.This().(MfgrcMono), reason)
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -278,7 +278,7 @@ func (mono *ZeroMfgrcMono) Failed(reason string) error {
 
 func (mono *ZeroMfgrcMono) Delete() error {
 	if mono.xStore != nil {
-		return mono.xStore.DeleteMono(mono)
+		return mono.xStore.DeleteMono(mono.This().(MfgrcMono))
 	}
 	return nil
 }
@@ -288,7 +288,7 @@ func (mono *ZeroMfgrcMono) Do() error {
 }
 
 func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {
-	mjson, err := json.Marshal(mono)
+	mjson, err := json.Marshal(mono.This().(MfgrcMono))
 	if err != nil {
 		return nil, err
 	}

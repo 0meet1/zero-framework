@@ -101,7 +101,7 @@ func (group *ZeroMfgrcGroup) Ready(store ZeroMfgrcGroupStore) error {
 	group.reason = ""
 	group.xStore = store
 	if group.xStore != nil {
-		return group.xStore.UpdateGroup(group)
+		return group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
 	global.Logger().Info(fmt.Sprintf("mono group `%s` on ready", group.ID))
 	return nil
@@ -113,11 +113,11 @@ func (group *ZeroMfgrcGroup) Pending() error {
 	}
 	group.status = WORKER_MONOGROUP_STATUS_PENDING
 	if group.xStore != nil {
-		group.xStore.UpdateGroup(group)
+		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is pending`", group.ID))
 	if group.xListener != nil {
-		err := group.xListener.OnPending(group)
+		err := group.xListener.OnPending(group.This().(MfgrcGroup))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -133,13 +133,13 @@ func (group *ZeroMfgrcGroup) Executing() error {
 	group.status = WORKER_MONOGROUP_STATUS_EXECUTING
 
 	if group.xStore != nil {
-		group.xStore.UpdateGroup(group)
+		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
 
 	global.Logger().Info(fmt.Sprintf("group `%s` is executing in worker [%s] , option: %s", group.ID, group.worker.workName, group.Option))
 
 	if group.xListener != nil {
-		err := group.xListener.OnExecuting(group)
+		err := group.xListener.OnExecuting(group.This().(MfgrcGroup))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -153,11 +153,11 @@ func (group *ZeroMfgrcGroup) Complete() error {
 	}
 	group.status = WORKER_MONOGROUP_STATUS_COMPLETE
 	if group.xStore != nil {
-		group.xStore.UpdateGroup(group)
+		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is complete in worker [%s]", group.ID, group.worker.workName))
 	if group.xListener != nil {
-		err := group.xListener.OnComplete(group)
+		err := group.xListener.OnComplete(group.This().(MfgrcGroup))
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -169,11 +169,11 @@ func (group *ZeroMfgrcGroup) Failed(reason string) error {
 	group.reason = reason
 	group.status = WORKER_MONOGROUP_STATUS_FAILED
 	if group.xStore != nil {
-		group.xStore.UpdateGroup(group)
+		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is failed in worker [%s] , reason: %s", group.ID, group.worker.workName, reason))
 	if group.xListener != nil {
-		err := group.xListener.OnFailed(group, reason)
+		err := group.xListener.OnFailed(group.This().(MfgrcGroup), reason)
 		if err != nil {
 			global.Logger().Error(err.Error())
 		}
@@ -190,8 +190,13 @@ func (group *ZeroMfgrcGroup) Delete() error {
 
 func (group *ZeroMfgrcGroup) Export() (map[string]interface{}, error) {
 
+	jsonbytes, err := json.Marshal(group.This().(MfgrcGroup))
+	if err != nil {
+		return nil, err
+	}
+
 	var jsonMap map[string]interface{}
-	err := json.Unmarshal([]byte(group.ZeroCoreStructs.String()), &jsonMap)
+	err = json.Unmarshal(jsonbytes, &jsonMap)
 	if err != nil {
 		return nil, err
 	}
