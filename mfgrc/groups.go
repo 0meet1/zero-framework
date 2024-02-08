@@ -267,15 +267,21 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 			worker.executing = xGroup.XuniqueCode()
 
 			xGroup.AddWorker(worker)
-			err := xGroup.Do()
+			err := xGroup.Executing()
 			if err != nil {
 				xGroup.Failed(err.Error())
+			} else {
+				err = xGroup.Do()
+				if err != nil {
+					xGroup.Failed(err.Error())
+				} else {
+					err = xGroup.Complete()
+					if err != nil {
+						xGroup.Failed(err.Error())
+					}
+				}
 			}
 
-			err = xGroup.Complete()
-			if err != nil {
-				xGroup.Failed(err.Error())
-			}
 			worker.keeper.closeGroup(xGroup)
 
 			global.Logger().Info(fmt.Sprintf("[%s] workergroup `%s` device `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
