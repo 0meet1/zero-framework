@@ -18,10 +18,10 @@ type ZeroMfgrcFlux struct {
 	worker *ZeroMfgrcWorker
 }
 
-func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono) error {
+func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, maxQueueLimit int) error {
 	flux.UniqueId = mono.XuniqueCode()
 	flux.monoMap = make(map[string]MfgrcMono)
-	flux.monos = make(chan MfgrcMono, flux.worker.keeper.maxQueueLimit)
+	flux.monos = make(chan MfgrcMono, maxQueueLimit)
 	err := flux.Push(mono)
 	if err != nil {
 		return err
@@ -378,7 +378,7 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 	keeper.mfgrcMutex.Unlock()
 	if !ok {
 		mfgrcflux := ZeroMfgrcFlux{}
-		mfgrcflux.Join(mono)
+		mfgrcflux.Join(mono, keeper.maxQueueLimit)
 		keeper.mfgrcMutex.Lock()
 		keeper.mfgrcMap[mfgrcflux.UniqueId] = &mfgrcflux
 		keeper.mfgrcMutex.Unlock()
@@ -435,7 +435,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 		if !ok {
 			mfgrcflux := ZeroMfgrcFlux{}
-			err := mfgrcflux.Join(mono)
+			err := mfgrcflux.Join(mono, keeper.maxQueueLimit)
 			if err != nil {
 				return err
 			}
