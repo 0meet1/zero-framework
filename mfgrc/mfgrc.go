@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/0meet1/zero-framework/structs"
 )
 
 const (
@@ -19,6 +21,8 @@ const (
 )
 
 type MfgrcMono interface {
+	structs.ZeroMetaDef
+
 	XmonoId() string
 	XuniqueCode() string
 	Xoption() string
@@ -42,6 +46,8 @@ type MfgrcMono interface {
 }
 
 type MfgrcGroup interface {
+	structs.ZeroMetaDef
+
 	XgroupId() string
 	XuniqueCode() string
 	Xoption() string
