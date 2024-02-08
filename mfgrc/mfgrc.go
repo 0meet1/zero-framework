@@ -3,6 +3,7 @@ package mfgrc
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -119,6 +120,7 @@ func (act *ZeroMfgrcMonoActuator) Exec(mono MfgrcMono) chan error {
 		go func() {
 			time.After(time.Millisecond * time.Duration(100))
 			act.errchan <- err
+			act.errchan = nil
 		}()
 	}
 	return act.errchan
@@ -132,15 +134,21 @@ func (act *ZeroMfgrcMonoActuator) OnPending(MfgrcMono) error   { return nil }
 func (act *ZeroMfgrcMonoActuator) OnExecuting(MfgrcMono) error { return nil }
 func (act *ZeroMfgrcMonoActuator) OnRetrying(MfgrcMono) error  { return nil }
 func (act *ZeroMfgrcMonoActuator) OnRevoke(mono MfgrcMono) error {
-	act.errchan <- errors.New(fmt.Sprintf("mono `%s` is already revoke", act.mono.XmonoId()))
+	if act.errchan != nil {
+		act.errchan <- errors.New(fmt.Sprintf("mono `%s` is already revoke", act.mono.XmonoId()))
+	}
 	return nil
 }
 func (act *ZeroMfgrcMonoActuator) OnComplete(MfgrcMono) error {
-	act.errchan <- nil
+	if act.errchan != nil {
+		act.errchan <- nil
+	}
 	return nil
 }
 func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error {
-	act.errchan <- errors.New(fmt.Sprintf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason))
+	if act.errchan != nil {
+		act.errchan <- errors.New(fmt.Sprintf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason))
+	}
 	return nil
 }
 
@@ -160,6 +168,7 @@ func (act *ZeroMfgrcGroupActuator) Exec(group MfgrcGroup) chan error {
 		go func() {
 			time.After(time.Millisecond * time.Duration(100))
 			act.errchan <- err
+			act.errchan = nil
 		}()
 	}
 	return act.errchan
@@ -172,10 +181,112 @@ func (act *ZeroMfgrcGroupActuator) Group() MfgrcGroup {
 func (_ *ZeroMfgrcGroupActuator) OnPending(MfgrcGroup) error   { return nil }
 func (_ *ZeroMfgrcGroupActuator) OnExecuting(MfgrcGroup) error { return nil }
 func (act *ZeroMfgrcGroupActuator) OnComplete(MfgrcGroup) error {
-	act.errchan <- nil
+	if act.errchan != nil {
+		act.errchan <- nil
+	}
 	return nil
 }
 func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason string) error {
-	act.errchan <- errors.New(fmt.Sprintf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason))
+	if act.errchan != nil {
+		act.errchan <- errors.New(fmt.Sprintf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason))
+	}
 	return nil
+}
+
+type ZeroMfgrcMonoQueueActuator struct {
+	keeper  *ZeroMfgrcKeeper
+	monos   []MfgrcMono
+	errchan chan error
+
+	counterLock sync.Mutex
+	success     int
+	failed      int
+	result      map[string]string
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) Exec(monos ...MfgrcMono) chan error {
+	act.monos = monos
+	act.errchan = make(chan error, 1)
+	act.success = 0
+	act.failed = 0
+	act.result = make(map[string]string)
+
+	for _, mono := range act.monos {
+		mono.EventListener(act)
+	}
+	err := act.keeper.AddMonosQueue(act.monos...)
+	if err != nil {
+		go func() {
+			time.After(time.Millisecond * time.Duration(100))
+			act.errchan <- err
+			act.errchan = nil
+		}()
+	}
+
+	return act.errchan
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) OnPending(MfgrcMono) error   { return nil }
+func (act *ZeroMfgrcMonoQueueActuator) OnExecuting(MfgrcMono) error { return nil }
+func (act *ZeroMfgrcMonoQueueActuator) OnRetrying(MfgrcMono) error  { return nil }
+func (act *ZeroMfgrcMonoQueueActuator) OnRevoke(mono MfgrcMono) error {
+	if act.errchan == nil {
+		return nil
+	}
+
+	act.counterLock.Lock()
+	defer act.counterLock.Unlock()
+
+	act.failed++
+	act.result[mono.XmonoId()] = fmt.Sprintf("mono `%s` is already revoke", mono.XmonoId())
+	act.check()
+	return nil
+}
+func (act *ZeroMfgrcMonoQueueActuator) OnComplete(mono MfgrcMono) error {
+	if act.errchan == nil {
+		return nil
+	}
+
+	act.counterLock.Lock()
+	defer act.counterLock.Unlock()
+
+	act.success++
+	act.result[mono.XmonoId()] = ""
+	act.check()
+	return nil
+}
+func (act *ZeroMfgrcMonoQueueActuator) OnFailed(mono MfgrcMono, reason string) error {
+	if act.errchan == nil {
+		return nil
+	}
+	act.counterLock.Lock()
+	defer act.counterLock.Unlock()
+
+	act.failed++
+	act.result[mono.XmonoId()] = fmt.Sprintf("mono `%s` exec failed, reason: %s", mono.XmonoId(), reason)
+	act.check()
+	return nil
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) Result() map[string]string {
+	return act.result
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) Success() int {
+	return act.success
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) Failed() int {
+	return act.failed
+}
+
+func (act *ZeroMfgrcMonoQueueActuator) check() {
+	if act.success+act.failed == len(act.monos) {
+		if act.failed > 0 {
+			act.errchan <- errors.New(fmt.Sprintf("queue exec failed, failed: %d, success: %d", act.failed, act.success))
+		} else {
+			act.errchan <- nil
+		}
+	}
+	act.errchan = nil
 }
