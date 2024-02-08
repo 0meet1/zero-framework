@@ -130,7 +130,6 @@ func (mono *ZeroMfgrcMono) Pending(flux *ZeroMfgrcFlux) error {
 	}
 	mono.fromFlux = flux
 	mono.status = WORKER_MONO_STATUS_PENDING
-	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
 	if mono.xStore != nil {
 		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
 		if err != nil {
@@ -186,6 +185,8 @@ func (mono *ZeroMfgrcMono) Timeout() error {
 }
 
 func (mono *ZeroMfgrcMono) Executing() error {
+	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
+
 	if mono.status != WORKER_MONO_STATUS_PENDING {
 		return errors.New(fmt.Sprintf("could not executing mono `%s` status `%s`", mono.MonoID, mono.status))
 	}
