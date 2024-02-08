@@ -175,7 +175,12 @@ func (group *ZeroMfgrcGroup) Failed(reason string) error {
 	if group.xStore != nil {
 		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
 	}
-	global.Logger().Info(fmt.Sprintf("group `%s` is failed in worker [%s] , reason: %s", group.ID, group.worker.workName, reason))
+	if group.worker != nil {
+		global.Logger().Info(fmt.Sprintf("group `%s` is failed in worker [%s] , reason: %s", group.ID, group.worker.workName, reason))
+	} else {
+		global.Logger().Info(fmt.Sprintf("group `%s` is failed in worker [checker] , reason: %s", group.ID, reason))
+	}
+
 	if group.xListener != nil {
 		err := group.xListener.OnFailed(group.This().(MfgrcGroup), reason)
 		if err != nil {
