@@ -242,10 +242,10 @@ func (act *ZeroMfgrcMonoQueueActuator) OnRevoke(mono MfgrcMono) error {
 	}
 
 	act.counterLock.Lock()
-	defer act.counterLock.Unlock()
-
 	act.failed++
 	act.result[mono.XmonoId()] = fmt.Sprintf("mono `%s` is already revoke", mono.XmonoId())
+	act.counterLock.Unlock()
+
 	act.check()
 	return nil
 }
@@ -255,10 +255,10 @@ func (act *ZeroMfgrcMonoQueueActuator) OnComplete(mono MfgrcMono) error {
 	}
 
 	act.counterLock.Lock()
-	defer act.counterLock.Unlock()
-
 	act.success++
 	act.result[mono.XmonoId()] = ""
+	act.counterLock.Unlock()
+
 	act.check()
 	return nil
 }
@@ -267,10 +267,10 @@ func (act *ZeroMfgrcMonoQueueActuator) OnFailed(mono MfgrcMono, reason string) e
 		return nil
 	}
 	act.counterLock.Lock()
-	defer act.counterLock.Unlock()
-
 	act.failed++
 	act.result[mono.XmonoId()] = fmt.Sprintf("mono `%s` exec failed, reason: %s", mono.XmonoId(), reason)
+	act.counterLock.Unlock()
+
 	act.check()
 	return nil
 }
@@ -288,12 +288,16 @@ func (act *ZeroMfgrcMonoQueueActuator) Failed() int {
 }
 
 func (act *ZeroMfgrcMonoQueueActuator) check() {
-	if act.success+act.failed == len(act.monos) {
+	act.counterLock.Lock()
+	completes := act.success + act.failed
+	act.counterLock.Unlock()
+
+	if completes == len(act.monos) {
 		if act.failed > 0 {
 			act.errchan <- errors.New(fmt.Sprintf("queue exec failed, failed: %d, success: %d", act.failed, act.success))
 		} else {
 			act.errchan <- nil
 		}
+		act.errchan = nil
 	}
-	act.errchan = nil
 }
