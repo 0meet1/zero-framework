@@ -92,8 +92,8 @@ func (group *ZeroMfgrcGroup) AddWorker(worker *ZeroMfgrcGroupWorker) {
 	group.worker = worker
 }
 
-func (group *ZeroMfgrcGroup) Do() {
-
+func (group *ZeroMfgrcGroup) Do() error {
+	return errors.New("not implemented")
 }
 
 func (group *ZeroMfgrcGroup) Ready(store ZeroMfgrcGroupStore) error {
@@ -253,7 +253,13 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 			worker.executing = xGroup.XuniqueCode()
 
 			xGroup.AddWorker(worker)
-			xGroup.Do()
+			err := xGroup.Do()
+			if err == nil {
+				err = xGroup.Complete()
+				if err != nil {
+					xGroup.Failed(err.Error())
+				}
+			}
 			worker.keeper.closeGroup(xGroup)
 
 			global.Logger().Info(fmt.Sprintf("[%s] workergroup `%s` device `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))

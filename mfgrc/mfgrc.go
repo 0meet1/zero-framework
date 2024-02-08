@@ -55,7 +55,7 @@ type MfgrcGroup interface {
 	Complete() error
 	Failed(string) error
 
-	Do()
+	Do() error
 	Export() (map[string]interface{}, error)
 
 	Store(ZeroMfgrcGroupStore)
