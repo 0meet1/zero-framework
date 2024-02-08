@@ -112,8 +112,6 @@ func (mono *ZeroMfgrcMono) EventListener(eventListener ZeroMfgrcMonoEventListene
 
 func (mono *ZeroMfgrcMono) Ready(store ...ZeroMfgrcMonoStore) error {
 	mono.status = WORKER_MONO_STATUS_READY
-
-	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
 	mono.executeTimes = 0
 	mono.reason = ""
 	if store != nil && len(store) > 0 {
@@ -132,6 +130,7 @@ func (mono *ZeroMfgrcMono) Pending(flux *ZeroMfgrcFlux) error {
 	}
 	mono.fromFlux = flux
 	mono.status = WORKER_MONO_STATUS_PENDING
+	mono.maxExecuteTimes = mono.fromFlux.worker.keeper.taskRetryTimes + 1
 	if mono.xStore != nil {
 		err := mono.xStore.UpdateMono(mono)
 		if err != nil {
