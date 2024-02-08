@@ -105,7 +105,7 @@ type ZeroMfgrcGroupStore interface {
 }
 
 type ZeroMfgrcMonoActuator struct {
-	keeper  *ZeroMfgrcKeeper
+	Keeper  *ZeroMfgrcKeeper
 	mono    MfgrcMono
 	errchan chan error
 }
@@ -115,7 +115,7 @@ func (act *ZeroMfgrcMonoActuator) Exec(mono MfgrcMono) chan error {
 	act.errchan = make(chan error, 1)
 
 	act.mono.EventListener(act)
-	err := act.keeper.AddMono(act.mono)
+	err := act.Keeper.AddMono(act.mono)
 	if err != nil {
 		go func() {
 			time.After(time.Millisecond * time.Duration(100))
@@ -153,7 +153,7 @@ func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error 
 }
 
 type ZeroMfgrcGroupActuator struct {
-	keeper  *ZeroMfgrcGroupKeeper
+	Keeper  *ZeroMfgrcGroupKeeper
 	group   MfgrcGroup
 	errchan chan error
 }
@@ -163,7 +163,7 @@ func (act *ZeroMfgrcGroupActuator) Exec(group MfgrcGroup) chan error {
 	act.errchan = make(chan error, 1)
 
 	act.group.EventListener(act)
-	err := act.keeper.AddGroup(act.group)
+	err := act.Keeper.AddGroup(act.group)
 	if err != nil {
 		go func() {
 			time.After(time.Millisecond * time.Duration(100))
@@ -194,7 +194,7 @@ func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason string) err
 }
 
 type ZeroMfgrcMonoQueueActuator struct {
-	keeper  *ZeroMfgrcKeeper
+	Keeper  *ZeroMfgrcKeeper
 	monos   []MfgrcMono
 	errchan chan error
 
@@ -214,7 +214,7 @@ func (act *ZeroMfgrcMonoQueueActuator) Exec(monos ...MfgrcMono) chan error {
 	for _, mono := range act.monos {
 		mono.EventListener(act)
 	}
-	err := act.keeper.AddMonosQueue(act.monos...)
+	err := act.Keeper.AddMonosQueue(act.monos...)
 	if err != nil {
 		go func() {
 			time.After(time.Millisecond * time.Duration(100))
