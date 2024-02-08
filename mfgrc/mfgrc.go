@@ -59,6 +59,7 @@ type MfgrcGroup interface {
 	Export() (map[string]interface{}, error)
 
 	Store(ZeroMfgrcGroupStore)
+	EventListener(ZeroMfgrcGroupEventListener)
 }
 
 type ZeroMfgrcMonoStore interface {
@@ -75,8 +76,11 @@ type ZeroMfgrcMonoEventListener interface {
 	OnFailed(MfgrcMono, string) error
 }
 
-type ZeroMfgrcMonoProgressListener interface {
-	OnProgress(MfgrcMono) error
+type ZeroMfgrcGroupEventListener interface {
+	OnPending(MfgrcGroup) error
+	OnExecuting(MfgrcGroup) error
+	OnComplete(MfgrcGroup) error
+	OnFailed(MfgrcGroup, string) error
 }
 
 type ZeroMfgrcKeeperOpts interface {
@@ -137,5 +141,41 @@ func (act *ZeroMfgrcMonoActuator) OnComplete(MfgrcMono) error {
 }
 func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error {
 	act.errchan <- errors.New(fmt.Sprintf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason))
+	return nil
+}
+
+type ZeroMfgrcGroupActuator struct {
+	keeper  *ZeroMfgrcGroupKeeper
+	group   MfgrcGroup
+	errchan chan error
+}
+
+func (act *ZeroMfgrcGroupActuator) Exec(group MfgrcGroup) chan error {
+	act.group = group
+	act.errchan = make(chan error, 1)
+
+	act.group.EventListener(act)
+	err := act.keeper.AddGroup(act.group)
+	if err != nil {
+		go func() {
+			time.After(time.Millisecond * time.Duration(100))
+			act.errchan <- err
+		}()
+	}
+	return act.errchan
+}
+
+func (act *ZeroMfgrcGroupActuator) Group() MfgrcGroup {
+	return act.group
+}
+
+func (_ *ZeroMfgrcGroupActuator) OnPending(MfgrcGroup) error   { return nil }
+func (_ *ZeroMfgrcGroupActuator) OnExecuting(MfgrcGroup) error { return nil }
+func (act *ZeroMfgrcGroupActuator) OnComplete(MfgrcGroup) error {
+	act.errchan <- nil
+	return nil
+}
+func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason string) error {
+	act.errchan <- errors.New(fmt.Sprintf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason))
 	return nil
 }

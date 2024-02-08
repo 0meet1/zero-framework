@@ -415,6 +415,41 @@ func (keeper *ZeroMfgrcKeeper) RevokeMono(mono MfgrcMono) error {
 	return nil
 }
 
+func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
+	keeper.statusMutex.Lock()
+	xStatus := keeper.status
+	keeper.statusMutex.Unlock()
+	if xStatus == xKEEPER_STATUS_STOPPED {
+		return errors.New("keeper not yet ready")
+	} else if xStatus == xKEEPER_STATUS_STOPPING {
+		return errors.New("keeper is stopping now")
+	}
+
+	if len(monos) > keeper.maxQueueLimit {
+		return errors.New(fmt.Sprintf("exceeding maximum number of monos = %d", keeper.maxQueueLimit))
+	}
+
+	keeper.mfgrcMutex.Lock()
+	for _, mono := range monos {
+		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
+		if !ok {
+			mfgrcflux := ZeroMfgrcFlux{}
+			err := mfgrcflux.Join(mono)
+			if err != nil {
+				return err
+			}
+			keeper.mfgrcMap[mfgrcflux.UniqueId] = &mfgrcflux
+		} else {
+			err := flux.Push(mono)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	keeper.mfgrcMutex.Unlock()
+	return nil
+}
+
 func (keeper *ZeroMfgrcKeeper) Check(mono MfgrcMono) error {
 	keeper.statusMutex.Lock()
 	xStatus := keeper.status

@@ -32,7 +32,8 @@ type ZeroMfgrcGroup struct {
 	status string
 	reason string
 
-	xStore ZeroMfgrcGroupStore
+	xStore    ZeroMfgrcGroupStore
+	xListener ZeroMfgrcGroupEventListener
 }
 
 func (group *ZeroMfgrcGroup) LoadRowData(rowmap map[string]interface{}) {
@@ -83,6 +84,10 @@ func (group *ZeroMfgrcGroup) Store(store ZeroMfgrcGroupStore) {
 	group.xStore = store
 }
 
+func (group *ZeroMfgrcGroup) EventListener(xListener ZeroMfgrcGroupEventListener) {
+	group.xListener = xListener
+}
+
 func (group *ZeroMfgrcGroup) AddWorker(worker *ZeroMfgrcGroupWorker) {
 	group.worker = worker
 }
@@ -111,6 +116,12 @@ func (group *ZeroMfgrcGroup) Pending() error {
 		group.xStore.UpdateGroup(group)
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is pending`", group.ID))
+	if group.xListener != nil {
+		err := group.xListener.OnPending(group)
+		if err != nil {
+			global.Logger().Error(err.Error())
+		}
+	}
 	return nil
 }
 
@@ -126,6 +137,13 @@ func (group *ZeroMfgrcGroup) Executing() error {
 	}
 
 	global.Logger().Info(fmt.Sprintf("group `%s` is executing in worker [%s] , option: %s", group.ID, group.worker.workName, group.Option))
+
+	if group.xListener != nil {
+		err := group.xListener.OnExecuting(group)
+		if err != nil {
+			global.Logger().Error(err.Error())
+		}
+	}
 	return nil
 }
 
@@ -138,6 +156,12 @@ func (group *ZeroMfgrcGroup) Complete() error {
 		group.xStore.UpdateGroup(group)
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is complete in worker [%s]", group.ID, group.worker.workName))
+	if group.xListener != nil {
+		err := group.xListener.OnComplete(group)
+		if err != nil {
+			global.Logger().Error(err.Error())
+		}
+	}
 	return nil
 }
 
@@ -148,6 +172,12 @@ func (group *ZeroMfgrcGroup) Failed(reason string) error {
 		group.xStore.UpdateGroup(group)
 	}
 	global.Logger().Info(fmt.Sprintf("group `%s` is failed in worker [%s] , reason: %s", group.ID, group.worker.workName, reason))
+	if group.xListener != nil {
+		err := group.xListener.OnFailed(group, reason)
+		if err != nil {
+			global.Logger().Error(err.Error())
+		}
+	}
 	return nil
 }
 

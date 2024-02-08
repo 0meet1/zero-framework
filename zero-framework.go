@@ -101,7 +101,6 @@ type MfgrcMono = mfgrc.MfgrcMono
 type MfgrcGroup = mfgrc.MfgrcGroup
 type ZeroMfgrcMonoStore = mfgrc.ZeroMfgrcMonoStore
 type ZeroMfgrcMonoEventListener = mfgrc.ZeroMfgrcMonoEventListener
-type ZeroMfgrcMonoProgressListener = mfgrc.ZeroMfgrcMonoProgressListener
 type ZeroMfgrcKeeperOpts = mfgrc.ZeroMfgrcKeeperOpts
 
 type ZeroMfgrcMono = mfgrc.ZeroMfgrcMono
@@ -114,3 +113,4 @@ type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
 type ZeroMfgrcGroup = mfgrc.ZeroMfgrcGroup
 type ZeroMfgrcGroupWorker = mfgrc.ZeroMfgrcGroupWorker
 type ZeroMfgrcGroupKeeper = mfgrc.ZeroMfgrcGroupKeeper
+type ZeroMfgrcGroupEventListener = mfgrc.ZeroMfgrcGroupEventListener

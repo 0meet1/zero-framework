@@ -36,7 +36,6 @@ type ZeroMfgrcMono struct {
 
 	xStore    ZeroMfgrcMonoStore
 	xListener ZeroMfgrcMonoEventListener
-	xProgress ZeroMfgrcMonoProgressListener
 	fromFlux  *ZeroMfgrcFlux
 }
 
@@ -109,10 +108,6 @@ func (mono *ZeroMfgrcMono) Store(store ZeroMfgrcMonoStore) {
 
 func (mono *ZeroMfgrcMono) EventListener(eventListener ZeroMfgrcMonoEventListener) {
 	mono.xListener = eventListener
-}
-
-func (mono *ZeroMfgrcMono) ProgressListener(progressListener ZeroMfgrcMonoProgressListener) {
-	mono.xProgress = progressListener
 }
 
 func (mono *ZeroMfgrcMono) Ready(store ...ZeroMfgrcMonoStore) error {
