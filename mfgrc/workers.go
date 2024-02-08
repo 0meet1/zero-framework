@@ -15,10 +15,12 @@ type ZeroMfgrcFlux struct {
 	monos     chan MfgrcMono
 	monoMutex sync.RWMutex
 
-	worker *ZeroMfgrcWorker
+	worker        *ZeroMfgrcWorker
+	maxQueueLimit int
 }
 
 func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, maxQueueLimit int) error {
+	flux.maxQueueLimit = maxQueueLimit
 	flux.UniqueId = mono.XuniqueCode()
 	flux.monoMap = make(map[string]MfgrcMono)
 	flux.monos = make(chan MfgrcMono, maxQueueLimit)
@@ -42,7 +44,7 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono) error {
 		return errors.New(fmt.Sprintf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId()))
 	}
 
-	if monoLen >= flux.worker.keeper.maxQueueLimit {
+	if monoLen >= flux.maxQueueLimit {
 		return errors.New(fmt.Sprintf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.worker.keeper.maxQueueLimit))
 	}
 
@@ -79,7 +81,7 @@ func (flux *ZeroMfgrcFlux) Check(mono MfgrcMono) bool {
 	flux.monoMutex.Lock()
 	monoLen := len(flux.monoMap)
 	flux.monoMutex.Unlock()
-	return !(monoLen >= flux.worker.keeper.maxQueueLimit)
+	return !(monoLen >= flux.maxQueueLimit)
 }
 
 func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
