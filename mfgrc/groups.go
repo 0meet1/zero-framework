@@ -84,6 +84,10 @@ func (group *ZeroMfgrcGroup) Store(store ZeroMfgrcGroupStore) {
 	group.xStore = store
 }
 
+func (group *ZeroMfgrcGroup) UseStore() ZeroMfgrcGroupStore {
+	return group.xStore
+}
+
 func (group *ZeroMfgrcGroup) EventListener(xListener ZeroMfgrcGroupEventListener) {
 	group.xListener = xListener
 }

@@ -60,6 +60,7 @@ type MfgrcGroup interface {
 	Export() (map[string]interface{}, error)
 
 	Store(ZeroMfgrcGroupStore)
+	UseStore() ZeroMfgrcGroupStore
 	EventListener(ZeroMfgrcGroupEventListener)
 }
 
