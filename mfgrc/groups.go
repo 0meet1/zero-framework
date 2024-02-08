@@ -268,11 +268,13 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 
 			xGroup.AddWorker(worker)
 			err := xGroup.Do()
-			if err == nil {
-				err = xGroup.Complete()
-				if err != nil {
-					xGroup.Failed(err.Error())
-				}
+			if err != nil {
+				xGroup.Failed(err.Error())
+			}
+
+			err = xGroup.Complete()
+			if err != nil {
+				xGroup.Failed(err.Error())
 			}
 			worker.keeper.closeGroup(xGroup)
 
