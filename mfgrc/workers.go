@@ -207,6 +207,7 @@ func (worker *ZeroMfgrcWorker) Start() {
 			global.Logger().Info(fmt.Sprintf("[%s] working with flux `%s`", worker.workName, xQueue.UniqueId))
 			worker.executing = xQueue.UniqueId
 
+			xQueue.worker = worker
 			xQueue.Start(worker)
 			worker.keeper.closeFlux(xQueue)
 
