@@ -87,6 +87,8 @@ func (client *TCPClient) HeartbeatCheck(heartbeatSeconds int64) bool {
 }
 
 func (client *TCPClient) Active() bool {
+	client.connectMutex.Lock()
+	defer client.connectMutex.Unlock()
 	return client.connect != nil
 }
 
@@ -116,9 +118,12 @@ func (client *TCPClient) Close() error {
 
 func (client *TCPClient) Write(datas []byte) error {
 	client.connectMutex.Lock()
-	_, err := client.connect.Write(datas)
-	client.connectMutex.Unlock()
-	return err
+	defer client.connectMutex.Unlock()
+	if client.connect != nil {
+		_, err := client.connect.Write(datas)
+		return err
+	}
+	return fmt.Errorf("tcp client connect %s lost", client.connAddr)
 }
 
 func (client *TCPClient) receive() {
@@ -132,10 +137,8 @@ func (client *TCPClient) receive() {
 	})
 
 	defer func() {
-		client.connect.Close()
+		client.Close()
 		global.Logger().Info(fmt.Sprintf("tcp client connect close -> %s", client.RemoteAddr()))
-
-		client.connect = nil
 		client.startingLoop()
 	}()
 
