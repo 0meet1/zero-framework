@@ -18,6 +18,7 @@ type ZeroV1ServKeeper interface {
 }
 
 type ZeroV1Client interface {
+	Active() bool
 	ExecMessage(*ZeroV1Message, int) (*ZeroV1Message, error)
 	PushMessage(*ZeroV1Message) error
 }
