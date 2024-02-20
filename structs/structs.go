@@ -200,3 +200,22 @@ func BytesString(bytes ...byte) string {
 	}
 	return fmt.Sprintf("{%s }\n", bytesString)
 }
+
+func MonthDuration(t time.Time) (time.Time, time.Time, error) {
+	startTime := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+	endTime := startTime.AddDate(0, 1, -1)
+	duration1d, err := time.ParseDuration(fmt.Sprintf("%ds", 59+60*59+60*60*23))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	endTime = endTime.Add(duration1d)
+	return startTime, endTime, nil
+}
+
+func MonthDurationString(t time.Time, xformat string) (string, string, error) {
+	startTime, endTime, err := MonthDuration(t)
+	if err != nil {
+		return "", "", err
+	}
+	return startTime.Format(xformat), endTime.Format(xformat), nil
+}

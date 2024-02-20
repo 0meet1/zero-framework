@@ -103,6 +103,18 @@ func XhttpZeroQuery(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error
 	return &query, nil
 }
 
+func XhttpZeroQueryOperation(xRequest *structs.ZeroRequest, tableName string) (*processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+	xQuery, err := XhttpZeroQuery(xRequest)
+	if err != nil {
+		return nil, nil, err
+
+	}
+	return &processors.ZeroQueryOperation{
+		Query:     xQuery,
+		TableName: tableName,
+	}, xQuery, nil
+}
+
 type XhttpExecutor struct {
 	funcmode     bool
 	path         string
