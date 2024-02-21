@@ -26,7 +26,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.2.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.3.RELEASE )  **/
 
 `
 
@@ -186,11 +186,10 @@ func systemAbsPath() string {
 	}
 
 	if len(file) > 0 && strings.HasPrefix(file, "global") {
-		dir, _, err := findMainPackage(3)
+		dir, _, err := findMainPackage(4)
 		if err != nil {
 			panic(err)
 		}
-
 		return dir
 	} else {
 		panic(err)
