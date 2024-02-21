@@ -25,7 +25,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.0.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.1.RELEASE )  **/
 
 `
 
@@ -33,7 +33,7 @@ type ZeroGlobalEventsObserver interface {
 	Shutdown() error
 }
 
-type ZeroGlobalInitiator func() error
+type ZeroGlobalInitiator func()
 
 var (
 	_appName string
@@ -200,9 +200,7 @@ func Run(appName string, initiators ...ZeroGlobalInitiator) {
 	GlobalContext(appName)
 	if initiators != nil {
 		for _, initiator := range initiators {
-			if err := initiator(); err != nil {
-				panic(err)
-			}
+			initiator()
 		}
 	}
 	RunServer()
