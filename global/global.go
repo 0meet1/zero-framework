@@ -1,6 +1,7 @@
 package global
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -25,7 +26,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.1.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.10.2.RELEASE )  **/
 
 `
 
@@ -161,20 +162,39 @@ func LeaveEventsObserver(name string) {
 	_oLock.Unlock()
 }
 
+func findMainPackage(xCaller int) (string, string, error) {
+	_, filename, _, ok := runtime.Caller(xCaller)
+	if ok {
+		dir, file := path.Split(filename)
+		if !strings.HasPrefix(file, _appName) && !strings.HasPrefix(file, "main") {
+			return "", file, errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' .")
+		}
+		return dir, file, nil
+	}
+	return "", "", errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' .")
+}
+
 func systemAbsPath() string {
 	_zeroFrameworkHome := os.Getenv("ZERO_HOME")
 	if len(_zeroFrameworkHome) > 0 {
 		return _zeroFrameworkHome
 	}
-	_, filename, _, ok := runtime.Caller(2)
-	if ok {
-		dir, file := path.Split(filename)
-		if !strings.HasPrefix(file, _appName) && !strings.HasPrefix(file, "main") {
-			panic("global context must be initialized in `main func` and appname must same as main package filename or 'main' .")
-		}
+
+	dir, file, err := findMainPackage(2)
+	if err == nil {
 		return dir
 	}
-	return ""
+
+	if len(file) > 0 && strings.HasPrefix(file, "global") {
+		dir, _, err := findMainPackage(3)
+		if err != nil {
+			panic(err)
+		}
+
+		return dir
+	} else {
+		panic(err)
+	}
 }
 
 func AppName() string {
@@ -187,8 +207,6 @@ func AppName() string {
 func GlobalContext(appName string) {
 	if _observers == nil {
 		_observers = make(map[string]ZeroGlobalEventsObserver)
-	}
-	if len(cfg.ServerAbsPath()) == 0 {
 		_appName = appName
 		cfg.NewConfigs(systemAbsPath())
 		Key("zero.system.logger", log.InitLogger())
