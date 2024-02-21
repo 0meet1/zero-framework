@@ -133,6 +133,7 @@ func RunServer() {
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
 	<-sig
+	Logger().Info("global context will shutting down")
 	if _observers != nil {
 		_oLock.Lock()
 		for _, observer := range _observers {
@@ -140,6 +141,7 @@ func RunServer() {
 		}
 		_oLock.Unlock()
 	}
+	Logger().Info("global context exited")
 }
 
 func ListenEvents(name string, observer ZeroGlobalEventsObserver) {
