@@ -323,6 +323,7 @@ func (opera *ZeroQueryOperation) Exec() ([]map[string]interface{}, map[string]in
 	if err != nil {
 		panic(err)
 	}
+	rows.Close()
 
 	querySQL := opera.makeQuerySQL()
 	rows, err = opera.PreparedStmt(querySQL).Query()
