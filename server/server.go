@@ -30,6 +30,9 @@ type ZeroConnectBuilder interface {
 type ZeroConnect interface {
 	structs.ZeroMetaDef
 
+	AcceptTime() int64
+	HeartbeatTime() int64
+
 	Accept(ZeroServ, net.Conn) error
 	RegisterId() string
 	ConnectId() string
@@ -69,6 +72,13 @@ func (zSock *ZeroSocketConnect) This() interface{} {
 		zSock.ThisDef(zSock)
 	}
 	return zSock.ZeroMeta.This()
+}
+
+func (zSock *ZeroSocketConnect) AcceptTime() int64 {
+	return zSock.acceptTime
+}
+func (zSock *ZeroSocketConnect) HeartbeatTime() int64 {
+	return zSock.heartbeatTime
 }
 
 func (zSock *ZeroSocketConnect) Accept(zserv ZeroServ, connect net.Conn) error {
