@@ -24,7 +24,7 @@ type ZeroXsacKeeper struct {
 
 func NewKeeper(proctype reflect.Type, types ...reflect.Type) *ZeroXsacKeeper {
 	keeper := &ZeroXsacKeeper{
-		proctype:  proctype,
+		proctype:  structs.FindMetaType(proctype),
 		types:     make([]reflect.Type, 0),
 		entries:   make([]*structs.ZeroXsacEntry, 0),
 		httpconfs: make([]*autohttpconf.ZeroXsacXhttp, 0),
