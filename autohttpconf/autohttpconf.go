@@ -67,7 +67,7 @@ func NewXsacXhttp(coretype reflect.Type) *ZeroXsacXhttp {
 	return &ZeroXsacXhttp{
 		coretype:   coretype,
 		dataSource: "",
-		instance:   reflect.New(coretype.Elem()).Interface().(ZeroXsacXhttpDeclares),
+		instance:   reflect.New(coretype).Interface().(ZeroXsacXhttpDeclares),
 	}
 }
 
@@ -119,7 +119,7 @@ func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(xhttp.instance.XhttpAutoProc().Elem()).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
 	processor.Build(transaction)
 	err = processor.Insert(xRequest.Querys...)
 	if err != nil {
@@ -147,7 +147,7 @@ func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(xhttp.instance.XhttpAutoProc().Elem()).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
 	processor.Build(transaction)
 	err = processor.Update(xRequest.Querys...)
 	if err != nil {
@@ -175,7 +175,7 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(xhttp.instance.XhttpAutoProc().Elem()).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
 	processor.Build(transaction)
 	err = processor.Delete(xRequest.Querys...)
 	if err != nil {
@@ -219,7 +219,7 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 	rows, expands := xOperation.Exec()
 	datas := make([]interface{}, 0)
 	for _, row := range rows {
-		data := reflect.New(xhttp.coretype.Elem()).Interface()
+		data := reflect.New(xhttp.coretype).Interface()
 		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
 		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
 			panic(returnValues[0].Interface())
