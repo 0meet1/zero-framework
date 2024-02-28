@@ -98,7 +98,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 		}
 
 		if field.Inlinable() {
-			if vdata.FieldByName("ID").Interface().(string) == "" {
+			if vdata.Elem().FieldByName("ID").Interface().(string) == "" {
 				continue
 			}
 			if field.Exterable() {
@@ -107,7 +107,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
 				addFieldString(field, vdata)
-				dataset = append(dataset, vdata.FieldByName("ID").Interface())
+				dataset = append(dataset, vdata.Elem().FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
 			if field.Exterable() {
@@ -143,7 +143,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 						delaydatas[vxdatai] = field.XLinkFields()
 					}
 				} else {
-					reflect.ValueOf(vdata).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					if vdata.Kind() == reflect.Pointer {
+						vdata.Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					} else {
+						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					}
 					delaydatas[vdata.Interface()] = field.XLinkFields()
 				}
 			}
