@@ -45,7 +45,7 @@ func (e *ZeroXsacXhttpStructs) XhttpCheckTable() string  { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpSearchIndex() string { return "" }
 
 func (e *ZeroXsacXhttpStructs) XhttpAutoProc() processors.ZeroXsacAutoProcessor {
-	return processors.NewXsacPostgresProcessor(e.This().(structs.ZeroXsacDeclares).XsacDbName(), e.This().(structs.ZeroXsacDeclares).XsacTableName())
+	return processors.NewXsacPostgresProcessor()
 }
 
 func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }

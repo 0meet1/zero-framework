@@ -11,27 +11,15 @@ import (
 type ZeroXsacPostgresAutoProcessor struct {
 	ZeroCoreProcessor
 
-	dbName    string
-	tableName string
-	fields    []*structs.ZeroXsacField
+	fields []*structs.ZeroXsacField
 
 	triggers []ZeroXsacTrigger
 }
 
-func NewXsacPostgresProcessor(dbName string, tableName string, triggers ...ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
+func NewXsacPostgresProcessor(triggers ...ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
 	return &ZeroXsacPostgresAutoProcessor{
-		dbName:    dbName,
-		tableName: tableName,
-		triggers:  triggers,
+		triggers: triggers,
 	}
-}
-
-func (processor *ZeroXsacPostgresAutoProcessor) DBName() string {
-	return processor.dbName
-}
-
-func (processor *ZeroXsacPostgresAutoProcessor) TableName() string {
-	return processor.tableName
 }
 
 func (processor *ZeroXsacPostgresAutoProcessor) AddFields(fields []*structs.ZeroXsacField) {
@@ -164,7 +152,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 		}
 	}
 
-	_, err := processor.PreparedStmt(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", processor.tableName, fieldStrings, valueStrings)).Exec(dataset...)
+	_, err := processor.PreparedStmt(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", data.(structs.ZeroXsacDeclares).XsacTableName(), fieldStrings, valueStrings)).Exec(dataset...)
 	if err != nil {
 		return err
 	}
@@ -247,7 +235,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 		if err != nil {
 			return err
 		}
-		_, err = processor.PreparedStmt(fmt.Sprintf("UPDATE %s SET %s WHERE ID = $%d", processor.tableName, updatefields, fieldIdx)).Exec(dataset...)
+		_, err = processor.PreparedStmt(fmt.Sprintf("UPDATE %s SET %s WHERE ID = $%d", data.(structs.ZeroXsacDeclares).XsacTableName(), updatefields, fieldIdx)).Exec(dataset...)
 		if err != nil {
 			return err
 		}
@@ -270,7 +258,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Delete(datas ...interface{}) err
 		if err != nil {
 			return err
 		}
-		_, err = processor.PreparedStmt(fmt.Sprintf("DELETE FROM %s WHERE ID = $1", processor.tableName)).Exec(elem.FieldByName("ID").Interface())
+		_, err = processor.PreparedStmt(fmt.Sprintf("DELETE FROM %s WHERE ID = $1", data.(structs.ZeroXsacDeclares).XsacTableName())).Exec(elem.FieldByName("ID").Interface())
 		if err != nil {
 			return err
 		}

@@ -23,8 +23,6 @@ type ZeroXsacTrigger interface {
 type ZeroXsacAutoProcessor interface {
 	Build(transaction *sql.Tx)
 
-	DBName() string
-	TableName() string
 	AddFields(fields []*structs.ZeroXsacField)
 	AddTriggers(...ZeroXsacTrigger)
 
