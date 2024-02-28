@@ -26,7 +26,6 @@ type ZeroXsacXhttpDeclares interface {
 	XhttpPath() string
 	XhttpAutoProc() reflect.Type
 	XhttpOpt() byte
-	XhttpDataSource() string
 
 	XhttpCheckTable() string
 	XhttpSearchIndex() string
@@ -41,7 +40,6 @@ type ZeroXsacXhttpStructs struct {
 
 func (e *ZeroXsacXhttpStructs) XhttpPath() string        { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpOpt() byte           { return 0b00001111 }
-func (e *ZeroXsacXhttpStructs) XhttpDataSource() string  { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpCheckTable() string  { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpSearchIndex() string { return "" }
 
@@ -79,23 +77,15 @@ func (xhttp *ZeroXsacXhttp) AddDataSource(dataSource string) *ZeroXsacXhttp {
 }
 
 func (xhttp *ZeroXsacXhttp) XDataSource() string {
-	if len(xhttp.instance.XhttpDataSource()) > 0 {
-		return xhttp.instance.XhttpDataSource()
+	if len(xhttp.instance.XsacDataSource()) > 0 {
+		return xhttp.instance.XsacDataSource()
 	}
 	return xhttp.dataSource
 }
 
-func (xhttp *ZeroXsacXhttp) XhttpPath() string {
-	return xhttp.instance.XhttpPath()
-}
-
-func (xhttp *ZeroXsacXhttp) XdbName() string {
-	return xhttp.instance.XsacDbName()
-}
-
-func (xhttp *ZeroXsacXhttp) XtableName() string {
-	return xhttp.instance.XsacTableName()
-}
+func (xhttp *ZeroXsacXhttp) XhttpPath() string  { return xhttp.instance.XhttpPath() }
+func (xhttp *ZeroXsacXhttp) XdbName() string    { return xhttp.instance.XsacDbName() }
+func (xhttp *ZeroXsacXhttp) XtableName() string { return xhttp.instance.XsacTableName() }
 
 func (xhttp *ZeroXsacXhttp) XcheckTable() string {
 	if len(xhttp.instance.XhttpCheckTable()) == 0 {

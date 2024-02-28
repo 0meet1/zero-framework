@@ -158,7 +158,7 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 
 		keeper.entries = append(keeper.entries, declares.XsacDeclares()...)
 		refDeclares = append(refDeclares, declares.XsacRefDeclares()...)
-		if t.Implements(reflect.TypeOf((*autohttpconf.ZeroXsacXhttpDeclares)(nil)).Elem()) {
+		if reflect.TypeOf(declares).Implements(reflect.TypeOf((*autohttpconf.ZeroXsacXhttpDeclares)(nil)).Elem()) {
 			if len(declares.(autohttpconf.ZeroXsacXhttpDeclares).XhttpPath()) > 0 {
 				keeper.httpconfs = append(keeper.httpconfs, autohttpconf.NewXsacXhttp(t).AddDataSource(keeper.dataSource))
 			}
