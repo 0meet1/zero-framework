@@ -288,23 +288,23 @@ func (xhttp *ZeroXsacXhttp) search(writer http.ResponseWriter, req *http.Request
 func (xhttp *ZeroXsacXhttp) ExportExecutors() []*server.XhttpExecutor {
 	xExecutors := make([]*server.XhttpExecutor, 0)
 	if xhttp.instance.XhttpOpt()&0b10000 == 0b10000 {
-		server.XhttpFuncHandle(xhttp.search, fmt.Sprintf("%s/search", xhttp.XhttpPath()))
+		xExecutors = append(xExecutors, server.XhttpFuncHandle(xhttp.search, fmt.Sprintf("%s/search", xhttp.XhttpPath())))
 	}
 
 	if xhttp.instance.XhttpOpt()&0b1000 == 0b1000 {
-		server.XhttpFuncHandle(xhttp.add, fmt.Sprintf("%s/add", xhttp.XhttpPath()))
+		xExecutors = append(xExecutors, server.XhttpFuncHandle(xhttp.add, fmt.Sprintf("%s/add", xhttp.XhttpPath())))
 	}
 
 	if xhttp.instance.XhttpOpt()&0b100 == 0b100 {
-		server.XhttpFuncHandle(xhttp.up, fmt.Sprintf("%s/up", xhttp.XhttpPath()))
+		xExecutors = append(xExecutors, server.XhttpFuncHandle(xhttp.up, fmt.Sprintf("%s/up", xhttp.XhttpPath())))
 	}
 
 	if xhttp.instance.XhttpOpt()&0b10 == 0b10 {
-		server.XhttpFuncHandle(xhttp.rm, fmt.Sprintf("%s/rm", xhttp.XhttpPath()))
+		xExecutors = append(xExecutors, server.XhttpFuncHandle(xhttp.rm, fmt.Sprintf("%s/rm", xhttp.XhttpPath())))
 	}
 
 	if xhttp.instance.XhttpOpt()&0b1 == 0b1 {
-		server.XhttpFuncHandle(xhttp.fetch, fmt.Sprintf("%s/fetch", xhttp.XhttpPath()))
+		xExecutors = append(xExecutors, server.XhttpFuncHandle(xhttp.fetch, fmt.Sprintf("%s/fetch", xhttp.XhttpPath())))
 	}
 	return xExecutors
 }
