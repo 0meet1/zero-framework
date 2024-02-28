@@ -67,10 +67,12 @@ type ZeroXsacXhttp struct {
 }
 
 func NewXsacXhttp(coretype reflect.Type) *ZeroXsacXhttp {
+	xhttpDec := reflect.New(coretype).Interface().(ZeroXsacXhttpDeclares)
+	xhttpDec.(structs.ZeroMetaDef).ThisDef(xhttpDec)
 	return &ZeroXsacXhttp{
 		coretype:   coretype,
 		dataSource: "",
-		instance:   reflect.New(coretype).Interface().(ZeroXsacXhttpDeclares),
+		instance:   xhttpDec,
 	}
 }
 
