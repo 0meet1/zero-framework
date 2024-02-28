@@ -74,7 +74,7 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 		}
 	}()
 
-	xsacProcessor := reflect.New(keeper.proctype.Elem()).Interface().(ZeroXsacProcessor)
+	xsacProcessor := reflect.New(keeper.proctype).Interface().(ZeroXsacProcessor)
 
 	for _, entry := range keeper.entries {
 		switch entry.EntryType() {
