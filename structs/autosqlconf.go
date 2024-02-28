@@ -216,7 +216,7 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 
 	xhttpopt := field.Tag.Get(XHTTP_OPT)
 	xfield := &ZeroXsacField{
-		metatype:   FindMetaType(field),
+		metatype:   FindStructFieldMetaType(field),
 		fieldName:  field.Name,
 		columnName: columnName,
 		isArray:    field.Type.Kind() == reflect.Slice,

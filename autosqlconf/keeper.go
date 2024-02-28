@@ -23,12 +23,14 @@ type ZeroXsacKeeper struct {
 }
 
 func NewKeeper(proctype reflect.Type, types ...reflect.Type) *ZeroXsacKeeper {
-	return &ZeroXsacKeeper{
+	keeper := &ZeroXsacKeeper{
 		proctype:  proctype,
 		types:     types,
 		entries:   make([]*structs.ZeroXsacEntry, 0),
 		httpconfs: make([]*autohttpconf.ZeroXsacXhttp, 0),
 	}
+	keeper.AddTypes(types...)
+	return keeper
 }
 
 func (keeper *ZeroXsacKeeper) DataSource(dataSource string) *ZeroXsacKeeper {
@@ -37,7 +39,12 @@ func (keeper *ZeroXsacKeeper) DataSource(dataSource string) *ZeroXsacKeeper {
 }
 
 func (keeper *ZeroXsacKeeper) AddTypes(types ...reflect.Type) *ZeroXsacKeeper {
-	keeper.types = append(keeper.types, types...)
+	if types != nil {
+		for _, t := range types {
+			keeper.types = append(keeper.types, structs.FindMetaType(t))
+		}
+	}
+
 	return keeper
 }
 
@@ -145,10 +152,12 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 func (keeper *ZeroXsacKeeper) pretreat() {
 	refDeclares := make([]*structs.ZeroXsacEntry, 0)
 	for _, t := range keeper.types {
-		declares := reflect.New(t.Elem()).Interface().(structs.ZeroXsacDeclares)
+		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
+		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
+
 		keeper.entries = append(keeper.entries, declares.XsacDeclares()...)
 		refDeclares = append(refDeclares, declares.XsacRefDeclares()...)
-		if t.Elem().Implements(reflect.TypeOf((*autohttpconf.ZeroXsacXhttpDeclares)(nil)).Elem()) {
+		if t.Implements(reflect.TypeOf((*autohttpconf.ZeroXsacXhttpDeclares)(nil)).Elem()) {
 			if len(declares.(autohttpconf.ZeroXsacXhttpDeclares).XhttpPath()) > 0 {
 				keeper.httpconfs = append(keeper.httpconfs, autohttpconf.NewXsacXhttp(t).AddDataSource(keeper.dataSource))
 			}

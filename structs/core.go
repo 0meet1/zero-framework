@@ -25,12 +25,16 @@ const (
 	XSAC_NO   = "NO"
 )
 
-func FindMetaType(fields reflect.StructField) reflect.Type {
-	metaType := fields.Type
+func FindMetaType(t reflect.Type) reflect.Type {
+	metaType := t
 	for metaType.Kind() == reflect.Pointer || metaType.Kind() == reflect.Slice {
 		metaType = metaType.Elem()
 	}
 	return metaType
+}
+
+func FindStructFieldMetaType(fields reflect.StructField) reflect.Type {
+	return FindMetaType(fields.Type)
 }
 
 type ZeroCoreStructs struct {
@@ -108,7 +112,7 @@ func (e *ZeroCoreStructs) XsacDeclares() ZeroXsacEntrySet {
 func (e *ZeroCoreStructs) findXsacRefEntry(fields reflect.StructField) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
 	xrRefProp := fields.Tag.Get(XSAC_REF)
-	metaType := FindMetaType(fields)
+	metaType := FindStructFieldMetaType(fields)
 	if len(xrRefProp) > 0 {
 		xrRefProppItems := strings.Split(xrRefProp, ",")
 		if len(xrRefProppItems) == 4 && xrRefProppItems[3] == XSAC_REF_INSPECT {
