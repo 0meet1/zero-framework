@@ -53,8 +53,8 @@ func (processor *ZeroXsacPostgresAutoProcessor) exterField(field *structs.ZeroXs
 }
 
 func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*structs.ZeroXsacField, data interface{}) error {
+	reflect.ValueOf(data).MethodByName("InitDefault").Call([]reflect.Value{})
 	elem := reflect.ValueOf(data).Elem()
-	elem.MethodByName("InitDefault").Call([]reflect.Value{})
 
 	dataset := make([]interface{}, 0)
 	fieldStrings := ""
