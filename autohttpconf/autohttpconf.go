@@ -231,7 +231,7 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
-		err = processor.Delete(xRequest.Querys...)
+		err = processor.Delete(xquery)
 		if err != nil {
 			panic(err)
 		}
