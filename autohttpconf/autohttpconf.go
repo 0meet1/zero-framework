@@ -144,7 +144,7 @@ func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-
+		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
 		err = processor.Insert(xquery)
 		if err != nil {
 			panic(err)
@@ -186,7 +186,7 @@ func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-
+		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
 		err = processor.Update(xquery)
 		if err != nil {
 			panic(err)
@@ -228,7 +228,7 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-
+		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
 		err = processor.Delete(xRequest.Querys...)
 		if err != nil {
 			panic(err)
