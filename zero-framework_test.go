@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	x0meet1 "github.com/0meet1/zero-framework"
+	"github.com/0meet1/zero-framework/structs"
 )
 
 type ZeroXsacTestPerson struct {
@@ -64,4 +65,9 @@ func TestZeroCoreStructs(t *testing.T) {
 	fmt.Println(person.XsacFields())
 	fmt.Println()
 	fmt.Println(personr.XsacFields())
+
+	fmt.Println(structs.FindMetaType(reflect.TypeOf(ZeroXsacTestPersonRecord{})))
+
+	inx := reflect.New(structs.FindMetaType(reflect.TypeOf(&ZeroXsacTestPersonRecord{}))).Interface().(structs.ZeroXsacDeclares)
+	fmt.Println(reflect.ValueOf(inx).Type())
 }
