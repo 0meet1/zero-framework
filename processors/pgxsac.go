@@ -129,7 +129,12 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				if field.IsArray() {
 					for i := 0; i < vdata.Len(); i++ {
 						vxdatai := vdata.Index(i).Interface()
-						reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						vdatai := reflect.ValueOf(vxdatai)
+						if vdatai.Kind() == reflect.Pointer {
+							reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						} else {
+							reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						}
 						delaydatas[vxdatai] = field.XLinkFields()
 					}
 				} else {
