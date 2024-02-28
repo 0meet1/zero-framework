@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -75,6 +76,17 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 	delaystmts := make([]string, 0)
 	delaydataset := make(map[string][]interface{})
 
+	addFieldString := func(field *structs.ZeroXsacField, vdata reflect.Value) {
+		fieldIdx++
+		if len(fieldStrings) <= 0 {
+			fieldStrings = field.ColumnName()
+			valueStrings = fmt.Sprintf("$%d", fieldIdx)
+		} else {
+			fieldStrings = fmt.Sprintf("%s,%s", fieldStrings, field.ColumnName())
+			valueStrings = fmt.Sprintf("%s,$%d", valueStrings, fieldIdx)
+		}
+	}
+
 	for _, field := range fields {
 		if !field.Writable() {
 			continue
@@ -85,14 +97,6 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 			continue
 		}
 
-		fieldIdx++
-		if len(fieldStrings) <= 0 {
-			fieldStrings = field.ColumnName()
-			valueStrings = fmt.Sprintf("$%d", fieldIdx)
-		} else {
-			fieldStrings = fmt.Sprintf(",%s%s", fieldStrings, field.ColumnName())
-			valueStrings = fmt.Sprintf(",%s$%d", valueStrings, fieldIdx)
-		}
 		if field.Inlinable() {
 			if vdata.FieldByName("ID").Interface().(string) == "" {
 				continue
@@ -102,6 +106,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
+				addFieldString(field, vdata)
 				dataset = append(dataset, vdata.FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
@@ -143,7 +148,15 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				}
 			}
 		} else {
-			dataset = append(dataset, vdata.Interface())
+			addFieldString(field, vdata)
+			if vdata.Kind() == reflect.Map ||
+				vdata.Kind() == reflect.Slice ||
+				structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+				jsonbytes, _ := json.Marshal(vdata.Interface())
+				dataset = append(dataset, string(jsonbytes))
+			} else {
+				dataset = append(dataset, vdata.Interface())
+			}
 		}
 	}
 
@@ -211,7 +224,15 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 				} else {
 					updatefields = fmt.Sprintf("%s,%s = $%d", updatefields, field.ColumnName(), fieldIdx)
 				}
-				dataset = append(dataset, vdata.Interface())
+
+				if vdata.Kind() == reflect.Map ||
+					vdata.Kind() == reflect.Slice ||
+					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+					jsonbytes, _ := json.Marshal(vdata.Interface())
+					dataset = append(dataset, string(jsonbytes))
+				} else {
+					dataset = append(dataset, vdata.Interface())
+				}
 			}
 		}
 
