@@ -37,8 +37,8 @@ type ZeroCoreStructs struct {
 	ZeroMeta
 
 	ID         string                 `json:"id,omitempty" xhttpopt:"OX"`
-	CreateTime Date                   `json:"createTime,omitempty" xhttpopt:"XX"`
-	UpdateTime Date                   `json:"updateTime,omitempty" xhttpopt:"XX"`
+	CreateTime *Date                  `json:"createTime,omitempty" xhttpopt:"XX"`
+	UpdateTime *Date                  `json:"updateTime,omitempty" xhttpopt:"XX"`
 	Features   map[string]interface{} `json:"features,omitempty" xhttpopt:"OO"`
 }
 
@@ -161,9 +161,10 @@ func (e *ZeroCoreStructs) InitDefault() error {
 	if err != nil {
 		return err
 	}
+	newDate := Date(time.Now())
 	e.ID = uid.String()
-	e.CreateTime = Date(time.Now())
-	e.UpdateTime = Date(time.Now())
+	e.CreateTime = &newDate
+	e.UpdateTime = &newDate
 	if e.Features == nil {
 		e.Features = make(map[string]interface{})
 	}
@@ -185,25 +186,10 @@ func (e *ZeroCoreStructs) JSONFeatureWithString(jsonString string) {
 }
 
 func (e *ZeroCoreStructs) LoadRowData(rowmap map[string]interface{}) {
-	_, ok := rowmap["id"]
-	if ok {
-		e.ID = string(rowmap["id"].([]uint8))
-	}
-
-	_, ok = rowmap["create_time"]
-	if ok {
-		e.CreateTime = Date(rowmap["create_time"].(time.Time))
-	}
-
-	_, ok = rowmap["update_time"]
-	if ok {
-		e.UpdateTime = Date(rowmap["update_time"].(time.Time))
-	}
-
-	_, ok = rowmap["features"]
-	if ok {
-		e.JSONFeatureWithString(string(rowmap["features"].([]uint8)))
-	}
+	e.ID = ParseStringField(rowmap, "id")
+	e.CreateTime = ParseDateField(rowmap, "create_time")
+	e.UpdateTime = ParseDateField(rowmap, "update_time")
+	e.Features = ParseJSONField(rowmap, "features")
 }
 
 func (e *ZeroCoreStructs) String() string {
@@ -216,4 +202,55 @@ func (e *ZeroCoreStructs) Map() map[string]interface{} {
 	var jsonMap map[string]interface{}
 	_ = json.Unmarshal([]byte(mjson), &jsonMap)
 	return jsonMap
+}
+
+func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
+	_, ok := rowmap[fieldName]
+	if ok {
+		return string(rowmap[fieldName].([]uint8))
+	}
+	return ""
+}
+
+func ParseDateField(rowmap map[string]interface{}, fieldName string) *Date {
+	_, ok := rowmap[fieldName]
+	if ok {
+		rowdata := Date(rowmap[fieldName].(time.Time))
+		return &rowdata
+	}
+	return nil
+}
+
+func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]interface{} {
+	_, ok := rowmap[fieldName]
+	if ok {
+		var jsonMap map[string]interface{}
+		json.Unmarshal(rowmap[fieldName].([]uint8), &jsonMap)
+		return jsonMap
+	}
+	return nil
+}
+
+func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
+	_, ok := rowmap[fieldName]
+	if ok {
+		return int(rowmap[fieldName].(float64))
+	}
+	return 0
+}
+
+func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
+	_, ok := rowmap[fieldName]
+	if ok {
+		return rowmap[fieldName].(float64)
+	}
+	return 0
+}
+
+func ParseBytesField(rowmap map[string]interface{}, fieldName string) []byte {
+	_, ok := rowmap[fieldName]
+	if ok {
+		return rowmap[fieldName].([]uint8)
+	}
+	return nil
 }
