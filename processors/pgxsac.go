@@ -107,8 +107,8 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 		} else if field.Childable() {
 			if field.Exterable() {
 				if field.IsArray() {
-					vdataarr := vdata.Interface().([]interface{})
-					for _, vxdatai := range vdataarr {
+					for i := 0; i < vdata.Len(); i++ {
+						vxdatai := vdata.Index(i).Interface()
 						vdatai := reflect.ValueOf(vxdatai)
 						vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
 						delaydatas[vxdatai] = field.XLinkFields()
@@ -127,8 +127,8 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				}
 			} else {
 				if field.IsArray() {
-					vdataarr := vdata.Interface().([]interface{})
-					for _, vxdatai := range vdataarr {
+					for i := 0; i < vdata.Len(); i++ {
+						vxdatai := vdata.Index(i).Interface()
 						reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 						delaydatas[vxdatai] = field.XLinkFields()
 					}
