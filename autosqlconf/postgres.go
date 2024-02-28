@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	x0meet1 "github.com/0meet1/zero-framework"
+	"github.com/0meet1/zero-framework/processors"
+	"github.com/0meet1/zero-framework/structs"
 )
 
-type ZeroDbAutoPostgresProcessor struct {
-	x0meet1.ZeroCoreProcessor
+type ZeroXsacPostgresProcessor struct {
+	processors.ZeroCoreProcessor
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) ColumnExists(tableSchema string, tableName string, columName string) (int, error) {
+func (processor *ZeroXsacPostgresProcessor) ColumnExists(tableSchema string, tableName string, columName string) (int, error) {
 	const COLUMN_EXISTS_SQL = "SELECT COLUMN_EXISTS($1 ,$2 ,$3)"
 	rows, err := processor.PreparedStmt(COLUMN_EXISTS_SQL).Query(tableSchema, tableName, columName)
 	defer func() {
@@ -34,7 +35,7 @@ func (processor *ZeroDbAutoPostgresProcessor) ColumnExists(tableSchema string, t
 	return int(_state), nil
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) ColumnDiff(
+func (processor *ZeroXsacPostgresProcessor) ColumnDiff(
 	tableSchema string,
 	tableName string,
 	columName string,
@@ -42,7 +43,7 @@ func (processor *ZeroDbAutoPostgresProcessor) ColumnDiff(
 	columnType string,
 	columnDefault string) (int, error) {
 	const COLUMN_EXISTS_SQL = "SELECT COLUMN_DIFF($1 ,$2 ,$3, $4, $5, $6)"
-	if strings.ToUpper(columnDefault) == ZDA_NULL {
+	if strings.ToUpper(columnDefault) == structs.XSAC_NULL {
 		rows, err := processor.PreparedStmt(COLUMN_EXISTS_SQL).Query(tableSchema, tableName, columName, isNullable, columnType, nil)
 		defer func() {
 			if rows != nil {
@@ -83,7 +84,7 @@ func (processor *ZeroDbAutoPostgresProcessor) ColumnDiff(
 	}
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLColumn(
+func (processor *ZeroXsacPostgresProcessor) DMLColumn(
 	tableSchema string,
 	tableName string,
 	columName string,
@@ -100,13 +101,13 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLColumn(
 	}
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropColumn(tableSchema string, tableName string, columName string) error {
+func (processor *ZeroXsacPostgresProcessor) DropColumn(tableSchema string, tableName string, columName string) error {
 	const DROP_COLUMN_SQL = "SELECT DROP_COLUMN($1 ,$2 ,$3)"
 	_, err := processor.PreparedStmt(DROP_COLUMN_SQL).Exec(tableSchema, tableName, columName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) IndexExists(tableSchema string, tableName string, indexName string) (int, error) {
+func (processor *ZeroXsacPostgresProcessor) IndexExists(tableSchema string, tableName string, indexName string) (int, error) {
 	const INDEX_EXISTS_SQL = "SELECT INDEX_EXISTS($1 ,$2 ,$3)"
 	rows, err := processor.PreparedStmt(INDEX_EXISTS_SQL).Query(tableSchema, tableName, indexName)
 	defer func() {
@@ -128,7 +129,7 @@ func (processor *ZeroDbAutoPostgresProcessor) IndexExists(tableSchema string, ta
 	return int(_state), nil
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLConstraint(
+func (processor *ZeroXsacPostgresProcessor) DMLConstraint(
 	tableSchema string,
 	tableName string,
 	indexName string,
@@ -138,28 +139,28 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLConstraint(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropConstraint(tableSchema string, tableName string, indexName string) error {
+func (processor *ZeroXsacPostgresProcessor) DropConstraint(tableSchema string, tableName string, indexName string) error {
 	const DROP_CONSTRAINT_SQL = "SELECT DROP_CONSTRAINT($1 ,$2 ,$3)"
 	_, err := processor.PreparedStmt(DROP_CONSTRAINT_SQL).Exec(tableSchema, tableName, indexName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLIndex(
+func (processor *ZeroXsacPostgresProcessor) DMLIndex(
 	tableSchema string,
 	tableName string,
-	indexName string) error {
+	colnumName string) error {
 	const DML_INDEX_SQL = "SELECT DML_INDEX($1 ,$2 ,$3)"
-	_, err := processor.PreparedStmt(DML_INDEX_SQL).Exec(tableSchema, tableName, indexName)
+	_, err := processor.PreparedStmt(DML_INDEX_SQL).Exec(tableSchema, tableName, colnumName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropIndex(tableSchema string, tableName string, indexName string) error {
+func (processor *ZeroXsacPostgresProcessor) DropIndex(tableSchema string, tableName string, colnumName string) error {
 	const DROP_INDEX_SQL = "SELECT DROP_INDEX($1 ,$2 ,$3)"
-	_, err := processor.PreparedStmt(DROP_INDEX_SQL).Exec(tableSchema, tableName, indexName)
+	_, err := processor.PreparedStmt(DROP_INDEX_SQL).Exec(tableSchema, tableName, colnumName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) TriggerExists(
+func (processor *ZeroXsacPostgresProcessor) TriggerExists(
 	tableSchema string,
 	tableName string,
 	triggerTiming string,
@@ -187,7 +188,7 @@ func (processor *ZeroDbAutoPostgresProcessor) TriggerExists(
 	return int(_state), nil
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLTrigger(
+func (processor *ZeroXsacPostgresProcessor) DMLTrigger(
 	tableSchema string,
 	tableName string,
 	triggerTiming string,
@@ -199,7 +200,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLTrigger(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropTrigger(
+func (processor *ZeroXsacPostgresProcessor) DropTrigger(
 	tableSchema string,
 	tableName string,
 	triggerName string) error {
@@ -208,7 +209,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DropTrigger(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLPrimary(
+func (processor *ZeroXsacPostgresProcessor) DMLPrimary(
 	tableSchema string,
 	tableName string,
 	columnName string) error {
@@ -217,7 +218,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLPrimary(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropPrimary(
+func (processor *ZeroXsacPostgresProcessor) DropPrimary(
 	tableSchema string,
 	tableName string,
 	columnName string) error {
@@ -226,7 +227,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DropPrimary(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLUnique(
+func (processor *ZeroXsacPostgresProcessor) DMLUnique(
 	tableSchema string,
 	tableName string,
 	columnName string) error {
@@ -235,7 +236,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLUnique(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropUnique(
+func (processor *ZeroXsacPostgresProcessor) DropUnique(
 	tableSchema string,
 	tableName string,
 	columnName string) error {
@@ -244,7 +245,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DropUnique(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLForeign(
+func (processor *ZeroXsacPostgresProcessor) DMLForeign(
 	tableSchema string,
 	tableName string,
 	columnName string,
@@ -255,7 +256,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DMLForeign(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropForeign(
+func (processor *ZeroXsacPostgresProcessor) DropForeign(
 	tableSchema string,
 	tableName string,
 	columnName string) error {
@@ -264,7 +265,7 @@ func (processor *ZeroDbAutoPostgresProcessor) DropForeign(
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) TableExists(tableSchema string, tableName string) (int, error) {
+func (processor *ZeroXsacPostgresProcessor) TableExists(tableSchema string, tableName string) (int, error) {
 	const TABLE_EXISTS_SQL = "SELECT TABLE_EXISTS($1 ,$2)"
 	rows, err := processor.PreparedStmt(TABLE_EXISTS_SQL).Query(tableSchema, tableName)
 	defer func() {
@@ -286,31 +287,31 @@ func (processor *ZeroDbAutoPostgresProcessor) TableExists(tableSchema string, ta
 	return int(_state), nil
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DMLTable(tableSchema string, tableName string) error {
+func (processor *ZeroXsacPostgresProcessor) DMLTable(tableSchema string, tableName string) error {
 	const DML_TABLE_SQL = "SELECT DML_TABLE($1 ,$2)"
 	_, err := processor.PreparedStmt(DML_TABLE_SQL).Exec(tableSchema, tableName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) Create0Struct(tableSchema string, tableName string) error {
+func (processor *ZeroXsacPostgresProcessor) Create0Struct(tableSchema string, tableName string) error {
 	const CREATE_0STRUCT_SQL = "SELECT create_0struct($1 ,$2)"
 	_, err := processor.PreparedStmt(CREATE_0STRUCT_SQL).Exec(tableSchema, tableName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) Create0FlagStruct(tableSchema string, tableName string) error {
+func (processor *ZeroXsacPostgresProcessor) Create0FlagStruct(tableSchema string, tableName string) error {
 	const CREATE_0FLAGSTRUCT_SQL = "SELECT create_0flagstruct($1 ,$2)"
 	_, err := processor.PreparedStmt(CREATE_0FLAGSTRUCT_SQL).Exec(tableSchema, tableName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DML0SPart(tableSchema string, tableName string) error {
+func (processor *ZeroXsacPostgresProcessor) DML0SPart(tableSchema string, tableName string) error {
 	const DML_0SPART_SQL = "SELECT DML_0SPART($1 ,$2)"
 	_, err := processor.PreparedStmt(DML_0SPART_SQL).Exec(tableSchema, tableName)
 	return err
 }
 
-func (processor *ZeroDbAutoPostgresProcessor) DropPartitionTable(tableSchema string, tableName string) error {
+func (processor *ZeroXsacPostgresProcessor) DropPartitionTable(tableSchema string, tableName string) error {
 	const DROP_PARTITION_TABLE_SQL = "SELECT DROP_PARTITION_TABLE($1 ,$2)"
 	_, err := processor.PreparedStmt(DROP_PARTITION_TABLE_SQL).Exec(tableSchema, tableName)
 	return err

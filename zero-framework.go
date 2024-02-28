@@ -1,6 +1,8 @@
 package zeroframework
 
 import (
+	"github.com/0meet1/zero-framework/autohttpconf"
+	"github.com/0meet1/zero-framework/autosqlconf"
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/mfgrc"
 	"github.com/0meet1/zero-framework/processors"
@@ -117,3 +119,77 @@ type ZeroMfgrcGroupEventListener = mfgrc.ZeroMfgrcGroupEventListener
 type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
 type ZeroMfgrcGroupActuator = mfgrc.ZeroMfgrcGroupActuator
 type ZeroMfgrcMonoQueueActuator = mfgrc.ZeroMfgrcMonoQueueActuator
+
+const (
+	ZEOR_XSAC_ENTRY_TYPE_TABLE0S          = structs.ZEOR_XSAC_ENTRY_TYPE_TABLE0S
+	ZEOR_XSAC_ENTRY_TYPE_TABLE0FS         = structs.ZEOR_XSAC_ENTRY_TYPE_TABLE0FS
+	ZEOR_XSAC_ENTRY_TYPE_COLUMN           = structs.ZEOR_XSAC_ENTRY_TYPE_COLUMN
+	ZEOR_XSAC_ENTRY_TYPE_DROPCOLUMN       = structs.ZEOR_XSAC_ENTRY_TYPE_DROPCOLUMN
+	ZEOR_XSAC_ENTRY_TYPE_KEY              = structs.ZEOR_XSAC_ENTRY_TYPE_KEY
+	ZEOR_XSAC_ENTRY_TYPE_DROPKEY          = structs.ZEOR_XSAC_ENTRY_TYPE_DROPKEY
+	ZEOR_XSAC_ENTRY_TYPE_PRIMARY_KEY      = structs.ZEOR_XSAC_ENTRY_TYPE_PRIMARY_KEY
+	ZEOR_XSAC_ENTRY_TYPE_DROP_PRIMARY_KEY = structs.ZEOR_XSAC_ENTRY_TYPE_DROP_PRIMARY_KEY
+	ZEOR_XSAC_ENTRY_TYPE_UNIQUE_KEY       = structs.ZEOR_XSAC_ENTRY_TYPE_UNIQUE_KEY
+	ZEOR_XSAC_ENTRY_TYPE_DROP_UNIQUE_KEY  = structs.ZEOR_XSAC_ENTRY_TYPE_DROP_UNIQUE_KEY
+	ZEOR_XSAC_ENTRY_TYPE_FOREIGN_KEY      = structs.ZEOR_XSAC_ENTRY_TYPE_FOREIGN_KEY
+	ZEOR_XSAC_ENTRY_TYPE_DROP_FOREIGN_KEY = structs.ZEOR_XSAC_ENTRY_TYPE_DROP_FOREIGN_KEY
+)
+
+type ZeroXsacDeclares = structs.ZeroXsacDeclares
+type ZeroXsacEntry = structs.ZeroXsacEntry
+type ZeroXsacField = structs.ZeroXsacField
+
+type ZeroXsacProcessor = autosqlconf.ZeroXsacProcessor
+type ZeroXsacPostgresProcessor = autosqlconf.ZeroXsacPostgresProcessor
+type ZeroXsacMysqlProcessor = autosqlconf.ZeroXsacMysqlProcessor
+type ZeroXsacKeeper = autosqlconf.ZeroXsacKeeper
+
+const (
+	XSAC_BE_INSERT = processors.XSAC_BE_INSERT
+	XSAC_BE_UPDATE = processors.XSAC_BE_UPDATE
+	XSAC_BE_DELETE = processors.XSAC_BE_DELETE
+
+	XSAC_AF_INSERT = processors.XSAC_AF_INSERT
+	XSAC_AF_UPDATE = processors.XSAC_AF_UPDATE
+	XSAC_AF_DELETE = processors.XSAC_AF_DELETE
+)
+
+type ZeroXsacTrigger = processors.ZeroXsacTrigger
+type ZeroXsacAutoProcessor = processors.ZeroXsacAutoProcessor
+type ZeroXsacPostgresAutoProcessor = processors.ZeroXsacPostgresAutoProcessor
+
+type ZeroXsacXhttpDeclares = autohttpconf.ZeroXsacXhttpDeclares
+type ZeroXsacHttpFetchTrigger = autohttpconf.ZeroXsacHttpFetchTrigger
+type ZeroXsacHttpSearchTrigger = autohttpconf.ZeroXsacHttpSearchTrigger
+type ZeroXsacXhttpStructs = autohttpconf.ZeroXsacXhttpStructs
+
+const XahttpOpt_T = 1
+const XahttpOpt_F = 0
+
+func XahttpOpt(i, u, r, f, s int) byte {
+	return byte(i&1<<3 + u&1<<2 + r&1<<1 + f&1 + s&1<<4)
+}
+
+func XahttpOptNoU() byte {
+	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_T, XahttpOpt_T, XahttpOpt_F)
+}
+
+func XahttpOptNoR() byte {
+	return XahttpOpt(XahttpOpt_T, XahttpOpt_T, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
+}
+
+func XahttpOptNoUR() byte {
+	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
+}
+
+func XahttpOptIO() byte {
+	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F)
+}
+
+func XahttpOptSO() byte {
+	return XahttpOpt(XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T)
+}
+
+func XahttpOptAll() byte {
+	return XahttpOpt(XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T)
+}

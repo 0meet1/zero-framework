@@ -46,17 +46,17 @@ func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
 
 	_, ok := rowmap["mono_id"]
 	if ok {
-		mono.MonoID = mono.UInt8ToString(rowmap["mono_id"].([]uint8))
+		mono.MonoID = string(rowmap["mono_id"].([]uint8))
 	}
 
 	_, ok = rowmap["unique_code"]
 	if ok {
-		mono.UniqueCode = mono.UInt8ToString(rowmap["unique_code"].([]uint8))
+		mono.UniqueCode = string(rowmap["unique_code"].([]uint8))
 	}
 
 	_, ok = rowmap["option"]
 	if ok {
-		mono.Option = mono.UInt8ToString(rowmap["option"].([]uint8))
+		mono.Option = string(rowmap["option"].([]uint8))
 	}
 
 	_, ok = rowmap["progress"]
@@ -66,7 +66,7 @@ func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
 
 	_, ok = rowmap["status"]
 	if ok {
-		mono.status = mono.UInt8ToString(rowmap["status"].([]uint8))
+		mono.status = string(rowmap["status"].([]uint8))
 	}
 
 	_, ok = rowmap["execute_times"]

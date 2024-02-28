@@ -58,3 +58,13 @@ zero:
     topics:
     - "<topic1>"
     - "<topic2>"
+  worker:
+    maxQueues: 50
+    maxQueueLimit: 10
+    taskIntervalSeconds: 0
+    taskWaitSeconds: 10
+    taskRetryTimes: 0
+    taskRetryInterval: 3
+    maxGroupQueues: 10
+  xsac:
+    autocheck: "enable"

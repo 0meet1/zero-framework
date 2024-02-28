@@ -1,14 +1,11 @@
 package structs
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 type ZeroMetaPtr struct {
@@ -69,92 +66,6 @@ type ZeroResponse struct {
 	Message string                 `json:"message,omitempty"`
 	Datas   []interface{}          `json:"datas,omitempty"`
 	Expands map[string]interface{} `json:"expands,omitempty"`
-}
-
-type ZeroCoreStructs struct {
-	ZeroMeta
-
-	ID         string                 `json:"id,omitempty"`
-	CreateTime Date                   `json:"createTime,omitempty"`
-	UpdateTime Date                   `json:"updateTime,omitempty"`
-	Features   map[string]interface{} `json:"features,omitempty"`
-}
-
-func (e *ZeroCoreStructs) UInt8ToString(bs []uint8) string {
-	ba := []byte{}
-	for _, b := range bs {
-		ba = append(ba, byte(b))
-	}
-	return string(ba)
-}
-
-func (e *ZeroCoreStructs) InitDefault() error {
-	uid, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	e.ID = uid.String()
-	e.CreateTime = Date(time.Now())
-	e.UpdateTime = Date(time.Now())
-	if e.Features == nil {
-		e.Features = make(map[string]interface{})
-	}
-	return nil
-}
-
-func (e *ZeroCoreStructs) GetJSONFeature() string {
-	if e.Features == nil {
-		mjson, err := json.Marshal(make(map[string]string))
-		if err != nil {
-			panic(err)
-		}
-		return string(mjson)
-	} else {
-		mjson, err := json.Marshal(e.Features)
-		if err != nil {
-			panic(err)
-		}
-		return string(mjson)
-	}
-}
-
-func (e *ZeroCoreStructs) SetJSONFeature(jsonString string) {
-	var jsonMap map[string]interface{}
-	err := json.Unmarshal([]byte(jsonString), &jsonMap)
-	if err != nil {
-		panic(err)
-	}
-	e.Features = jsonMap
-}
-
-func (e *ZeroCoreStructs) LoadRowData(rowmap map[string]interface{}) {
-	_, ok := rowmap["id"]
-	if ok {
-		e.ID = e.UInt8ToString(rowmap["id"].([]uint8))
-	}
-
-	_, ok = rowmap["create_time"]
-	if ok {
-		e.CreateTime = Date(rowmap["create_time"].(time.Time))
-	}
-
-	_, ok = rowmap["update_time"]
-	if ok {
-		e.UpdateTime = Date(rowmap["update_time"].(time.Time))
-	}
-
-	_, ok = rowmap["features"]
-	if ok {
-		e.SetJSONFeature(e.UInt8ToString(rowmap["features"].([]uint8)))
-	}
-}
-
-func (e *ZeroCoreStructs) String() string {
-	mjson, err := json.Marshal(e)
-	if err != nil {
-		panic(err)
-	}
-	return string(mjson)
 }
 
 func CheckISO70641983MOD112(idCard string) bool {

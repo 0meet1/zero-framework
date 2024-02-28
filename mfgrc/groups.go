@@ -41,17 +41,17 @@ func (group *ZeroMfgrcGroup) LoadRowData(rowmap map[string]interface{}) {
 
 	_, ok := rowmap["unique_code"]
 	if ok {
-		group.UniqueCode = group.UInt8ToString(rowmap["unique_code"].([]uint8))
+		group.UniqueCode = string(rowmap["unique_code"].([]uint8))
 	}
 
 	_, ok = rowmap["option"]
 	if ok {
-		group.Option = group.UInt8ToString(rowmap["option"].([]uint8))
+		group.Option = string(rowmap["option"].([]uint8))
 	}
 
 	_, ok = rowmap["status"]
 	if ok {
-		group.status = group.UInt8ToString(rowmap["status"].([]uint8))
+		group.status = string(rowmap["status"].([]uint8))
 	}
 
 	reason, ok := group.Features["reason"]

@@ -5,18 +5,16 @@ import (
 )
 
 const (
-	ZDA_NULL = "NULL"
+	XSAC_TRIGGER_TIMING_BEFORE = "BEFORE"
+	XSAC_TRIGGER_TIMING_AFTER  = "AFTER"
 
-	ZDA_TRIGGER_TIMING_BEFORE = "BEFORE"
-	ZDA_TRIGGER_TIMING_AFTER  = "AFTER"
-
-	ZDA_TRIGGER_EVENT_INSERT = "INSERT"
-	ZDA_TRIGGER_EVENT_UPDATE = "UPDATE"
-	ZDA_TRIGGER_EVENT_DELETE = "DELETE"
-	ZDA_TRIGGER_EVENT_SELECT = "SELECT"
+	XSAC_TRIGGER_EVENT_INSERT = "INSERT"
+	XSAC_TRIGGER_EVENT_UPDATE = "UPDATE"
+	XSAC_TRIGGER_EVENT_DELETE = "DELETE"
+	XSAC_TRIGGER_EVENT_SELECT = "SELECT"
 )
 
-type ZeroDbAutoProcessor interface {
+type ZeroXsacProcessor interface {
 	Build(transaction *sql.Tx)
 
 	ColumnExists(tableSchema string, tableName string, columName string) (int, error)
@@ -27,8 +25,8 @@ type ZeroDbAutoProcessor interface {
 	IndexExists(tableSchema string, tableName string, indexName string) (int, error)
 	DMLConstraint(tableSchema string, tableName string, indexName string, defineIndexSQL string) error
 	DropConstraint(tableSchema string, tableName string, indexName string) error
-	DMLIndex(tableSchema string, tableName string, indexName string) error
-	DropIndex(tableSchema string, tableName string, indexName string) error
+	DMLIndex(tableSchema string, tableName string, colnumName string) error
+	DropIndex(tableSchema string, tableName string, colnumName string) error
 
 	TriggerExists(tableSchema string, tableName string, triggerTiming string, triggerEvent string, triggerName string, triggerAction string) (int, error)
 	DMLTrigger(tableSchema string, tableName string, triggerTiming string, triggerEvent string, triggerName string, triggerAction string) error

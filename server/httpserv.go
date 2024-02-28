@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/structs"
@@ -113,6 +114,37 @@ func XhttpZeroQueryOperation(xRequest *structs.ZeroRequest, tableName string) (*
 		Query:     xQuery,
 		TableName: tableName,
 	}, xQuery, nil
+}
+
+func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
+	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+		return nil, errors.New("missing necessary parameter `query[0]`")
+	}
+
+	bytes, err := json.Marshal(xRequest.Querys[0])
+	if err != nil {
+		return nil, err
+	}
+
+	var query database.EQuerySearch
+	err = json.Unmarshal(bytes, &query)
+	if err != nil {
+		return nil, err
+	}
+	return &query, nil
+}
+
+func XhttpEQueryRequest(xRequest *structs.ZeroRequest, indexName string) (*database.EQueryRequest, *database.EQuerySearch, error) {
+	xEQuery, err := XhttpEQuery(xRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	if xEQuery.Size > 1000 {
+		xEQuery.Size = 1000
+	}
+	eRequest := &database.EQueryRequest{Query: xEQuery}
+	eRequest.InitIndex(indexName)
+	return eRequest, xEQuery, nil
 }
 
 type XhttpExecutor struct {
