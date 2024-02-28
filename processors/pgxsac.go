@@ -80,7 +80,8 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 			continue
 		}
 		vdata := elem.FieldByName(field.FieldName())
-		if vdata.IsNil() {
+
+		if vdata.Kind() == reflect.Pointer && vdata.IsNil() {
 			continue
 		}
 
@@ -93,7 +94,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 			valueStrings = fmt.Sprintf(",%s$%d", valueStrings, fieldIdx)
 		}
 		if field.Inlinable() {
-			if vdata.FieldByName("ID").IsNil() {
+			if vdata.FieldByName("ID").Interface().(string) == "" {
 				continue
 			}
 			if field.Exterable() {
@@ -184,7 +185,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Insert(datas ...interface{}) err
 func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) error {
 	for _, data := range datas {
 		elem := reflect.ValueOf(data).Elem()
-		if elem.FieldByName("ID").IsNil() || elem.FieldByName("ID").Interface().(string) == "" {
+		if elem.FieldByName("ID").Interface().(string) == "" {
 			continue
 		}
 
@@ -196,14 +197,16 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 			if field.Updatable() && field.FieldName() != "ID" {
 				fieldIdx++
 				vdata := elem.FieldByName(field.FieldName())
-				if !vdata.IsNil() {
-					if len(updatefields) <= 0 {
-						updatefields = fmt.Sprintf("%s = $%d", field.ColumnName(), fieldIdx)
-					} else {
-						updatefields = fmt.Sprintf("%s,%s = $%d", updatefields, field.ColumnName(), fieldIdx)
-					}
-					dataset = append(dataset, vdata.Interface())
+				if vdata.Kind() == reflect.Pointer && vdata.IsNil() {
+					continue
 				}
+
+				if len(updatefields) <= 0 {
+					updatefields = fmt.Sprintf("%s = $%d", field.ColumnName(), fieldIdx)
+				} else {
+					updatefields = fmt.Sprintf("%s,%s = $%d", updatefields, field.ColumnName(), fieldIdx)
+				}
+				dataset = append(dataset, vdata.Interface())
 			}
 		}
 
@@ -229,7 +232,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 func (processor *ZeroXsacPostgresAutoProcessor) Delete(datas ...interface{}) error {
 	for _, data := range datas {
 		elem := reflect.ValueOf(data).Elem()
-		if elem.FieldByName("ID").IsNil() || elem.FieldByName("ID").Interface().(string) == "" {
+		if elem.FieldByName("ID").Interface().(string) == "" {
 			continue
 		}
 
