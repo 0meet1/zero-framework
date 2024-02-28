@@ -17,11 +17,10 @@ type ZeroXsacPostgresAutoProcessor struct {
 	triggers []ZeroXsacTrigger
 }
 
-func NewXsacPostgresProcessor(dbName string, tableName string, fields []*structs.ZeroXsacField, triggers ...ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
+func NewXsacPostgresProcessor(dbName string, tableName string, triggers ...ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
 	return &ZeroXsacPostgresAutoProcessor{
 		dbName:    dbName,
 		tableName: tableName,
-		fields:    fields,
 		triggers:  triggers,
 	}
 }
@@ -32,6 +31,10 @@ func (processor *ZeroXsacPostgresAutoProcessor) DBName() string {
 
 func (processor *ZeroXsacPostgresAutoProcessor) TableName() string {
 	return processor.tableName
+}
+
+func (processor *ZeroXsacPostgresAutoProcessor) AddFields(fields []*structs.ZeroXsacField) {
+	processor.fields = fields
 }
 
 func (processor *ZeroXsacPostgresAutoProcessor) AddTriggers(triggers ...ZeroXsacTrigger) {

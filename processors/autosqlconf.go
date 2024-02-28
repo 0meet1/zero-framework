@@ -1,6 +1,10 @@
 package processors
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/0meet1/zero-framework/structs"
+)
 
 const (
 	XSAC_BE_INSERT = "beinsert"
@@ -21,6 +25,7 @@ type ZeroXsacAutoProcessor interface {
 
 	DBName() string
 	TableName() string
+	AddFields(fields []*structs.ZeroXsacField)
 	AddTriggers(...ZeroXsacTrigger)
 
 	Insert(...interface{}) error

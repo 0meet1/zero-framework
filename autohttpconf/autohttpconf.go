@@ -1,6 +1,7 @@
 package autohttpconf
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -24,7 +25,7 @@ type ZeroXsacXhttpDeclares interface {
 	structs.ZeroXsacDeclares
 
 	XhttpPath() string
-	XhttpAutoProc() reflect.Type
+	XhttpAutoProc() processors.ZeroXsacAutoProcessor
 	XhttpOpt() byte
 
 	XhttpCheckTable() string
@@ -43,8 +44,8 @@ func (e *ZeroXsacXhttpStructs) XhttpOpt() byte           { return 0b00001111 }
 func (e *ZeroXsacXhttpStructs) XhttpCheckTable() string  { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpSearchIndex() string { return "" }
 
-func (e *ZeroXsacXhttpStructs) XhttpAutoProc() reflect.Type {
-	return reflect.TypeOf(&processors.ZeroXsacPostgresAutoProcessor{})
+func (e *ZeroXsacXhttpStructs) XhttpAutoProc() processors.ZeroXsacAutoProcessor {
+	return processors.NewXsacPostgresProcessor(e.XsacDbName(), e.XsacTableName())
 }
 
 func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }
@@ -59,6 +60,8 @@ const (
 type ZeroXsacXhttp struct {
 	dataSource string
 	coretype   reflect.Type
+
+	fields structs.ZeroXsacFieldSet
 
 	instance ZeroXsacXhttpDeclares
 }
@@ -101,6 +104,13 @@ func (xhttp *ZeroXsacXhttp) XsearchIndex() string {
 	return xhttp.instance.XhttpSearchIndex()
 }
 
+func (xhttp *ZeroXsacXhttp) xhttpfields() structs.ZeroXsacFieldSet {
+	if xhttp.fields == nil {
+		xhttp.fields = xhttp.instance.(structs.ZeroXsacFields).XsacFields()
+	}
+	return xhttp.fields
+}
+
 func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
 	defer func() {
@@ -119,13 +129,27 @@ func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := xhttp.instance.XhttpAutoProc()
+	processor.AddFields(xhttp.xhttpfields())
 	processor.Build(transaction)
-	err = processor.Insert(xRequest.Querys...)
-	if err != nil {
-		panic(err)
-	}
 
+	for _, xQueryData := range xRequest.Querys {
+		jsonbytes, err := json.Marshal(xQueryData)
+		if err != nil {
+			panic(err)
+		}
+
+		xquery := reflect.New(xhttp.coretype).Interface()
+		err = json.Unmarshal(jsonbytes, xquery)
+		if err != nil {
+			panic(err)
+		}
+
+		err = processor.Insert(xquery)
+		if err != nil {
+			panic(err)
+		}
+	}
 	server.XhttpResponseMessages(writer, 200, "success")
 }
 
@@ -147,13 +171,27 @@ func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := xhttp.instance.XhttpAutoProc()
+	processor.AddFields(xhttp.xhttpfields())
 	processor.Build(transaction)
-	err = processor.Update(xRequest.Querys...)
-	if err != nil {
-		panic(err)
-	}
 
+	for _, xQueryData := range xRequest.Querys {
+		jsonbytes, err := json.Marshal(xQueryData)
+		if err != nil {
+			panic(err)
+		}
+
+		xquery := reflect.New(xhttp.coretype).Interface()
+		err = json.Unmarshal(jsonbytes, xquery)
+		if err != nil {
+			panic(err)
+		}
+
+		err = processor.Update(xquery)
+		if err != nil {
+			panic(err)
+		}
+	}
 	server.XhttpResponseMessages(writer, 200, "success")
 }
 
@@ -175,13 +213,27 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := reflect.New(structs.FindMetaType(xhttp.instance.XhttpAutoProc())).Interface().(processors.ZeroXsacAutoProcessor)
+	processor := xhttp.instance.XhttpAutoProc()
+	processor.AddFields(xhttp.xhttpfields())
 	processor.Build(transaction)
-	err = processor.Delete(xRequest.Querys...)
-	if err != nil {
-		panic(err)
-	}
 
+	for _, xQueryData := range xRequest.Querys {
+		jsonbytes, err := json.Marshal(xQueryData)
+		if err != nil {
+			panic(err)
+		}
+
+		xquery := reflect.New(xhttp.coretype).Interface()
+		err = json.Unmarshal(jsonbytes, xquery)
+		if err != nil {
+			panic(err)
+		}
+
+		err = processor.Delete(xRequest.Querys...)
+		if err != nil {
+			panic(err)
+		}
+	}
 	server.XhttpResponseMessages(writer, 200, "success")
 }
 
