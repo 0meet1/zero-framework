@@ -3,6 +3,7 @@ package zeroframework_test
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -65,4 +66,5 @@ func TestZeroCoreStructs(t *testing.T) {
 	}
 
 	fmt.Println(xt.CreateTime.Time())
+	fmt.Println(reflect.TypeOf(xt.CreateTime).Kind())
 }
