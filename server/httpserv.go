@@ -133,6 +133,26 @@ func XhttpCompleteQueryOperation(xRequest *structs.ZeroRequest, xProcessor proce
 	return xProcessor, xQuery, nil
 }
 
+const XHTTP_QUERY_OPTIONS_ALL = "all"
+
+func XhttpQueryOptions(xRequest *structs.ZeroRequest) []string {
+	xoptions := make([]string, 0)
+	if xRequest.Expands == nil {
+		return xoptions
+	}
+
+	if _, ok := xRequest.Expands["options"]; ok {
+		xoptionItems := strings.Split(xRequest.Expands["options"].(string), "|")
+		for _, xoption := range xoptionItems {
+			if xoption == XHTTP_QUERY_OPTIONS_ALL {
+				return []string{XHTTP_QUERY_OPTIONS_ALL}
+			}
+			xoptions = append(xoptions, strings.ToLower(xoption))
+		}
+	}
+	return xoptions
+}
+
 func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")

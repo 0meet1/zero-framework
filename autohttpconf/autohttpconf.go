@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/global"
@@ -69,6 +70,8 @@ type ZeroXsacXhttp struct {
 	fields structs.ZeroXsacFieldSet
 
 	instance ZeroXsacXhttpDeclares
+
+	inlinfields map[string]*structs.ZeroXsacField
 }
 
 func NewXsacXhttp(coretype reflect.Type) *ZeroXsacXhttp {
@@ -116,6 +119,23 @@ func (xhttp *ZeroXsacXhttp) xhttpfields() structs.ZeroXsacFieldSet {
 		xhttp.fields = xhttp.instance.(structs.ZeroXsacFields).XsacFields()
 	}
 	return xhttp.fields
+}
+
+func (xhttp *ZeroXsacXhttp) xhttpinlines() map[string]*structs.ZeroXsacField {
+	if xhttp.inlinfields == nil {
+		xhttp.inlinfields = make(map[string]*structs.ZeroXsacField)
+		for _, field := range xhttp.xhttpfields() {
+			if field.Inlinable() {
+				xhttp.inlinfields[strings.ToLower(field.FieldName())] = field
+			}
+		}
+		for _, field := range xhttp.xhttpfields() {
+			if field.Childable() {
+				xhttp.inlinfields[strings.ToLower(field.FieldName())] = field
+			}
+		}
+	}
+	return xhttp.inlinfields
 }
 
 func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
@@ -268,12 +288,18 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 	}
 	xOperation.Build(transaction)
 
+	processor := xhttp.instance.XhttpAutoProc()
+	processor.AddFields(xhttp.xhttpfields())
+	processor.Build(transaction)
+
 	if xhttp.instance.XhttpFetchTrigger() != nil {
 		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_READY, xOperation, xRequest)
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	xoptions := server.XhttpQueryOptions(xRequest)
 
 	rows, expands := xOperation.Exec()
 	datas := make([]interface{}, 0)
@@ -282,6 +308,19 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
 		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
 			panic(returnValues[0].Interface())
+		}
+
+		for _, xoption := range xoptions {
+			if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
+				for _, field := range xhttp.xhttpinlines() {
+					processor.FetchChildrens(field, data)
+				}
+			} else {
+				field, ok := xhttp.xhttpinlines()[xoption]
+				if ok {
+					processor.FetchChildrens(field, data)
+				}
+			}
 		}
 
 		if xhttp.instance.XhttpFetchTrigger() != nil {

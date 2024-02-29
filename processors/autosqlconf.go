@@ -29,4 +29,5 @@ type ZeroXsacAutoProcessor interface {
 	Insert(...interface{}) error
 	Update(...interface{}) error
 	Delete(...interface{}) error
+	FetchChildrens(*structs.ZeroXsacField, interface{}) error
 }

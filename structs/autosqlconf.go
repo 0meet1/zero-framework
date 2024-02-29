@@ -195,7 +195,11 @@ type ZeroXsacField struct {
 	fieldName  string
 	columnName string
 	inlineName string
-	childName  string
+
+	childName       string
+	childColumnName string
+
+	subTableName string
 
 	reftable     string
 	refcolumn    string
@@ -237,8 +241,17 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 	if field.Tag.Get(XSAC_CHILD) != "" {
 		xfield.childName = field.Tag.Get(XSAC_CHILD)
 		xfield.inlineName = ""
+
 		if !ignore {
-			xfield.XLinkFields()
+			xLinkFields := xfield.XLinkFields()
+			if !xfield.Exterable() {
+				for _, xLField := range xLinkFields {
+					if xLField.FieldName() == xfield.childName {
+						xfield.childColumnName = xLField.ColumnName()
+						break
+					}
+				}
+			}
 		}
 	} else if field.Tag.Get(XSAC_FIELD) != "" {
 		xfield.inlineName = field.Tag.Get(XSAC_FIELD)
@@ -246,6 +259,9 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 		if !ignore {
 			xfield.XLinkFields()
 		}
+	}
+	if xfield.Inlinable() || xfield.Childable() {
+		xfield.subTableName = reflect.New(FindStructFieldMetaType(field)).Interface().(ZeroXsacDeclares).XsacTableName()
 	}
 	return xfield
 }
@@ -268,6 +284,14 @@ func (xf *ZeroXsacField) InlineName() string {
 
 func (xf *ZeroXsacField) ChildName() string {
 	return xf.childName
+}
+
+func (xf *ZeroXsacField) ChildColumnName() string {
+	return xf.childColumnName
+}
+
+func (xf *ZeroXsacField) SubTableName() string {
+	return xf.subTableName
 }
 
 func (xf *ZeroXsacField) Reftable() string {

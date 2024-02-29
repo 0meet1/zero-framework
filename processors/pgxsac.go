@@ -270,3 +270,53 @@ func (processor *ZeroXsacPostgresAutoProcessor) Delete(datas ...interface{}) err
 	}
 	return nil
 }
+
+func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
+	stmtChildrens := ""
+	if field.Exterable() {
+		stmtChildrens = fmt.Sprintf(
+			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND %s = $1",
+			field.SubTableName(),
+			field.Reftable(),
+			field.Refbrocolumn(),
+			field.Refcolumn())
+		if !field.IsArray() {
+			stmtChildrens = fmt.Sprintf("%s LIMIT 1", stmtChildrens)
+		}
+	} else {
+		if field.Inlinable() {
+			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE ID = $1", field.SubTableName())
+		} else {
+			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE %s = $1", field.SubTableName(), field.ChildColumnName())
+			if !field.IsArray() {
+				stmtChildrens = fmt.Sprintf("%s LIMIT 1", stmtChildrens)
+			}
+		}
+	}
+
+	rowdatas, err := processor.PreparedStmt(stmtChildrens).Query(reflect.ValueOf(datas).Elem().FieldByName("ID").Interface())
+	if err != nil {
+		return err
+	}
+
+	rows := processor.Parser(rowdatas)
+
+	subdatas := make([]interface{}, 0)
+	for _, row := range rows {
+		data := reflect.New(field.Metatype()).Interface()
+		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
+		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
+			return returnValues[0].Interface().(error)
+		}
+		subdatas = append(subdatas, data)
+	}
+
+	if len(subdatas) > 0 {
+		if field.IsArray() {
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(subdatas))
+		} else {
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(subdatas[0]))
+		}
+	}
+	return nil
+}
