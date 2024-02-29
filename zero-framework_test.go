@@ -66,5 +66,5 @@ func TestZeroCoreStructs(t *testing.T) {
 	}
 
 	fmt.Println(xt.CreateTime.Time())
-	fmt.Println(reflect.TypeOf(xt.CreateTime).Kind())
+	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).Name())
 }

@@ -36,8 +36,8 @@ const DateFormat = "2006-01-02T15:04:05Z"
 
 type Date time.Time
 
-func (t Date) MarshalJSON() ([]byte, error) {
-	stamp := fmt.Sprintf("\"%s\"", time.Time(t).Format(DateFormat))
+func (t *Date) MarshalJSON() ([]byte, error) {
+	stamp := fmt.Sprintf("\"%s\"", time.Time(*t).Format(DateFormat))
 	return []byte(stamp), nil
 }
 
