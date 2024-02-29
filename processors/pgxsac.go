@@ -287,10 +287,18 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 	} else {
 		if field.Inlinable() {
 			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE ID = $1", field.SubTableName())
-			if reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).IsNil() {
+			superf := reflect.ValueOf(datas).Elem().FieldByName(field.FieldName())
+			if superf.Kind() == reflect.Ptr {
+				if superf.IsNil() {
+					return nil
+				}
+				superf = superf.Elem()
+			}
+
+			if superf.FieldByName("ID").Interface().(string) == "" {
 				return nil
 			}
-			stmtdata = reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).FieldByName("ID").Interface()
+			stmtdata = superf.FieldByName("ID").Interface()
 		} else {
 			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE %s = $1", field.SubTableName(), field.ChildColumnName())
 			if !field.IsArray() {
