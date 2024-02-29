@@ -45,11 +45,17 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
-
-	var err error
+	local, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return err
+	}
 	tm, err := time.Parse(`"`+DateFormat+`"`, string(data))
+	if err != nil {
+		return err
+	}
+	tm = tm.In(local)
 	*t = Date(tm)
-	return err
+	return nil
 }
 
 func (t Date) Time() time.Time {
