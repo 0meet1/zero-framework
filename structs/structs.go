@@ -49,11 +49,10 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	tm, err := time.Parse(`"`+DateFormat+`"`, string(data))
+	tm, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), local)
 	if err != nil {
 		return err
 	}
-	tm = tm.In(local)
 	*t = Date(tm)
 	return nil
 }
