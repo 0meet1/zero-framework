@@ -273,6 +273,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Delete(datas ...interface{}) err
 
 func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
 	stmtChildrens := ""
+	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()
 	if field.Exterable() {
 		stmtChildrens = fmt.Sprintf(
 			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND %s = $1",
@@ -286,6 +287,10 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 	} else {
 		if field.Inlinable() {
 			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE ID = $1", field.SubTableName())
+			if reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).IsNil() {
+				return nil
+			}
+			stmtdata = reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).FieldByName("ID").Interface()
 		} else {
 			stmtChildrens = fmt.Sprintf("SELECT * FROM %s WHERE %s = $1", field.SubTableName(), field.ChildColumnName())
 			if !field.IsArray() {
@@ -294,7 +299,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 		}
 	}
 
-	rowdatas, err := processor.PreparedStmt(stmtChildrens).Query(reflect.ValueOf(datas).Elem().FieldByName("ID").Interface())
+	rowdatas, err := processor.PreparedStmt(stmtChildrens).Query(stmtdata)
 	if err != nil {
 		return err
 	}
