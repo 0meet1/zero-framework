@@ -106,7 +106,7 @@ func (e *ZeroCoreStructs) readXsacEntries(xrType reflect.Type) []*ZeroXsacEntry 
 
 func (e *ZeroCoreStructs) XsacDeclares() ZeroXsacEntrySet {
 	entries := make([]*ZeroXsacEntry, 0)
-	if e.XsacDeleteOpt()&0b10000000 == 0b10000000 {
+	if e.This().(ZeroXsacDeclares).XsacDeleteOpt()&0b10000000 == 0b10000000 {
 		entries = append(entries, NewTable0s(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
 	} else {
 		entries = append(entries, NewTable0fs(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
