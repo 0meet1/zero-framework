@@ -45,11 +45,7 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
-	local, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		return err
-	}
-	tm, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), local)
+	tm, err := time.Parse(`"`+DateFormat+`"`, string(data))
 	if err != nil {
 		return err
 	}
@@ -57,8 +53,8 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t Date) Time() time.Time {
-	return time.Time(t)
+func (t *Date) Time() time.Time {
+	return time.Time(*t)
 }
 
 type ZeroRequest struct {

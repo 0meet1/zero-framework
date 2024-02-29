@@ -1,8 +1,8 @@
 package zeroframework_test
 
 import (
+	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
@@ -45,33 +45,24 @@ func (personr *ZeroXsacTestPersonRecord) XsacTableName() string {
 
 func TestZeroCoreStructs(t *testing.T) {
 
-	person := &ZeroXsacTestPerson{}
-	person.InitDefault()
-	person.ThisDef(person)
-	fmt.Println(person.XsacDeclares())
-	fmt.Println(person.XsacRefDeclares())
-
-	personr := &ZeroXsacTestPersonRecord{
-		Contents: "test",
-	}
-	personr.ThisDef(personr)
-	// personr.XsacAutoConfig("test", "test_person_record")
-	// fmt.Println(fmt.Sprintf("%b", 0b1111&0b100))
-	// fmt.Println(reflect.ValueOf(personr).MethodByName("InitDefault").Call([]reflect.Value{}))
-	fmt.Println(personr.XsacDeclares())
-	fmt.Println(personr.XsacRefDeclares())
-
-	fmt.Println(reflect.ValueOf(person).Elem().FieldByName("ID").Interface())
-
-	fmt.Println(person.XsacFields())
-	fmt.Println()
-	fmt.Println(personr.XsacFields())
-
-	fmt.Println(structs.FindMetaType(reflect.TypeOf(ZeroXsacTestPersonRecord{})))
-
-	inx := reflect.New(structs.FindMetaType(reflect.TypeOf(&ZeroXsacTestPersonRecord{}))).Interface().(structs.ZeroXsacDeclares)
-	fmt.Println(reflect.ValueOf(inx).Type())
 	fmt.Println(structs.YearDurationString(time.Now(), "2006-01-02 15:04:05"))
 	fmt.Println(structs.MonthDurationString(time.Now(), "2006-01-02 15:04:05"))
 	fmt.Println(structs.DayDurationString(time.Now(), "2006-01-02 15:04:05"))
+
+	xt := &ZeroXsacTestPersonRecord{}
+	xt.InitDefault()
+
+	jsonbytes, err := json.Marshal(xt)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(string(jsonbytes))
+
+	err = json.Unmarshal(jsonbytes, xt)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(xt.CreateTime.Time())
 }
