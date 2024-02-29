@@ -271,6 +271,52 @@ func (processor *ZeroXsacPostgresAutoProcessor) Delete(datas ...interface{}) err
 	return nil
 }
 
+func (processor *ZeroXsacPostgresAutoProcessor) Tombstone(datas ...interface{}) error {
+	for _, data := range datas {
+		elem := reflect.ValueOf(data).Elem()
+		if elem.FieldByName("ID").Interface().(string) == "" {
+			continue
+		}
+
+		err := processor.on(XSAC_BE_DELETE, data)
+		if err != nil {
+			return err
+		}
+		_, err = processor.PreparedStmt(fmt.Sprintf("UPDATE %s SET flag = 1 WHERE ID = $1", data.(structs.ZeroXsacDeclares).XsacTableName())).Exec(elem.FieldByName("ID").Interface())
+		if err != nil {
+			return err
+		}
+		err = processor.on(XSAC_AF_DELETE, data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (processor *ZeroXsacPostgresAutoProcessor) Xrestore(datas ...interface{}) error {
+	for _, data := range datas {
+		elem := reflect.ValueOf(data).Elem()
+		if elem.FieldByName("ID").Interface().(string) == "" {
+			continue
+		}
+
+		err := processor.on(XSAC_BE_DELETE, data)
+		if err != nil {
+			return err
+		}
+		_, err = processor.PreparedStmt(fmt.Sprintf("UPDATE %s SET flag = 0 WHERE ID = $1", data.(structs.ZeroXsacDeclares).XsacTableName())).Exec(elem.FieldByName("ID").Interface())
+		if err != nil {
+			return err
+		}
+		err = processor.on(XSAC_AF_DELETE, data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
 	stmtChildrens := ""
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()

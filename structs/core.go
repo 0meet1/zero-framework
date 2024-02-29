@@ -44,12 +44,14 @@ type ZeroCoreStructs struct {
 	CreateTime *Date                  `json:"createTime,omitempty" xhttpopt:"XX"`
 	UpdateTime *Date                  `json:"updateTime,omitempty" xhttpopt:"XX"`
 	Features   map[string]interface{} `json:"features,omitempty" xhttpopt:"OO"`
+	Flag       int                    `json:"-"`
 }
 
 func (e *ZeroCoreStructs) XsacPrimaryType() string { return "UUID" }
 func (e *ZeroCoreStructs) XsacDataSource() string  { return "" }
 func (e *ZeroCoreStructs) XsacDbName() string      { return "" }
 func (e *ZeroCoreStructs) XsacTableName() string   { panic("not implemented") }
+func (e *ZeroCoreStructs) XsacDeleteOpt() byte     { return 0b10000000 }
 
 func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
@@ -104,7 +106,11 @@ func (e *ZeroCoreStructs) readXsacEntries(xrType reflect.Type) []*ZeroXsacEntry 
 
 func (e *ZeroCoreStructs) XsacDeclares() ZeroXsacEntrySet {
 	entries := make([]*ZeroXsacEntry, 0)
-	entries = append(entries, NewTable0s(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	if e.XsacDeleteOpt()&0b10000000 == 0b10000000 {
+		entries = append(entries, NewTable0s(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	} else {
+		entries = append(entries, NewTable0fs(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	}
 	entries = append(entries, e.readXsacEntries(reflect.TypeOf(e.This()).Elem())...)
 	return entries
 }
@@ -194,6 +200,7 @@ func (e *ZeroCoreStructs) LoadRowData(rowmap map[string]interface{}) {
 	e.CreateTime = ParseDateField(rowmap, "create_time")
 	e.UpdateTime = ParseDateField(rowmap, "update_time")
 	e.Features = ParseJSONField(rowmap, "features")
+	e.Flag = ParseIntField(rowmap, "flag")
 }
 
 func (e *ZeroCoreStructs) String() string {

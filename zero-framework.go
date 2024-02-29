@@ -195,3 +195,27 @@ func XahttpOptSO() byte {
 func XahttpOptAll() byte {
 	return XahttpOpt(XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T)
 }
+
+func XsacPhysically() byte {
+	return 0b10000000
+}
+
+func XsacTombstone() byte {
+	return 0
+}
+
+func XsacTombstoneAndHistory() byte {
+	return 0b00000001
+}
+
+func XsacTombstoneAndForce() byte {
+	return 0b00000011
+}
+
+func XsacTombstoneAndRestore() byte {
+	return 0b00000101
+}
+
+func XsacTombstoneWhole() byte {
+	return 0b00000111
+}

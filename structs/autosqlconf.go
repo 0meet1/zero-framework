@@ -28,6 +28,7 @@ type ZeroXsacDeclares interface {
 	XsacDataSource() string
 	XsacDbName() string
 	XsacTableName() string
+	XsacDeleteOpt() byte
 	XsacDeclares() ZeroXsacEntrySet
 	XsacRefDeclares() ZeroXsacEntrySet
 }
