@@ -300,22 +300,21 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 	}
 
 	rows := processor.Parser(rowdatas)
-
-	subdatas := make([]interface{}, 0)
-	for _, row := range rows {
-		data := reflect.New(field.Metatype()).Interface()
-		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
+	subdatas := reflect.MakeSlice(field.Metatype(), len(rows), len(rows))
+	for i, row := range rows {
+		data := reflect.New(field.Metatype())
+		returnValues := data.MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
 		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
 			return returnValues[0].Interface().(error)
 		}
-		subdatas = append(subdatas, data)
+		subdatas.Index(i).Set(data)
 	}
 
-	if len(subdatas) > 0 {
+	if len(rows) > 0 {
 		if field.IsArray() {
-			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(subdatas))
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(subdatas)
 		} else {
-			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(subdatas[0]))
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(subdatas.Index(0))
 		}
 	}
 	return nil
