@@ -238,7 +238,7 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 	_, ok := rowmap[fieldName]
 	if ok {
-		return int(rowmap[fieldName].(float64))
+		return int(rowmap[fieldName].(int64))
 	}
 	return 0
 }
