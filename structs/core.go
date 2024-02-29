@@ -211,7 +211,7 @@ func (e *ZeroCoreStructs) Map() map[string]interface{} {
 func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
 	_, ok := rowmap[fieldName]
 	if ok {
-		return string(rowmap[fieldName].([]uint8))
+		return rowmap[fieldName].(string)
 	}
 	return ""
 }
