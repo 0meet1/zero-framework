@@ -26,6 +26,8 @@ type ZeroCondition = processors.ZeroCondition
 type ZeroOrderBy = processors.ZeroOrderBy
 type ZeroLimit = processors.ZeroLimit
 type ZeroQueryOperation = processors.ZeroQueryOperation
+type ZeroPostgresQueryOperation = processors.ZeroPostgresQueryOperation
+type ZeroMysqlQueryOperation = processors.ZeroMysqlQueryOperation
 
 const DATABASE_MYSQL = database.DATABASE_MYSQL
 const DATABASE_POSTGRES = database.DATABASE_POSTGRES

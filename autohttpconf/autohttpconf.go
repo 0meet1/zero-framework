@@ -14,7 +14,7 @@ import (
 )
 
 type ZeroXsacHttpFetchTrigger interface {
-	On(string, *processors.ZeroQueryOperation, *structs.ZeroRequest, ...interface{}) error
+	On(string, processors.ZeroQueryOperation, *structs.ZeroRequest, ...interface{}) error
 }
 
 type ZeroXsacHttpSearchTrigger interface {
@@ -26,6 +26,7 @@ type ZeroXsacXhttpDeclares interface {
 
 	XhttpPath() string
 	XhttpAutoProc() processors.ZeroXsacAutoProcessor
+	XhttpQueryOperation() processors.ZeroQueryOperation
 	XhttpOpt() byte
 
 	XhttpCheckTable() string
@@ -46,6 +47,10 @@ func (e *ZeroXsacXhttpStructs) XhttpSearchIndex() string { return "" }
 
 func (e *ZeroXsacXhttpStructs) XhttpAutoProc() processors.ZeroXsacAutoProcessor {
 	return processors.NewXsacPostgresProcessor()
+}
+
+func (e *ZeroXsacXhttpStructs) XhttpQueryOperation() processors.ZeroQueryOperation {
+	return &processors.ZeroPostgresQueryOperation{}
 }
 
 func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }
@@ -257,7 +262,7 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 		panic(err)
 	}
 
-	xOperation, _, err := server.XhttpZeroQueryOperation(xRequest, xhttp.XcheckTable())
+	xOperation, _, err := server.XhttpCompleteQueryOperation(xRequest, xhttp.instance.XhttpQueryOperation(), xhttp.XcheckTable())
 	if err != nil {
 		panic(err)
 	}

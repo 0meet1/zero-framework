@@ -104,16 +104,33 @@ func XhttpZeroQuery(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error
 	return &query, nil
 }
 
-func XhttpZeroQueryOperation(xRequest *structs.ZeroRequest, tableName string) (*processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+func XhttpMysqlQueryOperation(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
 	xQuery, err := XhttpZeroQuery(xRequest)
 	if err != nil {
 		return nil, nil, err
 
 	}
-	return &processors.ZeroQueryOperation{
-		Query:     xQuery,
-		TableName: tableName,
-	}, xQuery, nil
+	return processors.NewZeroMysqlQueryOperation(xQuery, tableName), xQuery, nil
+}
+
+func XhttpPostgresQueryOperation(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+	xQuery, err := XhttpZeroQuery(xRequest)
+	if err != nil {
+		return nil, nil, err
+
+	}
+	return processors.NewZeroPostgresQueryOperation(xQuery, tableName), xQuery, nil
+}
+
+func XhttpCompleteQueryOperation(xRequest *structs.ZeroRequest, xProcessor processors.ZeroQueryOperation, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+	xQuery, err := XhttpZeroQuery(xRequest)
+	if err != nil {
+		return nil, nil, err
+
+	}
+	xProcessor.AddQuery(xQuery)
+	xProcessor.AddTableName(tableName)
+	return xProcessor, xQuery, nil
 }
 
 func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
