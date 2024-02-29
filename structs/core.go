@@ -229,7 +229,7 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 	_, ok := rowmap[fieldName]
 	if ok {
 		var jsonMap map[string]interface{}
-		json.Unmarshal(rowmap[fieldName].([]uint8), &jsonMap)
+		json.Unmarshal([]byte(rowmap[fieldName].(string)), &jsonMap)
 		return jsonMap
 	}
 	return nil
