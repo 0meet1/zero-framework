@@ -44,6 +44,9 @@ type ZeroXsacProcessor interface {
 
 	Create0Struct(tableSchema string, tableName string) error
 	Create0FlagStruct(tableSchema string, tableName string) error
-	DML0SPart(tableSchema string, tableName string) error
+
+	DMLY0SPart(tableSchema string, tableName string) error
+	DMLM0SPart(tableSchema string, tableName string) error
+	DMLD0SPart(tableSchema string, tableName string) error
 	DropPartitionTable(tableSchema string, tableName string) error
 }

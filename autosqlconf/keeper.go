@@ -144,6 +144,21 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 			if err != nil {
 				panic(err)
 			}
+		case structs.ZEOR_XSAC_ENTRY_TYPE_YEAR_PARTITION:
+			err := xsacProcessor.DMLY0SPart(entry.EntryParams()[0], entry.EntryParams()[1])
+			if err != nil {
+				panic(err)
+			}
+		case structs.ZEOR_XSAC_ENTRY_TYPE_MONTH_PARTITION:
+			err := xsacProcessor.DMLM0SPart(entry.EntryParams()[0], entry.EntryParams()[1])
+			if err != nil {
+				panic(err)
+			}
+		case structs.ZEOR_XSAC_ENTRY_TYPE_DAY_PARTITION:
+			err := xsacProcessor.DMLD0SPart(entry.EntryParams()[0], entry.EntryParams()[1])
+			if err != nil {
+				panic(err)
+			}
 		default:
 			panic(errors.New(fmt.Sprintf("unknown entry type: %s", entry.EntryType())))
 		}

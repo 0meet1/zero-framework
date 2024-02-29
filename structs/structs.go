@@ -112,6 +112,25 @@ func BytesString(bytes ...byte) string {
 	return fmt.Sprintf("{%s }\n", bytesString)
 }
 
+func YearDuration(t time.Time) (time.Time, time.Time, error) {
+	startTime := time.Date(t.Year(), 1, 1, 0, 0, 0, 0, t.Location())
+	endTime := startTime.AddDate(1, 0, -1)
+	duration1d, err := time.ParseDuration(fmt.Sprintf("%ds", 59+60*59+60*60*23))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	endTime = endTime.Add(duration1d)
+	return startTime, endTime, nil
+}
+
+func YearDurationString(t time.Time, xformat string) (string, string, error) {
+	startTime, endTime, err := YearDuration(t)
+	if err != nil {
+		return "", "", err
+	}
+	return startTime.Format(xformat), endTime.Format(xformat), nil
+}
+
 func MonthDuration(t time.Time) (time.Time, time.Time, error) {
 	startTime := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	endTime := startTime.AddDate(0, 1, -1)
@@ -125,6 +144,25 @@ func MonthDuration(t time.Time) (time.Time, time.Time, error) {
 
 func MonthDurationString(t time.Time, xformat string) (string, string, error) {
 	startTime, endTime, err := MonthDuration(t)
+	if err != nil {
+		return "", "", err
+	}
+	return startTime.Format(xformat), endTime.Format(xformat), nil
+}
+
+func DayDuration(t time.Time) (time.Time, time.Time, error) {
+	startTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	endTime := startTime
+	duration1d, err := time.ParseDuration(fmt.Sprintf("%ds", 59+60*59+60*60*23))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	endTime = endTime.Add(duration1d)
+	return startTime, endTime, nil
+}
+
+func DayDurationString(t time.Time, xformat string) (string, string, error) {
+	startTime, endTime, err := DayDuration(t)
 	if err != nil {
 		return "", "", err
 	}

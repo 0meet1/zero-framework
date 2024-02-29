@@ -140,7 +140,6 @@ func XhttpQueryOptions(xRequest *structs.ZeroRequest) []string {
 	if xRequest.Expands == nil {
 		return xoptions
 	}
-
 	if _, ok := xRequest.Expands["options"]; ok {
 		xoptionItems := strings.Split(xRequest.Expands["options"].(string), "|")
 		for _, xoption := range xoptionItems {

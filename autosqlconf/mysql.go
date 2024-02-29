@@ -208,7 +208,15 @@ func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, t
 	return nil
 }
 
-func (processor *ZeroXsacMysqlProcessor) DML0SPart(tableSchema string, tableName string) error {
+func (processor *ZeroXsacMysqlProcessor) DMLY0SPart(tableSchema string, tableName string) error {
+	return nil
+}
+
+func (processor *ZeroXsacMysqlProcessor) DMLM0SPart(tableSchema string, tableName string) error {
+	return nil
+}
+
+func (processor *ZeroXsacMysqlProcessor) DMLD0SPart(tableSchema string, tableName string) error {
 	return nil
 }
 

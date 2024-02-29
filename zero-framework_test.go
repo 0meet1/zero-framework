@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	x0meet1 "github.com/0meet1/zero-framework"
 	"github.com/0meet1/zero-framework/structs"
@@ -70,4 +71,7 @@ func TestZeroCoreStructs(t *testing.T) {
 
 	inx := reflect.New(structs.FindMetaType(reflect.TypeOf(&ZeroXsacTestPersonRecord{}))).Interface().(structs.ZeroXsacDeclares)
 	fmt.Println(reflect.ValueOf(inx).Type())
+	fmt.Println(structs.YearDurationString(time.Now(), "2006-01-02 15:04:05"))
+	fmt.Println(structs.MonthDurationString(time.Now(), "2006-01-02 15:04:05"))
+	fmt.Println(structs.DayDurationString(time.Now(), "2006-01-02 15:04:05"))
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/global"
@@ -348,7 +349,46 @@ func (xhttp *ZeroXsacXhttp) restore(writer http.ResponseWriter, req *http.Reques
 	server.XhttpResponseMessages(writer, 200, "success")
 }
 
-func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request) {
+func (xhttp *ZeroXsacXhttp) checkpart(xRequest *structs.ZeroRequest, xOperation processors.ZeroQueryOperation) {
+	if xhttp.instance.XsacPartition() != structs.XSAC_PARTITION_NONE {
+		if xRequest.Expands == nil {
+			panic("missing necessary parameter `expands.zone`")
+		}
+
+		zone, ok := xRequest.Expands["zone"]
+		if !ok {
+			panic("missing necessary parameter `expands.zone`")
+		}
+
+		date, err := time.Parse("2006-01-02", zone.(string))
+		if err != nil {
+			panic(err)
+		}
+
+		switch xhttp.instance.XsacPartition() {
+		case structs.XSAC_PARTITION_YEAR:
+			startTime, endTime, err := structs.YearDurationString(date, "2006-01-02 15:04:05")
+			if err != nil {
+				panic(err)
+			}
+			xOperation.AppendCondition(fmt.Sprintf("create_time BETWEEN '%s' AND '%s'", startTime, endTime))
+		case structs.XSAC_PARTITION_MONTH:
+			startTime, endTime, err := structs.MonthDurationString(date, "2006-01-02 15:04:05")
+			if err != nil {
+				panic(err)
+			}
+			xOperation.AppendCondition(fmt.Sprintf("create_time BETWEEN '%s' AND '%s'", startTime, endTime))
+		case structs.XSAC_PARTITION_DAY:
+			startTime, endTime, err := structs.DayDurationString(date, "2006-01-02 15:04:05")
+			if err != nil {
+				panic(err)
+			}
+			xOperation.AppendCondition(fmt.Sprintf("create_time BETWEEN '%s' AND '%s'", startTime, endTime))
+		}
+	}
+}
+
+func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Request, flag int) {
 	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
 	defer func() {
 		err := recover()
@@ -366,11 +406,19 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 		panic(err)
 	}
 
+	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+		panic("missing necessary parameter `query options -> $.querys[0]`")
+	}
+
 	xOperation, _, err := server.XhttpCompleteQueryOperation(xRequest, xhttp.instance.XhttpQueryOperation(), xhttp.XcheckTable())
 	if err != nil {
 		panic(err)
 	}
 	xOperation.Build(transaction)
+	if flag >= 0 {
+		xOperation.AppendCondition(fmt.Sprintf("flag = %d", flag))
+	}
+	xhttp.checkpart(xRequest, xOperation)
 
 	processor := xhttp.instance.XhttpAutoProc()
 	processor.AddFields(xhttp.xhttpfields())
@@ -423,162 +471,18 @@ func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request)
 		}
 	}
 	server.XhttpResponseDatas(writer, 200, "success", datas, expands)
+}
+
+func (xhttp *ZeroXsacXhttp) fetch(writer http.ResponseWriter, req *http.Request) {
+	xhttp.corefetch(writer, req, -1)
 }
 
 func (xhttp *ZeroXsacXhttp) tombfetch(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
-	defer func() {
-		err := recover()
-		if err != nil {
-			global.Logger().Error(fmt.Sprintf("%s", err))
-			transaction.Rollback()
-			server.XhttpResponseMessages(writer, 500, fmt.Sprintf("%s", err))
-		} else {
-			transaction.Commit()
-		}
-	}()
-
-	xRequest, err := server.XhttpZeroRequest(req)
-	if err != nil {
-		panic(err)
-	}
-
-	xOperation, _, err := server.XhttpCompleteQueryOperation(xRequest, xhttp.instance.XhttpQueryOperation(), xhttp.XcheckTable())
-	if err != nil {
-		panic(err)
-	}
-	xOperation.Build(transaction)
-	xOperation.AppendCondition("flag = 0")
-
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	if xhttp.instance.XhttpFetchTrigger() != nil {
-		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_READY, xOperation, xRequest)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	xoptions := server.XhttpQueryOptions(xRequest)
-
-	rows, expands := xOperation.Exec()
-	datas := make([]interface{}, 0)
-	for _, row := range rows {
-		data := reflect.New(xhttp.coretype).Interface()
-		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
-		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
-			panic(returnValues[0].Interface())
-		}
-
-		for _, xoption := range xoptions {
-			if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
-				for _, field := range xhttp.xhttpinlines() {
-					processor.FetchChildrens(field, data)
-				}
-			} else {
-				field, ok := xhttp.xhttpinlines()[xoption]
-				if ok {
-					processor.FetchChildrens(field, data)
-				}
-			}
-		}
-
-		if xhttp.instance.XhttpFetchTrigger() != nil {
-			err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_ROW, xOperation, xRequest, data)
-			if err != nil {
-				panic(err)
-			}
-		}
-		datas = append(datas, data)
-	}
-
-	if xhttp.instance.XhttpFetchTrigger() != nil {
-		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_COMPLETE, xOperation, xRequest, datas...)
-		if err != nil {
-			panic(err)
-		}
-	}
-	server.XhttpResponseDatas(writer, 200, "success", datas, expands)
+	xhttp.corefetch(writer, req, 0)
 }
 
 func (xhttp *ZeroXsacXhttp) history(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
-	defer func() {
-		err := recover()
-		if err != nil {
-			global.Logger().Error(fmt.Sprintf("%s", err))
-			transaction.Rollback()
-			server.XhttpResponseMessages(writer, 500, fmt.Sprintf("%s", err))
-		} else {
-			transaction.Commit()
-		}
-	}()
-
-	xRequest, err := server.XhttpZeroRequest(req)
-	if err != nil {
-		panic(err)
-	}
-
-	xOperation, _, err := server.XhttpCompleteQueryOperation(xRequest, xhttp.instance.XhttpQueryOperation(), xhttp.XcheckTable())
-	if err != nil {
-		panic(err)
-	}
-	xOperation.Build(transaction)
-	xOperation.AppendCondition("flag = 1")
-
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	if xhttp.instance.XhttpFetchTrigger() != nil {
-		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_READY, xOperation, xRequest)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	xoptions := server.XhttpQueryOptions(xRequest)
-
-	rows, expands := xOperation.Exec()
-	datas := make([]interface{}, 0)
-	for _, row := range rows {
-		data := reflect.New(xhttp.coretype).Interface()
-		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
-		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
-			panic(returnValues[0].Interface())
-		}
-
-		for _, xoption := range xoptions {
-			if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
-				for _, field := range xhttp.xhttpinlines() {
-					processor.FetchChildrens(field, data)
-				}
-			} else {
-				field, ok := xhttp.xhttpinlines()[xoption]
-				if ok {
-					processor.FetchChildrens(field, data)
-				}
-			}
-		}
-
-		if xhttp.instance.XhttpFetchTrigger() != nil {
-			err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_ROW, xOperation, xRequest, data)
-			if err != nil {
-				panic(err)
-			}
-		}
-		datas = append(datas, data)
-	}
-
-	if xhttp.instance.XhttpFetchTrigger() != nil {
-		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_COMPLETE, xOperation, xRequest, datas...)
-		if err != nil {
-			panic(err)
-		}
-	}
-	server.XhttpResponseDatas(writer, 200, "success", datas, expands)
+	xhttp.corefetch(writer, req, 1)
 }
 
 func (xhttp *ZeroXsacXhttp) search(writer http.ResponseWriter, req *http.Request) {

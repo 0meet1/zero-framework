@@ -22,6 +22,17 @@ const (
 	ZEOR_XSAC_ENTRY_TYPE_DROP_UNIQUE_KEY  = "dropunique"
 	ZEOR_XSAC_ENTRY_TYPE_FOREIGN_KEY      = "foreign"
 	ZEOR_XSAC_ENTRY_TYPE_DROP_FOREIGN_KEY = "dropforeign"
+
+	ZEOR_XSAC_ENTRY_TYPE_YEAR_PARTITION  = "year"
+	ZEOR_XSAC_ENTRY_TYPE_MONTH_PARTITION = "month"
+	ZEOR_XSAC_ENTRY_TYPE_DAY_PARTITION   = "day"
+)
+
+const (
+	XSAC_PARTITION_NONE  = "none"
+	XSAC_PARTITION_YEAR  = "year"
+	XSAC_PARTITION_MONTH = "month"
+	XSAC_PARTITION_DAY   = "day"
 )
 
 type ZeroXsacDeclares interface {
@@ -31,6 +42,7 @@ type ZeroXsacDeclares interface {
 	XsacDeleteOpt() byte
 	XsacDeclares() ZeroXsacEntrySet
 	XsacRefDeclares() ZeroXsacEntrySet
+	XsacPartition() string
 }
 
 type ZeroXsacEntrySet []*ZeroXsacEntry
@@ -151,6 +163,27 @@ func NewDropForeignKey(tableSchema string, tableName string, columnName string) 
 	return &ZeroXsacEntry{
 		entryType:   ZEOR_XSAC_ENTRY_TYPE_DROP_FOREIGN_KEY,
 		entryParams: []string{tableSchema, tableName, columnName},
+	}
+}
+
+func NewYearPartition(tableSchema string, tableName string) *ZeroXsacEntry {
+	return &ZeroXsacEntry{
+		entryType:   ZEOR_XSAC_ENTRY_TYPE_YEAR_PARTITION,
+		entryParams: []string{tableSchema, tableName},
+	}
+}
+
+func NewMonthPartition(tableSchema string, tableName string) *ZeroXsacEntry {
+	return &ZeroXsacEntry{
+		entryType:   ZEOR_XSAC_ENTRY_TYPE_MONTH_PARTITION,
+		entryParams: []string{tableSchema, tableName},
+	}
+}
+
+func NewDayPartition(tableSchema string, tableName string) *ZeroXsacEntry {
+	return &ZeroXsacEntry{
+		entryType:   ZEOR_XSAC_ENTRY_TYPE_DAY_PARTITION,
+		entryParams: []string{tableSchema, tableName},
 	}
 }
 

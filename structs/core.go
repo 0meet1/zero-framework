@@ -52,6 +52,7 @@ func (e *ZeroCoreStructs) XsacDataSource() string  { return "" }
 func (e *ZeroCoreStructs) XsacDbName() string      { return "" }
 func (e *ZeroCoreStructs) XsacTableName() string   { panic("not implemented") }
 func (e *ZeroCoreStructs) XsacDeleteOpt() byte     { return 0b10000000 }
+func (e *ZeroCoreStructs) XsacPartition() string   { return XSAC_PARTITION_NONE }
 
 func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
@@ -145,7 +146,16 @@ func (e *ZeroCoreStructs) readXsacRefEntries(xrType reflect.Type) []*ZeroXsacEnt
 }
 
 func (e *ZeroCoreStructs) XsacRefDeclares() ZeroXsacEntrySet {
-	return e.readXsacRefEntries(reflect.TypeOf(e.This()).Elem())
+	entries := e.readXsacRefEntries(reflect.TypeOf(e.This()).Elem())
+	switch e.This().(ZeroXsacDeclares).XsacPartition() {
+	case XSAC_PARTITION_YEAR:
+		entries = append(entries, NewYearPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	case XSAC_PARTITION_MONTH:
+		entries = append(entries, NewMonthPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	case XSAC_PARTITION_DAY:
+		entries = append(entries, NewDayPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+	}
+	return entries
 }
 
 func (e *ZeroCoreStructs) findXopFields(xrType reflect.Type, ignore bool) ZeroXsacFieldSet {

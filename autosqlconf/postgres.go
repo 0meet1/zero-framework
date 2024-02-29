@@ -305,9 +305,21 @@ func (processor *ZeroXsacPostgresProcessor) Create0FlagStruct(tableSchema string
 	return err
 }
 
-func (processor *ZeroXsacPostgresProcessor) DML0SPart(tableSchema string, tableName string) error {
-	const DML_0SPART_SQL = "SELECT DML_0SPART($1 ,$2)"
-	_, err := processor.PreparedStmt(DML_0SPART_SQL).Exec(tableSchema, tableName)
+func (processor *ZeroXsacPostgresProcessor) DMLY0SPart(tableSchema string, tableName string) error {
+	const DML_Y0SPART_SQL = "SELECT DML_Y0SPART($1 ,$2)"
+	_, err := processor.PreparedStmt(DML_Y0SPART_SQL).Exec(tableSchema, tableName)
+	return err
+}
+
+func (processor *ZeroXsacPostgresProcessor) DMLM0SPart(tableSchema string, tableName string) error {
+	const DML_M0SPART_SQL = "SELECT DML_M0SPART($1 ,$2)"
+	_, err := processor.PreparedStmt(DML_M0SPART_SQL).Exec(tableSchema, tableName)
+	return err
+}
+
+func (processor *ZeroXsacPostgresProcessor) DMLD0SPart(tableSchema string, tableName string) error {
+	const DML_D0SPART_SQL = "SELECT DML_D0SPART($1 ,$2)"
+	_, err := processor.PreparedStmt(DML_D0SPART_SQL).Exec(tableSchema, tableName)
 	return err
 }
 
