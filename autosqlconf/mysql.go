@@ -255,7 +255,7 @@ func (processor *ZeroXsacMysqlProcessor) Create0Struct(tableSchema string, table
 }
 
 func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, tableName string) error {
-	const CREATE_0FLAGSTRUCT_SQL = "SELECT create_0flagstruct(? ,?)"
+	const CREATE_0FLAGSTRUCT_SQL = "CALL create_0flagstruct(? ,?)"
 	_, err := processor.PreparedStmt(CREATE_0FLAGSTRUCT_SQL).Exec(tableSchema, tableName)
 	if err != nil {
 		return err
