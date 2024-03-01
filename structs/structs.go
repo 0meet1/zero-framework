@@ -32,28 +32,28 @@ func (meta *ZeroMeta) ThisDef(_self interface{}) {
 	meta.metaptr = &ZeroMetaPtr{_self: _self}
 }
 
-const DateFormat = "2006-01-02T15:04:05Z"
+const DateFormat = "2006-01-02T15:04:05"
 
-type Date time.Time
+type Time time.Time
 
-func (t *Date) MarshalJSON() ([]byte, error) {
+func (t *Time) MarshalJSON() ([]byte, error) {
 	stamp := fmt.Sprintf("\"%s\"", time.Time(*t).Format(DateFormat))
 	return []byte(stamp), nil
 }
 
-func (t *Date) UnmarshalJSON(data []byte) error {
+func (t *Time) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
-	tm, err := time.Parse(`"`+DateFormat+`"`, string(data))
+	tm, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), time.Local)
 	if err != nil {
 		return err
 	}
-	*t = Date(tm)
+	*t = Time(tm)
 	return nil
 }
 
-func (t *Date) Time() time.Time {
+func (t *Time) Time() time.Time {
 	return time.Time(*t)
 }
 

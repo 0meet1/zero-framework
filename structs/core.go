@@ -41,8 +41,8 @@ type ZeroCoreStructs struct {
 	ZeroMeta
 
 	ID         string                 `json:"id,omitempty" xhttpopt:"OX"`
-	CreateTime *Date                  `json:"createTime,omitempty" xhttpopt:"XX"`
-	UpdateTime *Date                  `json:"updateTime,omitempty" xhttpopt:"XX"`
+	CreateTime *Time                  `json:"createTime,omitempty" xhttpopt:"XX"`
+	UpdateTime *Time                  `json:"updateTime,omitempty" xhttpopt:"XX"`
 	Features   map[string]interface{} `json:"features,omitempty" xhttpopt:"OO"`
 	Flag       int                    `json:"-"`
 }
@@ -181,7 +181,7 @@ func (e *ZeroCoreStructs) InitDefault() error {
 	if err != nil {
 		return err
 	}
-	newDate := Date(time.Now())
+	newDate := Time(time.Now())
 	e.ID = uid.String()
 	e.CreateTime = &newDate
 	e.UpdateTime = &newDate
@@ -237,10 +237,10 @@ func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
 	return ""
 }
 
-func ParseDateField(rowmap map[string]interface{}, fieldName string) *Date {
+func ParseDateField(rowmap map[string]interface{}, fieldName string) *Time {
 	_, ok := rowmap[fieldName]
 	if ok {
-		rowdata := Date(rowmap[fieldName].(time.Time))
+		rowdata := Time(rowmap[fieldName].(time.Time))
 		return &rowdata
 	}
 	return nil

@@ -53,7 +53,7 @@ func makeTestMessage(topic string) *MQNotifyMessage {
 	return &MQNotifyMessage{
 		MessageId:   uid.String(),
 		Topic:       topic,
-		CreateTime:  structs.Date(time.Now()),
+		CreateTime:  structs.Time(time.Now()),
 		MessageType: MESSAGE_TYPE_TEST,
 		Payload:     MESSAGE_TYPE_TEST,
 	}

@@ -16,7 +16,7 @@ type MQMessageObserver interface {
 type MQNotifyMessage struct {
 	MessageId   string       `json:"messageId,omitempty"`
 	Topic       string       `json:"topic,omitempty"`
-	CreateTime  structs.Date `json:"createTime,omitempty"`
+	CreateTime  structs.Time `json:"createTime,omitempty"`
 	MessageType string       `json:"messageType,omitempty"`
 	Payload     interface{}  `json:"payload,omitempty"`
 }
@@ -29,7 +29,7 @@ func (notify *MQNotifyMessage) NewMessage(topic string, messageType string, payl
 
 	notify.MessageId = uid.String()
 	notify.Topic = topic
-	notify.CreateTime = structs.Date(time.Now())
+	notify.CreateTime = structs.Time(time.Now())
 	notify.MessageType = messageType
 	notify.Payload = payload
 

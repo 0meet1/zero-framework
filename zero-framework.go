@@ -12,7 +12,7 @@ import (
 	"github.com/0meet1/zero-framework/structs"
 )
 
-type Date = structs.Date
+type Time = structs.Time
 type ZeroMetaDef = structs.ZeroMetaDef
 type ZeroMetaPtr = structs.ZeroMetaPtr
 type ZeroMeta = structs.ZeroMeta

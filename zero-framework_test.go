@@ -44,6 +44,11 @@ func (personr *ZeroXsacTestPersonRecord) XsacTableName() string {
 	return "test_person_record"
 }
 
+type Param struct {
+	Start structs.Time `json:"start"`
+	End   structs.Time `json:"end"`
+}
+
 func TestZeroCoreStructs(t *testing.T) {
 
 	fmt.Println(structs.YearDurationString(time.Now(), "2006-01-02 15:04:05"))
@@ -65,6 +70,16 @@ func TestZeroCoreStructs(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Println(xt.CreateTime.Time())
+	// fmt.Println(xt.CreateTime.Time())
 	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).Name())
+	fmt.Println("------")
+	p := &Param{}
+	str := `{"start":"2019-12-10T18:12:49","end":"2019-12-10T18:12:49"}`
+	err = json.Unmarshal([]byte(str), p)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(p.Start.Time(), p.End.Time())
+	fmt.Println(p, str)
+	fmt.Println(time.Now())
 }
