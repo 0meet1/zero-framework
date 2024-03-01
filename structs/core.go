@@ -226,9 +226,13 @@ func (e *ZeroCoreStructs) Map() map[string]interface{} {
 }
 
 func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
-	_, ok := rowmap[fieldName]
+	v, ok := rowmap[fieldName]
 	if ok {
-		return rowmap[fieldName].(string)
+		if reflect.TypeOf(v).Kind() == reflect.String {
+			return v.(string)
+		} else {
+			return string(v.([]uint8))
+		}
 	}
 	return ""
 }
@@ -243,10 +247,10 @@ func ParseDateField(rowmap map[string]interface{}, fieldName string) *Date {
 }
 
 func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]interface{} {
-	_, ok := rowmap[fieldName]
-	if ok {
+	datastr := ParseStringField(rowmap, fieldName)
+	if len(datastr) > 0 {
 		var jsonMap map[string]interface{}
-		json.Unmarshal(rowmap[fieldName].([]byte), &jsonMap)
+		json.Unmarshal([]byte(datastr), &jsonMap)
 		return jsonMap
 	}
 	return nil
