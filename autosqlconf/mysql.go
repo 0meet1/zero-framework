@@ -235,6 +235,16 @@ func (processor *ZeroXsacMysqlProcessor) TableExists(tableSchema string, tableNa
 func (processor *ZeroXsacMysqlProcessor) DMLTable(tableSchema string, tableName string) error {
 	const DML_TABLE_SQL = "CALL DML_TABLE(? ,?)"
 	_, err := processor.PreparedStmt(DML_TABLE_SQL).Exec(tableSchema, tableName)
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_uuid`", tableName))
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
 	return err
 }
 
@@ -245,12 +255,22 @@ func (processor *ZeroXsacMysqlProcessor) Create0Struct(tableSchema string, table
 		return err
 	}
 
-	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_uuid`", tableName))
 	if err != nil {
 		return err
 	}
 
 	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
 	return err
 }
 
@@ -261,12 +281,22 @@ func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, t
 		return err
 	}
 
-	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_uuid`", tableName))
 	if err != nil {
 		return err
 	}
 
 	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
+	if err != nil {
+		return err
+	}
+
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
 	return err
 }
 
