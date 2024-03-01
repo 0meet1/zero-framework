@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/0meet1/zero-framework/structs"
 )
@@ -147,15 +146,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
-				if field.Metatype().Name() == "Date" {
-					if vdata.Kind() == reflect.Ptr {
-						dataset = append(dataset, time.Time(vdata.Elem().Interface().(structs.Date)).Format("2006-01-02 15:04:05"))
-					} else {
-						dataset = append(dataset, time.Time(vdata.Interface().(structs.Date)).Format("2006-01-02 15:04:05"))
-					}
-				} else {
-					dataset = append(dataset, vdata.Interface())
-				}
+				dataset = append(dataset, vdata.Interface())
 			}
 		}
 	}
@@ -229,15 +220,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) Update(datas ...interface{}) error 
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
-					if field.Metatype().Name() == "Date" {
-						if vdata.Kind() == reflect.Ptr {
-							dataset = append(dataset, time.Time(vdata.Elem().Interface().(structs.Date)).Format("2006-01-02 15:04:05"))
-						} else {
-							dataset = append(dataset, time.Time(vdata.Interface().(structs.Date)).Format("2006-01-02 15:04:05"))
-						}
-					} else {
-						dataset = append(dataset, vdata.Interface())
-					}
+					dataset = append(dataset, vdata.Interface())
 				}
 			}
 		}
