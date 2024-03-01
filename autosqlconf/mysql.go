@@ -163,16 +163,16 @@ func (processor *ZeroXsacMysqlProcessor) TriggerExists(tableSchema string, table
 }
 
 func (processor *ZeroXsacMysqlProcessor) DMLTrigger(tableSchema string, tableName string, triggerTiming string, triggerEvent string, triggerName string, triggerAction string) error {
-	_, err := processor.PreparedStmt(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName)).Exec()
+	_, err := processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
 	if err != nil {
 		return err
 	}
-	_, err = processor.PreparedStmt(fmt.Sprintf("CREATE TRIGGER `%s` %s %s ON `%s` FOR EACH ROW BEGIN %s END", triggerName, triggerTiming, triggerEvent, tableName, triggerAction)).Exec()
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s` %s %s ON `%s` FOR EACH ROW BEGIN %s END", triggerName, triggerTiming, triggerEvent, tableName, triggerAction))
 	return err
 }
 
 func (processor *ZeroXsacMysqlProcessor) DropTrigger(tableSchema string, tableName string, triggerName string) error {
-	_, err := processor.PreparedStmt(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName)).Exec()
+	_, err := processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
 	return err
 }
 
@@ -245,12 +245,12 @@ func (processor *ZeroXsacMysqlProcessor) Create0Struct(tableSchema string, table
 		return err
 	}
 
-	_, err = processor.PreparedStmt(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName)).Exec()
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = processor.PreparedStmt(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName)).Exec()
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
 	return err
 }
 
@@ -261,12 +261,12 @@ func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, t
 		return err
 	}
 
-	_, err = processor.PreparedStmt(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName)).Exec()
+	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s`", tableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = processor.PreparedStmt(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName)).Exec()
+	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
 	return err
 }
 

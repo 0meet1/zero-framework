@@ -17,6 +17,10 @@ func (processor *ZeroCoreProcessor) Build(transaction *sql.Tx) {
 	processor.prepares = make(map[string]*sql.Stmt)
 }
 
+func (processor *ZeroCoreProcessor) Exec(execsql string) (sql.Result, error) {
+	return processor.transaction.Exec(execsql)
+}
+
 func (processor *ZeroCoreProcessor) Parser(rows *sql.Rows) []map[string]interface{} {
 	columns, err := rows.Columns()
 	if err != nil {
