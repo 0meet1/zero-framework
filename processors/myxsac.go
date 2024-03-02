@@ -154,7 +154,8 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 			}
 		}
 	}
-
+	fmt.Println(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", data.(structs.ZeroXsacDeclares).XsacTableName(), fieldStrings, valueStrings))
+	fmt.Println(dataset)
 	_, err := processor.PreparedStmt(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", data.(structs.ZeroXsacDeclares).XsacTableName(), fieldStrings, valueStrings)).Exec(dataset...)
 	if err != nil {
 		return err
