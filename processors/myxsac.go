@@ -147,7 +147,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				dataset = append(dataset, string(jsonbytes))
 			} else {
 				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
 				} else {
 					dataset = append(dataset, vdata.Interface())
 				}
@@ -225,7 +225,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) Update(datas ...interface{}) error 
 					dataset = append(dataset, string(jsonbytes))
 				} else {
 					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-						dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+						dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
 					} else {
 						dataset = append(dataset, vdata.Interface())
 					}

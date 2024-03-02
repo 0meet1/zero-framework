@@ -148,7 +148,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
-				dataset = append(dataset, vdata.Interface())
+				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+				} else {
+					dataset = append(dataset, vdata.Interface())
+				}
 			}
 		}
 	}
@@ -224,7 +228,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
-					dataset = append(dataset, vdata.Interface())
+					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+						dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+					} else {
+						dataset = append(dataset, vdata.Interface())
+					}
 				}
 			}
 		}
