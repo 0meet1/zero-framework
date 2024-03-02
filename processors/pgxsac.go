@@ -150,6 +150,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 			} else {
 				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
 					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+				} else if vdata.Kind() == reflect.Map ||
+					vdata.Kind() == reflect.Slice ||
+					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+					jsonbytes, _ := json.Marshal(vdata.Interface())
+					dataset = append(dataset, string(jsonbytes))
 				} else {
 					dataset = append(dataset, vdata.Interface())
 				}
@@ -222,17 +227,15 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 					updatefields = fmt.Sprintf("%s,%s = $%d", updatefields, field.ColumnName(), fieldIdx)
 				}
 
-				if vdata.Kind() == reflect.Map ||
+				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+				} else if vdata.Kind() == reflect.Map ||
 					vdata.Kind() == reflect.Slice ||
 					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
-					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-						dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
-					} else {
-						dataset = append(dataset, vdata.Interface())
-					}
+					dataset = append(dataset, vdata.Interface())
 				}
 			}
 		}

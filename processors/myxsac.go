@@ -140,17 +140,15 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 			}
 		} else {
 			addFieldString(field)
-			if vdata.Kind() == reflect.Map ||
+			if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+				dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
+			} else if vdata.Kind() == reflect.Map ||
 				vdata.Kind() == reflect.Slice ||
 				structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
-				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
-				} else {
-					dataset = append(dataset, vdata.Interface())
-				}
+				dataset = append(dataset, vdata.Interface())
 			}
 		}
 	}
@@ -227,6 +225,11 @@ func (processor *ZeroXsacMysqlAutoProcessor) Update(datas ...interface{}) error 
 				} else {
 					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
 						dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
+					} else if vdata.Kind() == reflect.Map ||
+						vdata.Kind() == reflect.Slice ||
+						structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+						jsonbytes, _ := json.Marshal(vdata.Interface())
+						dataset = append(dataset, string(jsonbytes))
 					} else {
 						dataset = append(dataset, vdata.Interface())
 					}

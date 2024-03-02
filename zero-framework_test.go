@@ -75,6 +75,7 @@ func TestZeroCoreStructs(t *testing.T) {
 	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).PkgPath())
 	fmt.Println(structs.FindMetaType(reflect.TypeOf(time.Now())).Name())
 	fmt.Println("------")
+
 	p := &Param{}
 	str := `{"start":"2019-12-10T18:12:49","end":"2019-12-10T18:12:49"}`
 	err = json.Unmarshal([]byte(str), p)
@@ -83,5 +84,9 @@ func TestZeroCoreStructs(t *testing.T) {
 	}
 	fmt.Println(p.Start.Time(), p.End.Time())
 	fmt.Println(p, str)
-	fmt.Println(time.Now())
+	xat := structs.Time(time.Now())
+	xatp := &xat
+	fmt.Println(xatp.Time().Format("2006-01-02 15:04:05"))
+
+	fmt.Println(xt.CreateTime)
 }
