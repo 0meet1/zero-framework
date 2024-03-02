@@ -159,11 +159,24 @@ const (
 	XSAC_AF_DELETE = processors.XSAC_AF_DELETE
 )
 
-type ZeroXsacTrigger = processors.ZeroXsacTrigger
+type ZeroXsacTrigger = structs.ZeroXsacTrigger
 type ZeroXsacAutoProcessor = processors.ZeroXsacAutoProcessor
 type ZeroXsacPostgresAutoProcessor = processors.ZeroXsacPostgresAutoProcessor
 
+const (
+	XSAC_DML_ADD       = autohttpconf.XSAC_DML_ADD
+	XSAC_DML_UP        = autohttpconf.XSAC_DML_UP
+	XSAC_DML_RM        = autohttpconf.XSAC_DML_RM
+	XSAC_DML_TOMBSTONE = autohttpconf.XSAC_DML_TOMBSTONE
+	XSAC_DML_RESTORE   = autohttpconf.XSAC_DML_RESTORE
+
+	XSAC_HTTPFETCH_READY    = autohttpconf.XSAC_HTTPFETCH_READY
+	XSAC_HTTPFETCH_ROW      = autohttpconf.XSAC_HTTPFETCH_ROW
+	XSAC_HTTPFETCH_COMPLETE = autohttpconf.XSAC_HTTPFETCH_COMPLETE
+)
+
 type ZeroXsacXhttpDeclares = autohttpconf.ZeroXsacXhttpDeclares
+type ZeroXsacHttpDMLTrigger = autohttpconf.ZeroXsacHttpDMLTrigger
 type ZeroXsacHttpFetchTrigger = autohttpconf.ZeroXsacHttpFetchTrigger
 type ZeroXsacHttpSearchTrigger = autohttpconf.ZeroXsacHttpSearchTrigger
 type ZeroXsacXhttpStructs = autohttpconf.ZeroXsacXhttpStructs
