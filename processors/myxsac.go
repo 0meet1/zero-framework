@@ -140,11 +140,11 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 			}
 		} else {
 			addFieldString(field)
-			if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+			if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
 				dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
-			} else if vdata.Kind() == reflect.Map ||
-				vdata.Kind() == reflect.Slice ||
-				structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+			} else if field.Metatype().Kind() == reflect.Map ||
+				field.Metatype().Kind() == reflect.Slice ||
+				field.Metatype().Kind() == reflect.Struct {
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
@@ -152,8 +152,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 			}
 		}
 	}
-	fmt.Println(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", data.(structs.ZeroXsacDeclares).XsacTableName(), fieldStrings, valueStrings))
-	fmt.Println(dataset)
+
 	_, err := processor.PreparedStmt(fmt.Sprintf("INSERT INTO %s(%s) VALUES (%s)", data.(structs.ZeroXsacDeclares).XsacTableName(), fieldStrings, valueStrings)).Exec(dataset...)
 	if err != nil {
 		return err
@@ -217,22 +216,15 @@ func (processor *ZeroXsacMysqlAutoProcessor) Update(datas ...interface{}) error 
 					updatefields = fmt.Sprintf("%s,%s = ?", updatefields, field.ColumnName())
 				}
 
-				if vdata.Kind() == reflect.Map ||
-					vdata.Kind() == reflect.Slice ||
-					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+				if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
+				} else if field.Metatype().Kind() == reflect.Map ||
+					field.Metatype().Kind() == reflect.Slice ||
+					field.Metatype().Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
-					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-						dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
-					} else if vdata.Kind() == reflect.Map ||
-						vdata.Kind() == reflect.Slice ||
-						structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
-						jsonbytes, _ := json.Marshal(vdata.Interface())
-						dataset = append(dataset, string(jsonbytes))
-					} else {
-						dataset = append(dataset, vdata.Interface())
-					}
+					dataset = append(dataset, vdata.Interface())
 				}
 			}
 		}

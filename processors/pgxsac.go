@@ -148,11 +148,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
-				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
-				} else if vdata.Kind() == reflect.Map ||
-					vdata.Kind() == reflect.Slice ||
-					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+				if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
+				} else if field.Metatype().Kind() == reflect.Map ||
+					field.Metatype().Kind() == reflect.Slice ||
+					field.Metatype().Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
@@ -227,11 +227,11 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 					updatefields = fmt.Sprintf("%s,%s = $%d", updatefields, field.ColumnName(), fieldIdx)
 				}
 
-				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
-					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
-				} else if vdata.Kind() == reflect.Map ||
-					vdata.Kind() == reflect.Slice ||
-					structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
+				if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
+				} else if field.Metatype().Kind() == reflect.Map ||
+					field.Metatype().Kind() == reflect.Slice ||
+					field.Metatype().Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {

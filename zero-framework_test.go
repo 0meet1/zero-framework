@@ -69,13 +69,15 @@ func TestZeroCoreStructs(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	axt := x0meet1.Time(time.Now())
+	axtp := &axt
 
 	fmt.Println(xt.CreateTime.Time())
-	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).Name())
-	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).PkgPath())
+	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).Kind())
+	// fmt.Println(structs.FindMetaType())
 	fmt.Println(structs.FindMetaType(reflect.TypeOf(time.Now())).Name())
 	fmt.Println("------")
-
+	fmt.Println(structs.FindMetaType(reflect.ValueOf(axtp).Type()).PkgPath())
 	p := &Param{}
 	str := `{"start":"2019-12-10T18:12:49","end":"2019-12-10T18:12:49"}`
 	err = json.Unmarshal([]byte(str), p)
