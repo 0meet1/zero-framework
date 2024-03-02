@@ -16,15 +16,11 @@ const (
 	XSAC_AF_DELETE = "afdelete"
 )
 
-type ZeroXsacTrigger interface {
-	On(string, interface{}) error
-}
-
 type ZeroXsacAutoProcessor interface {
 	Build(transaction *sql.Tx)
 
 	AddFields(fields []*structs.ZeroXsacField)
-	AddTriggers(...ZeroXsacTrigger)
+	AddTriggers(...structs.ZeroXsacTrigger)
 
 	Insert(...interface{}) error
 	Update(...interface{}) error

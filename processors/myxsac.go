@@ -13,10 +13,10 @@ type ZeroXsacMysqlAutoProcessor struct {
 
 	fields []*structs.ZeroXsacField
 
-	triggers []ZeroXsacTrigger
+	triggers []structs.ZeroXsacTrigger
 }
 
-func NewXsacMysqlProcessor(triggers ...ZeroXsacTrigger) *ZeroXsacMysqlAutoProcessor {
+func NewXsacMysqlProcessor(triggers ...structs.ZeroXsacTrigger) *ZeroXsacMysqlAutoProcessor {
 	return &ZeroXsacMysqlAutoProcessor{
 		triggers: triggers,
 	}
@@ -26,9 +26,9 @@ func (processor *ZeroXsacMysqlAutoProcessor) AddFields(fields []*structs.ZeroXsa
 	processor.fields = fields
 }
 
-func (processor *ZeroXsacMysqlAutoProcessor) AddTriggers(triggers ...ZeroXsacTrigger) {
+func (processor *ZeroXsacMysqlAutoProcessor) AddTriggers(triggers ...structs.ZeroXsacTrigger) {
 	if processor.triggers == nil {
-		processor.triggers = make([]ZeroXsacTrigger, 0)
+		processor.triggers = make([]structs.ZeroXsacTrigger, 0)
 	}
 	for _, trigger := range triggers {
 		processor.triggers = append(processor.triggers, trigger)

@@ -47,12 +47,13 @@ type ZeroCoreStructs struct {
 	Flag       int                    `json:"-"`
 }
 
-func (e *ZeroCoreStructs) XsacPrimaryType() string { return "UUID" }
-func (e *ZeroCoreStructs) XsacDataSource() string  { return "" }
-func (e *ZeroCoreStructs) XsacDbName() string      { return "" }
-func (e *ZeroCoreStructs) XsacTableName() string   { panic("not implemented") }
-func (e *ZeroCoreStructs) XsacDeleteOpt() byte     { return 0b10000000 }
-func (e *ZeroCoreStructs) XsacPartition() string   { return XSAC_PARTITION_NONE }
+func (e *ZeroCoreStructs) XsacPrimaryType() string         { return "UUID" }
+func (e *ZeroCoreStructs) XsacDataSource() string          { return "" }
+func (e *ZeroCoreStructs) XsacDbName() string              { return "" }
+func (e *ZeroCoreStructs) XsacTableName() string           { panic("not implemented") }
+func (e *ZeroCoreStructs) XsacDeleteOpt() byte             { return 0b10000000 }
+func (e *ZeroCoreStructs) XsacPartition() string           { return XSAC_PARTITION_NONE }
+func (e *ZeroCoreStructs) XsacTriggers() []ZeroXsacTrigger { return nil }
 
 func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)

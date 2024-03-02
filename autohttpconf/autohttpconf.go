@@ -1,6 +1,7 @@
 package autohttpconf
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,6 +15,22 @@ import (
 	"github.com/0meet1/zero-framework/server"
 	"github.com/0meet1/zero-framework/structs"
 )
+
+const (
+	XSAC_DML_ADD       = "add"
+	XSAC_DML_UP        = "up"
+	XSAC_DML_RM        = "rm"
+	XSAC_DML_TOMBSTONE = "tombstone"
+	XSAC_DML_RESTORE   = "restore"
+
+	XSAC_HTTPFETCH_READY    = "ready"
+	XSAC_HTTPFETCH_ROW      = "row"
+	XSAC_HTTPFETCH_COMPLETE = "complete"
+)
+
+type ZeroXsacHttpDMLTrigger interface {
+	On(string, string, *structs.ZeroRequest, ...interface{}) error
+}
 
 type ZeroXsacHttpFetchTrigger interface {
 	On(string, processors.ZeroQueryOperation, *structs.ZeroRequest, ...interface{}) error
@@ -34,6 +51,7 @@ type ZeroXsacXhttpDeclares interface {
 	XhttpCheckTable() string
 	XhttpSearchIndex() string
 
+	XhttpDMLTrigger() ZeroXsacHttpDMLTrigger
 	XhttpFetchTrigger() ZeroXsacHttpFetchTrigger
 	XhttpSearchTrigger() ZeroXsacHttpSearchTrigger
 }
@@ -55,14 +73,9 @@ func (e *ZeroXsacXhttpStructs) XhttpQueryOperation() processors.ZeroQueryOperati
 	return &processors.ZeroPostgresQueryOperation{}
 }
 
+func (e *ZeroXsacXhttpStructs) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger       { return nil }
 func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }
 func (e *ZeroXsacXhttpStructs) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger { return nil }
-
-const (
-	XSAC_HTTPFETCH_READY    = "ready"
-	XSAC_HTTPFETCH_ROW      = "row"
-	XSAC_HTTPFETCH_COMPLETE = "complete"
-)
 
 type ZeroXsacXhttp struct {
 	dataSource string
@@ -139,6 +152,35 @@ func (xhttp *ZeroXsacXhttp) xhttpinlines() map[string]*structs.ZeroXsacField {
 	return xhttp.inlinfields
 }
 
+func (xhttp *ZeroXsacXhttp) xhttpProcessor(transaction *sql.Tx) processors.ZeroXsacAutoProcessor {
+	processor := xhttp.instance.XhttpAutoProc()
+	processor.AddFields(xhttp.xhttpfields())
+	processor.Build(transaction)
+	return processor
+}
+
+func (xhttp *ZeroXsacXhttp) xhttpParse(querys []interface{}, callback func(interface{}) error) error {
+	for _, xQueryData := range querys {
+		jsonbytes, err := json.Marshal(xQueryData)
+		if err != nil {
+			panic(err)
+		}
+
+		xquery := reflect.New(xhttp.coretype).Interface()
+		err = json.Unmarshal(jsonbytes, xquery)
+		if err != nil {
+			panic(err)
+		}
+		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
+
+		err = callback(xquery)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
 	defer func() {
@@ -157,23 +199,35 @@ func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	for _, xQueryData := range xRequest.Querys {
-		jsonbytes, err := json.Marshal(xQueryData)
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_ADD, XSAC_HTTPFETCH_READY, xRequest)
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		xquery := reflect.New(xhttp.coretype).Interface()
-		err = json.Unmarshal(jsonbytes, xquery)
-		if err != nil {
-			panic(err)
+	processor := xhttp.xhttpProcessor(transaction)
+
+	err = xhttp.xhttpParse(xRequest.Querys, func(xquery interface{}) error {
+		if xhttp.instance.XhttpDMLTrigger() != nil {
+			err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_ADD, XSAC_HTTPFETCH_ROW, xRequest, xquery)
+			if err != nil {
+				return err
+			}
 		}
-		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
 		err = processor.Insert(xquery)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_ADD, XSAC_HTTPFETCH_COMPLETE, xRequest)
 		if err != nil {
 			panic(err)
 		}
@@ -199,23 +253,36 @@ func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	for _, xQueryData := range xRequest.Querys {
-		jsonbytes, err := json.Marshal(xQueryData)
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_UP, XSAC_HTTPFETCH_READY, xRequest)
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		xquery := reflect.New(xhttp.coretype).Interface()
-		err = json.Unmarshal(jsonbytes, xquery)
-		if err != nil {
-			panic(err)
+	processor := xhttp.xhttpProcessor(transaction)
+
+	err = xhttp.xhttpParse(xRequest.Querys, func(xquery interface{}) error {
+		if xhttp.instance.XhttpDMLTrigger() != nil {
+			err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_UP, XSAC_HTTPFETCH_ROW, xRequest, xquery)
+			if err != nil {
+				return err
+			}
 		}
-		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
+
 		err = processor.Update(xquery)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_UP, XSAC_HTTPFETCH_COMPLETE, xRequest)
 		if err != nil {
 			panic(err)
 		}
@@ -241,27 +308,41 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	for _, xQueryData := range xRequest.Querys {
-		jsonbytes, err := json.Marshal(xQueryData)
-		if err != nil {
-			panic(err)
-		}
-
-		xquery := reflect.New(xhttp.coretype).Interface()
-		err = json.Unmarshal(jsonbytes, xquery)
-		if err != nil {
-			panic(err)
-		}
-		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
-		err = processor.Delete(xquery)
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RM, XSAC_HTTPFETCH_READY, xRequest)
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	processor := xhttp.xhttpProcessor(transaction)
+
+	err = xhttp.xhttpParse(xRequest.Querys, func(xquery interface{}) error {
+		if xhttp.instance.XhttpDMLTrigger() != nil {
+			err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RM, XSAC_HTTPFETCH_ROW, xRequest, xquery)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = processor.Delete(xquery)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RM, XSAC_HTTPFETCH_COMPLETE, xRequest)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	server.XhttpResponseMessages(writer, 200, "success")
 }
 
@@ -283,23 +364,36 @@ func (xhttp *ZeroXsacXhttp) tombstone(writer http.ResponseWriter, req *http.Requ
 		panic(err)
 	}
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	for _, xQueryData := range xRequest.Querys {
-		jsonbytes, err := json.Marshal(xQueryData)
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_TOMBSTONE, XSAC_HTTPFETCH_READY, xRequest)
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		xquery := reflect.New(xhttp.coretype).Interface()
-		err = json.Unmarshal(jsonbytes, xquery)
-		if err != nil {
-			panic(err)
+	processor := xhttp.xhttpProcessor(transaction)
+
+	err = xhttp.xhttpParse(xRequest.Querys, func(xquery interface{}) error {
+		if xhttp.instance.XhttpDMLTrigger() != nil {
+			err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_TOMBSTONE, XSAC_HTTPFETCH_ROW, xRequest, xquery)
+			if err != nil {
+				return err
+			}
 		}
-		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
+
 		err = processor.Tombstone(xquery)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_TOMBSTONE, XSAC_HTTPFETCH_COMPLETE, xRequest)
 		if err != nil {
 			panic(err)
 		}
@@ -325,23 +419,36 @@ func (xhttp *ZeroXsacXhttp) restore(writer http.ResponseWriter, req *http.Reques
 		panic(err)
 	}
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
-
-	for _, xQueryData := range xRequest.Querys {
-		jsonbytes, err := json.Marshal(xQueryData)
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RESTORE, XSAC_HTTPFETCH_READY, xRequest)
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		xquery := reflect.New(xhttp.coretype).Interface()
-		err = json.Unmarshal(jsonbytes, xquery)
-		if err != nil {
-			panic(err)
+	processor := xhttp.xhttpProcessor(transaction)
+
+	err = xhttp.xhttpParse(xRequest.Querys, func(xquery interface{}) error {
+		if xhttp.instance.XhttpDMLTrigger() != nil {
+			err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RESTORE, XSAC_HTTPFETCH_ROW, xRequest, xquery)
+			if err != nil {
+				return err
+			}
 		}
-		xquery.(structs.ZeroMetaDef).ThisDef(xquery)
+
 		err = processor.Xrestore(xquery)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if xhttp.instance.XhttpDMLTrigger() != nil {
+		err = xhttp.instance.XhttpDMLTrigger().On(XSAC_DML_RESTORE, XSAC_HTTPFETCH_COMPLETE, xRequest)
 		if err != nil {
 			panic(err)
 		}
@@ -388,6 +495,28 @@ func (xhttp *ZeroXsacXhttp) checkpart(xRequest *structs.ZeroRequest, xOperation 
 	}
 }
 
+func (xhttp *ZeroXsacXhttp) parserowdata(xoptions []string, processor processors.ZeroXsacAutoProcessor, row map[string]interface{}) interface{} {
+	data := reflect.New(xhttp.coretype).Interface()
+	returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
+	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
+		panic(returnValues[0].Interface())
+	}
+
+	for _, xoption := range xoptions {
+		if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
+			for _, field := range xhttp.xhttpinlines() {
+				processor.FetchChildrens(field, data)
+			}
+		} else {
+			field, ok := xhttp.xhttpinlines()[xoption]
+			if ok {
+				processor.FetchChildrens(field, data)
+			}
+		}
+	}
+	return data
+}
+
 func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Request, flag int) {
 	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
 	defer func() {
@@ -420,9 +549,7 @@ func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Requ
 	}
 	xhttp.checkpart(xRequest, xOperation)
 
-	processor := xhttp.instance.XhttpAutoProc()
-	processor.AddFields(xhttp.xhttpfields())
-	processor.Build(transaction)
+	processor := xhttp.xhttpProcessor(transaction)
 
 	if xhttp.instance.XhttpFetchTrigger() != nil {
 		err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_READY, xOperation, xRequest)
@@ -436,24 +563,7 @@ func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Requ
 	rows, expands := xOperation.Exec()
 	datas := make([]interface{}, 0)
 	for _, row := range rows {
-		data := reflect.New(xhttp.coretype).Interface()
-		returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
-		if len(returnValues) > 0 && returnValues[0].Interface() != nil {
-			panic(returnValues[0].Interface())
-		}
-
-		for _, xoption := range xoptions {
-			if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
-				for _, field := range xhttp.xhttpinlines() {
-					processor.FetchChildrens(field, data)
-				}
-			} else {
-				field, ok := xhttp.xhttpinlines()[xoption]
-				if ok {
-					processor.FetchChildrens(field, data)
-				}
-			}
-		}
+		data := xhttp.parserowdata(xoptions, processor, row)
 
 		if xhttp.instance.XhttpFetchTrigger() != nil {
 			err = xhttp.instance.XhttpFetchTrigger().On(XSAC_HTTPFETCH_ROW, xOperation, xRequest, data)

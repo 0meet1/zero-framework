@@ -13,10 +13,10 @@ type ZeroXsacPostgresAutoProcessor struct {
 
 	fields []*structs.ZeroXsacField
 
-	triggers []ZeroXsacTrigger
+	triggers []structs.ZeroXsacTrigger
 }
 
-func NewXsacPostgresProcessor(triggers ...ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
+func NewXsacPostgresProcessor(triggers ...structs.ZeroXsacTrigger) *ZeroXsacPostgresAutoProcessor {
 	return &ZeroXsacPostgresAutoProcessor{
 		triggers: triggers,
 	}
@@ -26,9 +26,9 @@ func (processor *ZeroXsacPostgresAutoProcessor) AddFields(fields []*structs.Zero
 	processor.fields = fields
 }
 
-func (processor *ZeroXsacPostgresAutoProcessor) AddTriggers(triggers ...ZeroXsacTrigger) {
+func (processor *ZeroXsacPostgresAutoProcessor) AddTriggers(triggers ...structs.ZeroXsacTrigger) {
 	if processor.triggers == nil {
-		processor.triggers = make([]ZeroXsacTrigger, 0)
+		processor.triggers = make([]structs.ZeroXsacTrigger, 0)
 	}
 	for _, trigger := range triggers {
 		processor.triggers = append(processor.triggers, trigger)

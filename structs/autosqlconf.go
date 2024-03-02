@@ -35,6 +35,10 @@ const (
 	XSAC_PARTITION_DAY   = "day"
 )
 
+type ZeroXsacTrigger interface {
+	On(string, interface{}) error
+}
+
 type ZeroXsacDeclares interface {
 	XsacDataSource() string
 	XsacDbName() string
@@ -43,6 +47,7 @@ type ZeroXsacDeclares interface {
 	XsacDeclares() ZeroXsacEntrySet
 	XsacRefDeclares() ZeroXsacEntrySet
 	XsacPartition() string
+	XsacTriggers() []ZeroXsacTrigger
 }
 
 type ZeroXsacEntrySet []*ZeroXsacEntry
