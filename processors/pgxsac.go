@@ -65,7 +65,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 	delaystmts := make([]string, 0)
 	delaydataset := make(map[string][]interface{})
 
-	addFieldString := func(field *structs.ZeroXsacField, vdata reflect.Value) {
+	addFieldString := func(field *structs.ZeroXsacField) {
 		fieldIdx++
 		if len(fieldStrings) <= 0 {
 			fieldStrings = field.ColumnName()
@@ -95,7 +95,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
-				addFieldString(field, vdata)
+				addFieldString(field)
 				dataset = append(dataset, vdata.Elem().FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
@@ -141,7 +141,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				}
 			}
 		} else {
-			addFieldString(field, vdata)
+			addFieldString(field)
 			if vdata.Kind() == reflect.Map ||
 				vdata.Kind() == reflect.Slice ||
 				structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {

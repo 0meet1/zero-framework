@@ -64,7 +64,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 	delaystmts := make([]string, 0)
 	delaydataset := make(map[string][]interface{})
 
-	addFieldString := func(field *structs.ZeroXsacField, vdata reflect.Value) {
+	addFieldString := func(field *structs.ZeroXsacField) {
 		if len(fieldStrings) <= 0 {
 			fieldStrings = field.ColumnName()
 			valueStrings = "?"
@@ -93,7 +93,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
-				addFieldString(field, vdata)
+				addFieldString(field)
 				dataset = append(dataset, vdata.Elem().FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
@@ -139,14 +139,18 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				}
 			}
 		} else {
-			addFieldString(field, vdata)
+			addFieldString(field)
 			if vdata.Kind() == reflect.Map ||
 				vdata.Kind() == reflect.Slice ||
 				structs.FindMetaType(vdata.Type()).Kind() == reflect.Struct {
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
 			} else {
-				dataset = append(dataset, vdata.Interface())
+				if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+					dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+				} else {
+					dataset = append(dataset, vdata.Interface())
+				}
 			}
 		}
 	}
@@ -220,7 +224,11 @@ func (processor *ZeroXsacMysqlAutoProcessor) Update(datas ...interface{}) error 
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
-					dataset = append(dataset, vdata.Interface())
+					if vdata.Type().PkgPath() == "github.com/0meet1/zero-framework/structs" && vdata.Type().Name() == "Time" {
+						dataset = append(dataset, vdata.Interface().(*structs.Time).Time())
+					} else {
+						dataset = append(dataset, vdata.Interface())
+					}
 				}
 			}
 		}

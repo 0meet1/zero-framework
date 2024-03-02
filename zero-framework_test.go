@@ -70,8 +70,10 @@ func TestZeroCoreStructs(t *testing.T) {
 		t.Error(err)
 	}
 
-	// fmt.Println(xt.CreateTime.Time())
+	fmt.Println(xt.CreateTime.Time())
 	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).Name())
+	fmt.Println(structs.FindMetaType(reflect.TypeOf(xt.CreateTime)).PkgPath())
+	fmt.Println(structs.FindMetaType(reflect.TypeOf(time.Now())).Name())
 	fmt.Println("------")
 	p := &Param{}
 	str := `{"start":"2019-12-10T18:12:49","end":"2019-12-10T18:12:49"}`
