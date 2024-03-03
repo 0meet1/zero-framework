@@ -239,9 +239,9 @@ func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
 }
 
 func ParseDateField(rowmap map[string]interface{}, fieldName string) *Time {
-	_, ok := rowmap[fieldName]
+	fielddata, ok := rowmap[fieldName]
 	if ok {
-		rowdata := Time(rowmap[fieldName].(time.Time))
+		rowdata := Time(fielddata.(time.Time))
 		return &rowdata
 	}
 	return nil
@@ -258,25 +258,33 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 }
 
 func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
-	_, ok := rowmap[fieldName]
+	fielddata, ok := rowmap[fieldName]
 	if ok {
-		return int(rowmap[fieldName].(int64))
+		return int(fielddata.(int64))
 	}
 	return 0
 }
 
 func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
-	_, ok := rowmap[fieldName]
+	fielddata, ok := rowmap[fieldName]
 	if ok {
-		return rowmap[fieldName].(float64)
+		return fielddata.(float64)
 	}
 	return 0
 }
 
 func ParseBytesField(rowmap map[string]interface{}, fieldName string) []byte {
-	_, ok := rowmap[fieldName]
+	fielddata, ok := rowmap[fieldName]
 	if ok {
-		return rowmap[fieldName].([]uint8)
+		return fielddata.([]uint8)
+	}
+	return nil
+}
+
+func ParseIfExists(rowmap map[string]interface{}, fieldName string, callback func(interface{}) error) error {
+	fielddata, ok := rowmap[fieldName]
+	if ok && callback != nil {
+		return callback(fielddata)
 	}
 	return nil
 }
