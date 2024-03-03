@@ -314,7 +314,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()
 	if field.Exterable() {
 		stmtChildrens = fmt.Sprintf(
-			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND b.%s = $1",
+			"SELECT a.* FROM %s a, %s b WHERE a.id = b.%s AND b.%s = $1",
 			field.SubTableName(),
 			field.Reftable(),
 			field.Refbrocolumn(),

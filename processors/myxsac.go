@@ -302,7 +302,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroX
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()
 	if field.Exterable() {
 		stmtChildrens = fmt.Sprintf(
-			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND b.%s = ?",
+			"SELECT a.* FROM %s a, %s b WHERE a.id = b.%s AND b.%s = ?",
 			field.SubTableName(),
 			field.Reftable(),
 			field.Refbrocolumn(),
