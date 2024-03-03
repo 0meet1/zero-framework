@@ -82,42 +82,56 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 		}
 		vdata := elem.FieldByName(field.FieldName())
 
-		if vdata.Kind() == reflect.Pointer && vdata.IsNil() {
-			continue
+		if vdata.Kind() == reflect.Pointer {
+			if vdata.IsNil() {
+				continue
+			}
+			vdata = vdata.Elem()
 		}
 
 		if field.Inlinable() {
-			if vdata.Elem().FieldByName("ID").Interface().(string) == "" {
+			if vdata.FieldByName("ID").Interface().(string) == "" {
 				continue
 			}
 			if field.Exterable() {
-				makeLinkSQL, dataLinks := processor.exterField(field, vdata.Elem(), vdata)
+				makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
 				addFieldString(field)
-				dataset = append(dataset, vdata.Elem().FieldByName("ID").Interface())
+				dataset = append(dataset, vdata.FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
 			if field.Exterable() {
 				if field.IsArray() {
 					for i := 0; i < vdata.Len(); i++ {
 						vxdatai := vdata.Index(i).Interface()
+						// vdatai := reflect.ValueOf(vxdatai)
+						// vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
 						vdatai := reflect.ValueOf(vxdatai)
-						vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
+						if vdatai.Kind() == reflect.Pointer {
+							reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						} else {
+							reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						}
 						delaydatas[vxdatai] = field.XLinkFields()
 
-						makeLinkSQL, dataLinks := processor.exterField(field, elem, vdatai)
-						delaystmts = append(delaystmts, makeLinkSQL)
-						delaydataset[makeLinkSQL] = dataLinks
+						// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdatai)
+						// delaystmts = append(delaystmts, makeLinkSQL)
+						// delaydataset[makeLinkSQL] = dataLinks
 					}
 				} else {
-					vdata.MethodByName("InitDefault").Call([]reflect.Value{})
+					if vdata.Kind() == reflect.Pointer {
+						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					} else {
+						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					}
+					// vdata.MethodByName("InitDefault").Call([]reflect.Value{})
 					delaydatas[vdata.Interface()] = field.XLinkFields()
 
-					makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
-					delaystmts = append(delaystmts, makeLinkSQL)
-					delaydataset[makeLinkSQL] = dataLinks
+					// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
+					// delaystmts = append(delaystmts, makeLinkSQL)
+					// delaydataset[makeLinkSQL] = dataLinks
 				}
 			} else {
 				if field.IsArray() {
@@ -133,7 +147,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 					}
 				} else {
 					if vdata.Kind() == reflect.Pointer {
-						vdata.Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 					} else {
 						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 					}
