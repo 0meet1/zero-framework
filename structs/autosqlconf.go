@@ -40,6 +40,7 @@ type ZeroXsacTrigger interface {
 }
 
 type ZeroXsacDeclares interface {
+	XsacPrimaryType() string
 	XsacDataSource() string
 	XsacDbName() string
 	XsacTableName() string
