@@ -91,7 +91,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 				continue
 			}
 			if field.Exterable() {
-				makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
+				makeLinkSQL, dataLinks := processor.exterField(field, vdata.Elem(), vdata)
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
