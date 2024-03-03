@@ -89,7 +89,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				continue
 			}
 			if field.Exterable() {
-				makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
+				makeLinkSQL, dataLinks := processor.exterField(field, vdata.Elem(), vdata)
 				delaystmts = append(delaystmts, makeLinkSQL)
 				delaydataset[makeLinkSQL] = dataLinks
 			} else {
@@ -101,21 +101,32 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				if field.IsArray() {
 					for i := 0; i < vdata.Len(); i++ {
 						vxdatai := vdata.Index(i).Interface()
+						// vdatai := reflect.ValueOf(vxdatai)
+						// vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
 						vdatai := reflect.ValueOf(vxdatai)
-						vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
+						if vdatai.Kind() == reflect.Pointer {
+							reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						} else {
+							reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						}
 						delaydatas[vxdatai] = field.XLinkFields()
 
-						makeLinkSQL, dataLinks := processor.exterField(field, elem, vdatai)
-						delaystmts = append(delaystmts, makeLinkSQL)
-						delaydataset[makeLinkSQL] = dataLinks
+						// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdatai)
+						// delaystmts = append(delaystmts, makeLinkSQL)
+						// delaydataset[makeLinkSQL] = dataLinks
 					}
 				} else {
-					vdata.MethodByName("InitDefault").Call([]reflect.Value{})
+					if vdata.Kind() == reflect.Pointer {
+						vdata.Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					} else {
+						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+					}
+					// vdata.MethodByName("InitDefault").Call([]reflect.Value{})
 					delaydatas[vdata.Interface()] = field.XLinkFields()
 
-					makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
-					delaystmts = append(delaystmts, makeLinkSQL)
-					delaydataset[makeLinkSQL] = dataLinks
+					// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
+					// delaystmts = append(delaystmts, makeLinkSQL)
+					// delaydataset[makeLinkSQL] = dataLinks
 				}
 			} else {
 				if field.IsArray() {
