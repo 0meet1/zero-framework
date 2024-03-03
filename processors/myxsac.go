@@ -100,57 +100,24 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				dataset = append(dataset, vdata.FieldByName("ID").Interface())
 			}
 		} else if field.Childable() {
-			if field.Exterable() {
-				if field.IsArray() {
-					for i := 0; i < vdata.Len(); i++ {
-						vxdatai := vdata.Index(i).Interface()
-						// vdatai := reflect.ValueOf(vxdatai)
-						// vdatai.MethodByName("InitDefault").Call([]reflect.Value{})
-						vdatai := reflect.ValueOf(vxdatai)
-						if vdatai.Kind() == reflect.Pointer {
-							reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-						} else {
-							reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-						}
-						delaydatas[vxdatai] = field.XLinkFields()
-
-						// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdatai)
-						// delaystmts = append(delaystmts, makeLinkSQL)
-						// delaydataset[makeLinkSQL] = dataLinks
-					}
-				} else {
-					if vdata.Kind() == reflect.Pointer {
-						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+			if field.IsArray() {
+				for i := 0; i < vdata.Len(); i++ {
+					vxdatai := vdata.Index(i).Interface()
+					vdatai := reflect.ValueOf(vxdatai)
+					if vdatai.Kind() == reflect.Pointer {
+						reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 					} else {
-						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
+						reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 					}
-					// vdata.MethodByName("InitDefault").Call([]reflect.Value{})
-					delaydatas[vdata.Interface()] = field.XLinkFields()
-
-					// makeLinkSQL, dataLinks := processor.exterField(field, elem, vdata)
-					// delaystmts = append(delaystmts, makeLinkSQL)
-					// delaydataset[makeLinkSQL] = dataLinks
+					delaydatas[vxdatai] = field.XLinkFields()
 				}
 			} else {
-				if field.IsArray() {
-					for i := 0; i < vdata.Len(); i++ {
-						vxdatai := vdata.Index(i).Interface()
-						vdatai := reflect.ValueOf(vxdatai)
-						if vdatai.Kind() == reflect.Pointer {
-							reflect.ValueOf(vxdatai).Elem().FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-						} else {
-							reflect.ValueOf(vxdatai).FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-						}
-						delaydatas[vxdatai] = field.XLinkFields()
-					}
+				if vdata.Kind() == reflect.Pointer {
+					vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 				} else {
-					if vdata.Kind() == reflect.Pointer {
-						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-					} else {
-						vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
-					}
-					delaydatas[vdata.Interface()] = field.XLinkFields()
+					vdata.FieldByName(field.ChildName()).Set(reflect.ValueOf(data))
 				}
+				delaydatas[vdata.Interface()] = field.XLinkFields()
 			}
 		} else {
 			addFieldString(field)
@@ -335,7 +302,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroX
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()
 	if field.Exterable() {
 		stmtChildrens = fmt.Sprintf(
-			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND %s = ?",
+			"SELECT a.* FROM %s a, %s b WHERE WHERE a.id = b.%s AND b.%s = ?",
 			field.SubTableName(),
 			field.Reftable(),
 			field.Refbrocolumn(),

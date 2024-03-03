@@ -270,7 +270,7 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 	xsacref := field.Tag.Get(XSAC_REF)
 	if len(xsacref) > 0 {
 		xsacrefItems := strings.Split(xsacref, ",")
-		if len(xsacrefItems) == 3 {
+		if len(xsacrefItems) >= 3 {
 			xfield.reftable = xsacrefItems[0]
 			xfield.refcolumn = xsacrefItems[1]
 			xfield.refbrocolumn = xsacrefItems[2]
