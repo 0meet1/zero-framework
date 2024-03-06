@@ -1,9 +1,10 @@
 zero:
-  appName: "<appname>"
+  appname: "<appname>"
+  version: "1.0.0"
   httpserver:
     hostname: "0.0.0.0"
     port: 32205
-    prefix: "zeroapi/v1/<>"
+    prefix: "zeroapi/v1/<uri>"
   tcpserv:
     address: "0.0.0.0:11016"
     heartbeatTime: 300
@@ -67,4 +68,5 @@ zero:
     taskRetryInterval: 3
     maxGroupQueues: 10
   xsac:
+    autoapi: "disable"
     autocheck: "enable"

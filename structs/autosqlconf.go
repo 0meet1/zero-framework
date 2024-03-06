@@ -231,6 +231,8 @@ func (xfs ZeroXsacFieldSet) String() string {
 
 type ZeroXsacField struct {
 	metatype reflect.Type
+	xapi     string
+	jsonopts string
 
 	fieldName  string
 	columnName string
@@ -261,6 +263,8 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 	xhttpopt := field.Tag.Get(XHTTP_OPT)
 	xfield := &ZeroXsacField{
 		metatype:   FindStructFieldMetaType(field),
+		xapi:       field.Tag.Get(XHTTP_API),
+		jsonopts:   field.Tag.Get("json"),
 		fieldName:  field.Name,
 		columnName: columnName,
 		isArray:    field.Type.Kind() == reflect.Slice,
@@ -308,6 +312,14 @@ func NewXsacField(field reflect.StructField, ignore bool) *ZeroXsacField {
 
 func (xf *ZeroXsacField) Metatype() reflect.Type {
 	return xf.metatype
+}
+
+func (xf *ZeroXsacField) Xapi() string {
+	return xf.xapi
+}
+
+func (xf *ZeroXsacField) Xjsonopts() string {
+	return xf.jsonopts
 }
 
 func (xf *ZeroXsacField) FieldName() string {
@@ -409,4 +421,13 @@ func (xf *ZeroXsacField) String() string {
 
 type ZeroXsacFields interface {
 	XsacFields(...int) ZeroXsacFieldSet
+}
+
+type ZeroXsacApiDeclares interface {
+	XsacApiName() string
+	XsacApiFields() [][]string
+	XsacApiEnums() []string
+	XsacApis(...string) []string
+
+	XsacApiExports(...string) []string
 }

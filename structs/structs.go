@@ -169,3 +169,56 @@ func DayDurationString(t time.Time, xformat string) (string, string, error) {
 	}
 	return startTime.Format(xformat), endTime.Format(xformat), nil
 }
+
+func NumberToChinese(num int) string {
+	var numchar = []string{"零", "一", "二", "三", "四", "五", "六", "七", "八", "九"}
+	var unitchar = []string{"", "十", "百", "千"}
+	var unitxchar = []string{"", "万", "亿"}
+
+	if num < 0 || num > 999999999 {
+		return string(numchar[0])
+	}
+
+	cnum := make([]string, 0)
+	tnum := num
+
+	for i := 0; tnum > 0; i++ {
+		knum := tnum % 10000
+		snum := make([]string, 0)
+		for j := 0; knum > 0; j++ {
+			spnum := knum % 10
+			if spnum != 0 {
+				snitem := fmt.Sprintf("%s%s", numchar[spnum], unitchar[j])
+				if snitem == "一十" {
+					snitem = "十"
+				}
+				snum = append(snum, snitem)
+			} else if len(snum) != 0 && !strings.HasPrefix(snum[len(snum)-1], numchar[0]) {
+				snum = append(snum, numchar[0])
+			}
+			knum = knum / 10
+		}
+
+		if len(snum) == 0 {
+			snum = append(snum, numchar[0])
+		}
+
+		citemNum := ""
+		for _, nchar := range snum {
+			citemNum = fmt.Sprintf("%s%s", nchar, citemNum)
+		}
+
+		if citemNum != numchar[0] {
+			cnum = append(cnum, fmt.Sprintf("%s%s", citemNum, unitxchar[i]))
+		}
+		tnum = tnum / 10000
+	}
+	if len(cnum) == 0 {
+		cnum = append(cnum, numchar[0])
+	}
+	chineseNum := ""
+	for _, nchar := range cnum {
+		chineseNum = fmt.Sprintf("%s%s", nchar, chineseNum)
+	}
+	return chineseNum
+}

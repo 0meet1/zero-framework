@@ -78,8 +78,6 @@ type UgLiMedia struct {
 
 	Name string `json:"name,omitempty" xhttpopt:"OO" xsacprop:"NO,VARCHAR(128),NULL" xsacindex:"unique"`
 
-	//// 安装点位坐标
-
 	Status string `json:"status,omitempty" xhttpopt:"OO" xsacprop:"NO,VARCHAR(64),NULL"`
 	Type   string `json:"type,omitempty" xhttpopt:"OO" xsacprop:"NO,VARCHAR(64),NULL"`
 	Fps    int    `json:"fps,omitempty" xhttpopt:"OO" xsacprop:"NO,INT,NULL"`

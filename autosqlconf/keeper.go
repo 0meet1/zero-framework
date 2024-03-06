@@ -3,6 +3,7 @@ package autosqlconf
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"time"
 
@@ -20,6 +21,8 @@ type ZeroXsacKeeper struct {
 
 	entries   []*structs.ZeroXsacEntry
 	httpconfs []*autohttpconf.ZeroXsacXhttp
+
+	apimks string
 }
 
 func NewKeeper(proctype reflect.Type, types ...reflect.Type) *ZeroXsacKeeper {
@@ -190,8 +193,31 @@ func (keeper *ZeroXsacKeeper) RunKeeper() *ZeroXsacKeeper {
 	return keeper
 }
 
+func (keeper *ZeroXsacKeeper) api(writer http.ResponseWriter, _ *http.Request) {
+	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+	writer.WriteHeader(200)
+	writer.Write([]byte(keeper.apimks))
+}
+
 func (keeper *ZeroXsacKeeper) Exports() []*server.XhttpExecutor {
 	executors := make([]*server.XhttpExecutor, 0)
+	if global.StringValue("zero.xsac.autoapi") == "enable" {
+		appname := global.StringValue("zero.appname")
+		version := global.StringValue("zero.version")
+		prefix := global.StringValue("zero.httpserver.prefix")
+
+		rows := make([]string, 0)
+		rows = append(rows, structs.NewApiHeader(appname, version))
+
+		for i, t := range keeper.types {
+			declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
+			reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
+			rows = append(rows, declares.(structs.ZeroXsacApiDeclares).XsacApiExports(fmt.Sprintf("%s、", structs.NumberToChinese(i+1)), prefix)...)
+		}
+
+		keeper.apimks = structs.NewMarkdown(rows...).HTML()
+		executors = append(executors, server.XhttpFuncHandle(keeper.api, "api"))
+	}
 	for _, httpconf := range keeper.httpconfs {
 		executors = append(executors, httpconf.ExportExecutors()...)
 	}

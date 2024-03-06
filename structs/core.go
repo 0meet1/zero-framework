@@ -2,6 +2,7 @@ package structs
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ const (
 	XSAC_FIELD       = "xsacfield"
 
 	XHTTP_OPT = "xhttpopt"
+	XHTTP_API = "xapi"
 
 	XSAC_NULL = "NULL"
 	XSAC_YES  = "YES"
@@ -40,10 +42,10 @@ func FindStructFieldMetaType(fields reflect.StructField) reflect.Type {
 type ZeroCoreStructs struct {
 	ZeroMeta
 
-	ID         string                 `json:"id,omitempty" xhttpopt:"OX"`
-	CreateTime *Time                  `json:"createTime,omitempty" xhttpopt:"XX"`
-	UpdateTime *Time                  `json:"updateTime,omitempty" xhttpopt:"XX"`
-	Features   map[string]interface{} `json:"features,omitempty" xhttpopt:"OO"`
+	ID         string                 `json:"id,omitempty" xhttpopt:"OX" xapi:"唯一标识,UUID"`
+	CreateTime *Time                  `json:"createTime,omitempty" xhttpopt:"XX" xapi:"创建时间,DateTime,yyyy-MM-ddTHH:mm:ss"`
+	UpdateTime *Time                  `json:"updateTime,omitempty" xhttpopt:"XX" xapi:"更新时间,DateTime,yyyy-MM-ddTHH:mm:ss"`
+	Features   map[string]interface{} `json:"features,omitempty" xhttpopt:"OO" xapi:"特征,JSON"`
 	Flag       int                    `json:"-"`
 }
 
@@ -54,6 +56,64 @@ func (e *ZeroCoreStructs) XsacTableName() string           { panic("not implemen
 func (e *ZeroCoreStructs) XsacDeleteOpt() byte             { return 0b10000000 }
 func (e *ZeroCoreStructs) XsacPartition() string           { return XSAC_PARTITION_NONE }
 func (e *ZeroCoreStructs) XsacTriggers() []ZeroXsacTrigger { return nil }
+func (e *ZeroCoreStructs) XsacApiName() string             { return "" }
+func (e *ZeroCoreStructs) XsacApiEnums() []string          { return nil }
+func (e *ZeroCoreStructs) XsacApis(...string) []string     { panic("not implemented") }
+
+func (e *ZeroCoreStructs) XsacApiFields() [][]string {
+	rows := make([]string, 0)
+	fields := e.This().(ZeroXsacFields).XsacFields()
+	for _, field := range fields {
+		apiitems := strings.Split(field.xapi, ",")
+		if len(apiitems) < 2 {
+			continue
+		}
+		jsonitems := strings.Split(field.jsonopts, ",")
+		if len(jsonitems) < 1 {
+			continue
+		}
+		row := make([]string, 0)
+		row = append(row, jsonitems[0], apiitems[1], apiitems[0])
+		if field.Writable() {
+			row = append(row, XSAC_YES)
+		} else {
+			row = append(row, XSAC_NO)
+		}
+		if field.Updatable() {
+			row = append(row, XSAC_YES)
+		} else {
+			row = append(row, XSAC_NO)
+		}
+		if len(apiitems) > 2 {
+			row = append(row, apiitems[2])
+		} else {
+			row = append(row, "")
+		}
+		rows = append(rows, row...)
+	}
+	return ApiDataMods(rows...)
+}
+
+func (e *ZeroCoreStructs) XsacApiExports(args ...string) []string {
+	rows := make([]string, 0)
+	if args != nil && len(args) > 0 {
+		rows = append(rows, NewApiContentHeader(fmt.Sprintf("%s%s", args[0], e.This().(ZeroXsacApiDeclares).XsacApiName())))
+	} else {
+		rows = append(rows, NewApiContentHeader(e.XsacApiName()))
+	}
+	rows = append(rows, NewApiDataMod(
+		fmt.Sprintf("%s模型参数(%s)", FindMetaType(reflect.TypeOf(e.This())).Name(), e.This().(ZeroXsacApiDeclares).XsacApiName()),
+		e.This().(ZeroXsacApiDeclares).XsacApiFields())...)
+	if e.This().(ZeroXsacApiDeclares).XsacApiEnums() != nil {
+		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApiEnums()...)
+	}
+	if args != nil && len(args) > 1 {
+		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApis(args[1])...)
+	} else {
+		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApis()...)
+	}
+	return rows
+}
 
 func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)

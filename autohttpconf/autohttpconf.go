@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path"
 	"reflect"
 	"strings"
 	"time"
@@ -76,6 +77,240 @@ func (e *ZeroXsacXhttpStructs) XhttpQueryOperation() processors.ZeroQueryOperati
 func (e *ZeroXsacXhttpStructs) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger       { return nil }
 func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }
 func (e *ZeroXsacXhttpStructs) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger { return nil }
+
+func (e *ZeroXsacXhttpStructs) makeApiWriteReq() string {
+	fields := e.This().(structs.ZeroXsacFields).XsacFields()
+	mapdata := make(map[string]interface{})
+	for _, field := range fields {
+		apiitems := strings.Split(field.Xapi(), ",")
+		if len(apiitems) < 2 {
+			continue
+		}
+		jsonitems := strings.Split(field.Xjsonopts(), ",")
+		if len(jsonitems) < 1 {
+			continue
+		}
+		if field.Writable() {
+			mapdata[jsonitems[0]] = fmt.Sprintf("*%s,%s*", apiitems[0], apiitems[1])
+		}
+	}
+	reqdata := &structs.ZeroRequest{
+		Querys:  []interface{}{mapdata},
+		Expands: make(map[string]interface{}),
+	}
+	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
+	return string(jsonbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiUpdateReq() string {
+	fields := e.This().(structs.ZeroXsacFields).XsacFields()
+	mapdata := make(map[string]interface{})
+	mapdata["id"] = "*唯一标识,UUID*"
+	for _, field := range fields {
+		apiitems := strings.Split(field.Xapi(), ",")
+		if len(apiitems) < 2 {
+			continue
+		}
+		jsonitems := strings.Split(field.Xjsonopts(), ",")
+		if len(jsonitems) < 1 {
+			continue
+		}
+		if field.Updatable() {
+			mapdata[jsonitems[0]] = fmt.Sprintf("*%s,%s*", apiitems[0], apiitems[1])
+		}
+	}
+	reqdata := &structs.ZeroRequest{
+		Querys:  []interface{}{mapdata},
+		Expands: make(map[string]interface{}),
+	}
+	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
+	return string(jsonbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiRemoveReq() string {
+	mapdata := make(map[string]interface{})
+	mapdata["id"] = "*唯一标识,UUID*"
+	reqdata := &structs.ZeroRequest{
+		Querys:  []interface{}{mapdata},
+		Expands: make(map[string]interface{}),
+	}
+	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
+	return string(jsonbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiFetchReq() string {
+	xQuery := &processors.ZeroQuery{
+		Orderby: []*processors.ZeroOrderBy{
+			{
+				Column: "createTime",
+				Seq:    processors.ORDER_BY_DESC,
+			},
+		},
+		Limit: &processors.ZeroLimit{
+			Start:  0,
+			Length: 10,
+		},
+	}
+	reqdata := &structs.ZeroRequest{
+		Querys:  []interface{}{xQuery},
+		Expands: make(map[string]interface{}),
+	}
+	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
+	return string(jsonbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiSearchReq() string {
+	xQuery := &database.EQuerySearch{
+		Sort: []interface{}{
+			map[string]interface{}{
+				"createTime": map[string]interface{}{
+					"order": "desc",
+				},
+			},
+		},
+		Size: 10,
+		From: 0,
+	}
+	reqdata := &structs.ZeroRequest{
+		Querys:  []interface{}{xQuery},
+		Expands: make(map[string]interface{}),
+	}
+	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
+	return string(jsonbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiSuccess() string {
+	respmap := make(map[string]interface{})
+	respmap["code"] = 200
+	respmap["message"] = "success"
+	respbytes, _ := json.MarshalIndent(respmap, "", "\t")
+	return string(respbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiQueryOptions() [][]string {
+	options := make([][]string, 0)
+	fields := e.This().(structs.ZeroXsacFields).XsacFields()
+	for _, field := range fields {
+		if field.Inlinable() || field.Childable() {
+			apiitems := strings.Split(field.Xapi(), ",")
+			if len(apiitems) < 2 {
+				continue
+			}
+			jsonitems := strings.Split(field.Xjsonopts(), ",")
+			if len(jsonitems) < 1 {
+				continue
+			}
+			options = append(options, []string{jsonitems[0], apiitems[0]})
+		}
+	}
+	return options
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiQueryExpands() [][]string {
+	expands := make([][]string, 0)
+	if e.This().(ZeroXsacXhttpDeclares).XsacPartition() != structs.XSAC_PARTITION_NONE {
+		expands = append(expands, []string{"zone", "时间区间"})
+	}
+	return expands
+}
+
+func (e *ZeroXsacXhttpStructs) makeApiDatas() string {
+	fields := e.This().(structs.ZeroXsacFields).XsacFields()
+	mapdata := make(map[string]interface{})
+	for _, field := range fields {
+		apiitems := strings.Split(field.Xapi(), ",")
+		if len(apiitems) < 2 {
+			continue
+		}
+		jsonitems := strings.Split(field.Xjsonopts(), ",")
+		if len(jsonitems) < 1 {
+			continue
+		}
+		mapdata[jsonitems[0]] = fmt.Sprintf("*%s,%s*", apiitems[0], apiitems[1])
+	}
+
+	respmap := make(map[string]interface{})
+	respmap["code"] = 200
+	respmap["message"] = "success"
+	respmap["datas"] = []interface{}{mapdata}
+	respmap["expand"] = map[string]interface{}{
+		"total":  1,
+		"start":  0,
+		"length": 10,
+	}
+	respbytes, _ := json.MarshalIndent(respmap, "", "\t")
+	return string(respbytes)
+}
+
+func (e *ZeroXsacXhttpStructs) XsacApis(args ...string) []string {
+	prefix := "/"
+	if len(args) > 0 {
+		prefix = args[0]
+	}
+	xhttp := e.This().(ZeroXsacXhttpDeclares)
+	xapidec := e.This().(structs.ZeroXsacApiDeclares)
+	xsacdec := e.This().(structs.ZeroXsacDeclares)
+
+	rows := make([]string, 0)
+
+	if xhttp.XhttpOpt()&0b1000 == 0b1000 {
+		rows = append(rows, structs.NewApiContentNOE(
+			fmt.Sprintf("添加%s：%s/add", xapidec.XsacApiName(), xhttp.XhttpPath()),
+			path.Join(prefix, xhttp.XhttpPath(), "add"), e.makeApiWriteReq(), e.makeApiSuccess())...)
+	}
+
+	if xhttp.XhttpOpt()&0b100 == 0b100 {
+		rows = append(rows, structs.NewApiContentNOE(
+			fmt.Sprintf("修改%s：%s/up", xapidec.XsacApiName(), xhttp.XhttpPath()),
+			path.Join(prefix, xhttp.XhttpPath(), "up"), e.makeApiUpdateReq(), e.makeApiSuccess())...)
+	}
+
+	if xhttp.XhttpOpt()&0b10 == 0b10 {
+		if xhttp.XsacDeleteOpt()&0b10000000 == 0b10000000 {
+			rows = append(rows, structs.NewApiContentNOE(
+				fmt.Sprintf("移除%s：%s/rm (物理删除)", xapidec.XsacApiName(), xhttp.XhttpPath()),
+				path.Join(prefix, xhttp.XhttpPath(), "rm"), e.makeApiRemoveReq(), e.makeApiSuccess())...)
+		} else {
+			rows = append(rows, structs.NewApiContentNOE(
+				fmt.Sprintf("移除%s：%s/rm (逻辑删除)", xapidec.XsacApiName(), xhttp.XhttpPath()),
+				path.Join(prefix, xhttp.XhttpPath(), "rm"), e.makeApiRemoveReq(), e.makeApiSuccess())...)
+			if xhttp.XsacDeleteOpt()&0b00000010 == 0b00000010 {
+				rows = append(rows, structs.NewApiContentNOE(
+					fmt.Sprintf("强制移除%s：%s/force (物理删除)", xapidec.XsacApiName(), xhttp.XhttpPath()),
+					path.Join(prefix, xhttp.XhttpPath(), "force"), e.makeApiRemoveReq(), e.makeApiSuccess())...)
+			}
+			if xhttp.XsacDeleteOpt()&0b00000100 == 0b00000100 {
+				rows = append(rows, structs.NewApiContentNOE(
+					fmt.Sprintf("恢复%s：%s/restore", xapidec.XsacApiName(), xhttp.XhttpPath()),
+					path.Join(prefix, xhttp.XhttpPath(), "restore"), e.makeApiRemoveReq(), e.makeApiSuccess())...)
+			}
+		}
+	}
+
+	options := e.makeApiQueryOptions()
+	expands := e.makeApiQueryExpands()
+	if e.This().(ZeroXsacXhttpDeclares).XhttpOpt()&0b1 == 0b1 {
+		rows = append(rows, structs.NewApiContent(
+			fmt.Sprintf("查询%s：%s/fetch", xapidec.XsacApiName(), xhttp.XhttpPath()),
+			path.Join(prefix, xhttp.XhttpPath(), "fetch"),
+			e.makeApiFetchReq(), e.makeApiDatas(), options, expands)...)
+
+		if xsacdec.XsacDeleteOpt()&0b00000001 == 0b00000001 {
+			rows = append(rows, structs.NewApiContent(
+				fmt.Sprintf("查询%s回收站：%s/history", xapidec.XsacApiName(), xhttp.XhttpPath()),
+				path.Join(prefix, xhttp.XhttpPath(), "history"),
+				e.makeApiFetchReq(), e.makeApiDatas(), options, expands)...)
+		}
+	}
+
+	if xhttp.XhttpOpt()&0b10000 == 0b10000 {
+		rows = append(rows, structs.NewApiContentNOE(
+			fmt.Sprintf("搜索%s：%s/search", xapidec.XsacApiName(), xhttp.XhttpPath()),
+			path.Join(prefix, xhttp.XhttpPath(), "search"),
+			e.makeApiSearchReq(), e.makeApiDatas())...)
+	}
+	return rows
+}
 
 type ZeroXsacXhttp struct {
 	dataSource string

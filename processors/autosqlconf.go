@@ -27,5 +27,6 @@ type ZeroXsacAutoProcessor interface {
 	Delete(...interface{}) error
 	Tombstone(...interface{}) error
 	Xrestore(...interface{}) error
+	Fetch(string) (interface{}, error)
 	FetchChildrens(*structs.ZeroXsacField, interface{}) error
 }

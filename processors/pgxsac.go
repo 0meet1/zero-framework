@@ -309,6 +309,25 @@ func (processor *ZeroXsacPostgresAutoProcessor) Xrestore(datas ...interface{}) e
 	return nil
 }
 
+func (processor *ZeroXsacPostgresAutoProcessor) Fetch(dataId string) (interface{}, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE ID = $1 LIMIT 1", reflect.TypeOf(processor.fields[0].Metatype()).Elem().Name())
+	rowdatas, err := processor.PreparedStmt(stmt).Query(dataId)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := processor.Parser(rowdatas)
+	if len(rows) <= 0 {
+		return nil, nil
+	}
+	data := reflect.New(processor.fields[0].Metatype())
+	returnValues := data.MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(rows[0])})
+	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
+		return nil, returnValues[0].Interface().(error)
+	}
+	return data.Interface(), nil
+}
+
 func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
 	stmtChildrens := ""
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()

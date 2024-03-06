@@ -297,6 +297,25 @@ func (processor *ZeroXsacMysqlAutoProcessor) Xrestore(datas ...interface{}) erro
 	return nil
 }
 
+func (processor *ZeroXsacMysqlAutoProcessor) Fetch(dataId string) (interface{}, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE ID = ? LIMIT 1", reflect.ValueOf(processor.fields[0].Metatype()).Elem().FieldByName("XsacTableName").Interface().(func() string)())
+	rowdata, err := processor.PreparedStmt(stmt).Query(dataId)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := processor.Parser(rowdata)
+	if len(rows) <= 0 {
+		return nil, nil
+	}
+	data := reflect.New(processor.fields[0].Metatype())
+	returnValues := data.MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(rows[0])})
+	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
+		return nil, returnValues[0].Interface().(error)
+	}
+	return data.Interface(), nil
+}
+
 func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
 	stmtChildrens := ""
 	stmtdata := reflect.ValueOf(datas).Elem().FieldByName("ID").Interface()
