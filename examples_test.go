@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	x0meet1 "github.com/0meet1/zero-framework"
@@ -188,5 +189,7 @@ func TestZeroCoreStructs(t *testing.T) {
 	// }
 	// fmt.Println("成功写入文件！")
 
-	fmt.Println(structs.NumberToChinese(892000843))
+	// fmt.Println(structs.NumberToChinese(892000843))
+
+	fmt.Println(reflect.ValueOf(make([][]float64, 0)).Type().Kind())
 }
