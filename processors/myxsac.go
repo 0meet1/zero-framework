@@ -128,6 +128,8 @@ func (processor *ZeroXsacMysqlAutoProcessor) insertWithField(fields []*structs.Z
 				reflect.ValueOf(vdata).Type().Kind() == reflect.Struct {
 				jsonbytes, _ := json.Marshal(vdata.Interface())
 				dataset = append(dataset, string(jsonbytes))
+			} else if field.Metatype().Kind() == reflect.String {
+				dataset = append(dataset, vdata.Interface().(string))
 			} else {
 				dataset = append(dataset, vdata.Interface())
 			}
