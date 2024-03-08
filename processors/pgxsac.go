@@ -131,9 +131,9 @@ func (processor *ZeroXsacPostgresAutoProcessor) insertWithField(fields []*struct
 			} else {
 				if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
 					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
-				} else if field.Metatype().Kind() == reflect.Map ||
-					field.Metatype().Kind() == reflect.Slice ||
-					field.Metatype().Kind() == reflect.Struct {
+				} else if vdata.Kind() == reflect.Map ||
+					vdata.Kind() == reflect.Slice ||
+					vdata.Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {
@@ -210,9 +210,9 @@ func (processor *ZeroXsacPostgresAutoProcessor) Update(datas ...interface{}) err
 
 				if field.Metatype().PkgPath() == "github.com/0meet1/zero-framework/structs" && field.Metatype().Name() == "Time" {
 					dataset = append(dataset, vdata.Interface().(*structs.Time).Time().Format("2006-01-02 15:04:05"))
-				} else if reflect.ValueOf(vdata).Type().Kind() == reflect.Map ||
-					reflect.ValueOf(vdata).Type().Kind() == reflect.Slice ||
-					reflect.ValueOf(vdata).Type().Kind() == reflect.Struct {
+				} else if vdata.Type().Kind() == reflect.Map ||
+					vdata.Type().Kind() == reflect.Slice ||
+					vdata.Type().Kind() == reflect.Struct {
 					jsonbytes, _ := json.Marshal(vdata.Interface())
 					dataset = append(dataset, string(jsonbytes))
 				} else {

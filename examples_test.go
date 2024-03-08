@@ -116,8 +116,8 @@ func TestZeroCoreStructs(t *testing.T) {
 	// fmt.Println(structs.MonthDurationString(time.Now(), "2006-01-02 15:04:05"))
 	// fmt.Println(structs.DayDurationString(time.Now(), "2006-01-02 15:04:05"))
 
-	// xt := &ZeroXsacTestPersonRecord{}
-	// xt.InitDefault()
+	xt := &ZeroXsacTestPersonRecord{}
+	xt.InitDefault()
 
 	// jsonbytes, err := json.Marshal(xt)
 	// if err != nil {
@@ -191,5 +191,5 @@ func TestZeroCoreStructs(t *testing.T) {
 
 	// fmt.Println(structs.NumberToChinese(892000843))
 
-	fmt.Println(reflect.ValueOf("").Type().Kind())
+	fmt.Println(reflect.ValueOf(reflect.ValueOf(xt).Elem().FieldByName("ID")).Type().Kind())
 }
