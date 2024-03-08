@@ -115,7 +115,7 @@ func (e *ZeroCoreStructs) XsacApiExports(args ...string) []string {
 	return rows
 }
 
-func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacEntry {
+func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField, dbName string) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
 
 	xrProp := fields.Tag.Get(XSAC_PROP)
@@ -127,8 +127,7 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacE
 				columnName = exHumpToLine(fields.Name)
 			}
 
-			entries = append(entries, NewColumn(
-				e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName(),
+			entries = append(entries, NewColumn(dbName, e.This().(ZeroXsacDeclares).XsacTableName(),
 				columnName, xrPropItems[0], xrPropItems[1], xrPropItems[2]))
 
 			xsacKey := fields.Tag.Get(XSAC_KEY)
@@ -136,16 +135,16 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacE
 				if strings.HasPrefix(xsacKey, "foreign") {
 					xrKeyItems := strings.Split(xsacKey, ",")
 					if len(xrKeyItems) == 3 {
-						entries = append(entries, NewForeignKey(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName(), columnName, xrKeyItems[1], xrKeyItems[2]))
+						entries = append(entries, NewForeignKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName, xrKeyItems[1], xrKeyItems[2]))
 					}
 				} else {
 					switch xsacKey {
 					case "primary":
-						entries = append(entries, NewPrimaryKey(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewPrimaryKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
 					case "key":
-						entries = append(entries, NewKey(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
 					case "unique":
-						entries = append(entries, NewUniqueKey(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewUniqueKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
 					}
 				}
 			}
@@ -154,67 +153,75 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField) []*ZeroXsacE
 	return entries
 }
 
-func (e *ZeroCoreStructs) readXsacEntries(xrType reflect.Type) []*ZeroXsacEntry {
+func (e *ZeroCoreStructs) readXsacEntries(xrType reflect.Type, dbName string) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
 	for i := 0; i < xrType.NumField(); i++ {
 		if xrType.Field(i).Anonymous {
-			entries = append(entries, e.readXsacEntries(xrType.Field(i).Type)...)
+			entries = append(entries, e.readXsacEntries(xrType.Field(i).Type, dbName)...)
 		} else {
-			entries = append(entries, e.findXsacEntry(xrType.Field(i))...)
+			entries = append(entries, e.findXsacEntry(xrType.Field(i), dbName)...)
 		}
 	}
 	return entries
 }
 
-func (e *ZeroCoreStructs) XsacDeclares() ZeroXsacEntrySet {
+func (e *ZeroCoreStructs) XsacDeclares(args ...string) ZeroXsacEntrySet {
+	dbName := e.This().(ZeroXsacDeclares).XsacDbName()
+	if len(dbName) <= 0 && len(args) > 0 {
+		dbName = args[0]
+	}
 	entries := make([]*ZeroXsacEntry, 0)
 	if e.This().(ZeroXsacDeclares).XsacDeleteOpt()&0b10000000 == 0b10000000 {
-		entries = append(entries, NewTable0s(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+		entries = append(entries, NewTable0s(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	} else {
-		entries = append(entries, NewTable0fs(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+		entries = append(entries, NewTable0fs(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	}
-	entries = append(entries, e.readXsacEntries(reflect.TypeOf(e.This()).Elem())...)
+	entries = append(entries, e.readXsacEntries(reflect.TypeOf(e.This()).Elem(), dbName)...)
 	return entries
 }
 
-func (e *ZeroCoreStructs) findXsacRefEntry(fields reflect.StructField) []*ZeroXsacEntry {
+func (e *ZeroCoreStructs) findXsacRefEntry(fields reflect.StructField, dbName string) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
 	xrRefProp := fields.Tag.Get(XSAC_REF)
 	metaType := FindStructFieldMetaType(fields)
 	if len(xrRefProp) > 0 {
 		xrRefProppItems := strings.Split(xrRefProp, ",")
 		if len(xrRefProppItems) == 4 && xrRefProppItems[3] == XSAC_REF_INSPECT {
-			entries = append(entries, NewTable(e.This().(ZeroXsacDeclares).XsacDbName(), xrRefProppItems[0]))
-			entries = append(entries, NewColumn(e.This().(ZeroXsacDeclares).XsacDbName(), xrRefProppItems[0], xrRefProppItems[1], XSAC_NO, e.This().(ZeroXsacDeclares).XsacPrimaryType(), XSAC_NULL))
-			entries = append(entries, NewColumn(e.This().(ZeroXsacDeclares).XsacDbName(), xrRefProppItems[0], xrRefProppItems[2], XSAC_NO, e.This().(ZeroXsacDeclares).XsacPrimaryType(), XSAC_NULL))
-			entries = append(entries, NewForeignKey(e.This().(ZeroXsacDeclares).XsacDbName(), xrRefProppItems[0], xrRefProppItems[1], e.This().(ZeroXsacDeclares).XsacTableName(), "id"))
-			entries = append(entries, NewForeignKey(e.This().(ZeroXsacDeclares).XsacDbName(), xrRefProppItems[0], xrRefProppItems[2], reflect.New(metaType).Interface().(ZeroXsacDeclares).XsacTableName(), "id"))
+			entries = append(entries, NewTable(dbName, xrRefProppItems[0]))
+			entries = append(entries, NewColumn(dbName, xrRefProppItems[0], xrRefProppItems[1], XSAC_NO, e.This().(ZeroXsacDeclares).XsacPrimaryType(), XSAC_NULL))
+			entries = append(entries, NewColumn(dbName, xrRefProppItems[0], xrRefProppItems[2], XSAC_NO, e.This().(ZeroXsacDeclares).XsacPrimaryType(), XSAC_NULL))
+			entries = append(entries, NewForeignKey(dbName, xrRefProppItems[0], xrRefProppItems[1], e.This().(ZeroXsacDeclares).XsacTableName(), "id"))
+			entries = append(entries, NewForeignKey(dbName, xrRefProppItems[0], xrRefProppItems[2], reflect.New(metaType).Interface().(ZeroXsacDeclares).XsacTableName(), "id"))
 		}
 	}
 	return entries
 }
 
-func (e *ZeroCoreStructs) readXsacRefEntries(xrType reflect.Type) []*ZeroXsacEntry {
+func (e *ZeroCoreStructs) readXsacRefEntries(xrType reflect.Type, dbName string) []*ZeroXsacEntry {
 	entries := make([]*ZeroXsacEntry, 0)
 	for i := 0; i < xrType.NumField(); i++ {
 		if xrType.Field(i).Anonymous {
-			entries = append(entries, e.readXsacRefEntries(xrType.Field(i).Type)...)
+			entries = append(entries, e.readXsacRefEntries(xrType.Field(i).Type, dbName)...)
 		} else {
-			entries = append(entries, e.findXsacRefEntry(xrType.Field(i))...)
+			entries = append(entries, e.findXsacRefEntry(xrType.Field(i), dbName)...)
 		}
 	}
 	return entries
 }
 
-func (e *ZeroCoreStructs) XsacRefDeclares() ZeroXsacEntrySet {
-	entries := e.readXsacRefEntries(reflect.TypeOf(e.This()).Elem())
+func (e *ZeroCoreStructs) XsacRefDeclares(args ...string) ZeroXsacEntrySet {
+	dbName := e.This().(ZeroXsacDeclares).XsacDbName()
+	if len(dbName) <= 0 && len(args) > 0 {
+		dbName = args[0]
+	}
+	entries := e.readXsacRefEntries(reflect.TypeOf(e.This()).Elem(), dbName)
 	switch e.This().(ZeroXsacDeclares).XsacPartition() {
 	case XSAC_PARTITION_YEAR:
-		entries = append(entries, NewYearPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+		entries = append(entries, NewYearPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	case XSAC_PARTITION_MONTH:
-		entries = append(entries, NewMonthPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+		entries = append(entries, NewMonthPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	case XSAC_PARTITION_DAY:
-		entries = append(entries, NewDayPartition(e.This().(ZeroXsacDeclares).XsacDbName(), e.This().(ZeroXsacDeclares).XsacTableName()))
+		entries = append(entries, NewDayPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	}
 	return entries
 }

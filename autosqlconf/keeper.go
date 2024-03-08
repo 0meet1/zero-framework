@@ -169,16 +169,17 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 }
 
 func (keeper *ZeroXsacKeeper) pretreat() {
+	xsacProcessor := reflect.New(keeper.proctype).Interface().(ZeroXsacProcessor)
 	refDeclares := make([]*structs.ZeroXsacEntry, 0)
 	for _, t := range keeper.types {
 		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
 		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
 
-		keeper.entries = append(keeper.entries, declares.XsacDeclares()...)
-		refDeclares = append(refDeclares, declares.XsacRefDeclares()...)
+		keeper.entries = append(keeper.entries, declares.XsacDeclares(xsacProcessor.DbName())...)
+		refDeclares = append(refDeclares, declares.XsacRefDeclares(xsacProcessor.DbName())...)
 		if reflect.TypeOf(declares).Implements(reflect.TypeOf((*autohttpconf.ZeroXsacXhttpDeclares)(nil)).Elem()) {
 			if len(declares.(autohttpconf.ZeroXsacXhttpDeclares).XhttpPath()) > 0 {
-				keeper.httpconfs = append(keeper.httpconfs, autohttpconf.NewXsacXhttp(t).AddDataSource(keeper.dataSource))
+				keeper.httpconfs = append(keeper.httpconfs, autohttpconf.NewXsacXhttp(t).AddDataSource(keeper.dataSource).AddDbName(xsacProcessor.DbName()))
 			}
 		}
 	}

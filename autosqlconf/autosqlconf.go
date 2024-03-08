@@ -17,6 +17,8 @@ const (
 type ZeroXsacProcessor interface {
 	Build(transaction *sql.Tx)
 
+	DbName() string
+
 	ColumnExists(tableSchema string, tableName string, columName string) (int, error)
 	ColumnDiff(tableSchema string, tableName string, columName string, isNullable string, columnType string, columnDefault string) (int, error)
 	DMLColumn(tableSchema string, tableName string, columName string, isNullable string, columnType string, columnDefault string) error

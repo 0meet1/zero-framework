@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/structs"
 )
 
 type ZeroXsacMysqlProcessor struct {
 	processors.ZeroCoreProcessor
+}
+
+func (processor *ZeroXsacMysqlProcessor) DbName() string {
+	return global.StringValue("zero.mysql.dbname")
 }
 
 func (processor *ZeroXsacMysqlProcessor) ColumnExists(tableSchema string, tableName string, columName string) (int, error) {

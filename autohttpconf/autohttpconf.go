@@ -314,6 +314,7 @@ func (e *ZeroXsacXhttpStructs) XsacApis(args ...string) []string {
 
 type ZeroXsacXhttp struct {
 	dataSource string
+	dbName     string
 	coretype   reflect.Type
 
 	fields structs.ZeroXsacFieldSet
@@ -329,12 +330,18 @@ func NewXsacXhttp(coretype reflect.Type) *ZeroXsacXhttp {
 	return &ZeroXsacXhttp{
 		coretype:   coretype,
 		dataSource: "",
+		dbName:     "",
 		instance:   xhttpDec,
 	}
 }
 
 func (xhttp *ZeroXsacXhttp) AddDataSource(dataSource string) *ZeroXsacXhttp {
 	xhttp.dataSource = dataSource
+	return xhttp
+}
+
+func (xhttp *ZeroXsacXhttp) AddDbName(dbName string) *ZeroXsacXhttp {
+	xhttp.dbName = dbName
 	return xhttp
 }
 

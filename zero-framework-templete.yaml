@@ -43,6 +43,7 @@ zero:
   redis:
     sentinel:
     hostname:
+    hostport:
     password:
     database:
     idleTimeout:
