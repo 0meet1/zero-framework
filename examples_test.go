@@ -191,5 +191,5 @@ func TestZeroCoreStructs(t *testing.T) {
 
 	// fmt.Println(structs.NumberToChinese(892000843))
 
-	fmt.Println(reflect.ValueOf(make([][]float64, 0)).Type().Kind())
+	fmt.Println(reflect.ValueOf("").Type().Kind())
 }
