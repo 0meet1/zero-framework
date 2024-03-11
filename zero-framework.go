@@ -185,6 +185,7 @@ type ZeroXsacHttpDMLTrigger = autohttpconf.ZeroXsacHttpDMLTrigger
 type ZeroXsacHttpFetchTrigger = autohttpconf.ZeroXsacHttpFetchTrigger
 type ZeroXsacHttpSearchTrigger = autohttpconf.ZeroXsacHttpSearchTrigger
 type ZeroXsacXhttpStructs = autohttpconf.ZeroXsacXhttpStructs
+type ZeroXsacCustomPartChecker = autohttpconf.ZeroXsacCustomPartChecker
 
 const XahttpOpt_T = 1
 const XahttpOpt_F = 0
