@@ -50,6 +50,7 @@ type ZeroXsacDeclares interface {
 	XsacDeclares(...string) ZeroXsacEntrySet
 	XsacRefDeclares(...string) ZeroXsacEntrySet
 	XsacPartition() string
+	XsacCustomPartTrigger() string
 	XsacTriggers() []ZeroXsacTrigger
 }
 
@@ -192,6 +193,13 @@ func NewDayPartition(tableSchema string, tableName string) *ZeroXsacEntry {
 	return &ZeroXsacEntry{
 		entryType:   ZEOR_XSAC_ENTRY_TYPE_DAY_PARTITION,
 		entryParams: []string{tableSchema, tableName},
+	}
+}
+
+func NewCustomPartition(tableSchema string, tableName string, partTriggerName string) *ZeroXsacEntry {
+	return &ZeroXsacEntry{
+		entryType:   ZEOR_XSAC_ENTRY_TYPE_CUSTOM_PARTITION,
+		entryParams: []string{tableSchema, tableName, partTriggerName},
 	}
 }
 

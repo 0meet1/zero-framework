@@ -50,5 +50,6 @@ type ZeroXsacProcessor interface {
 	DMLY0SPart(tableSchema string, tableName string) error
 	DMLM0SPart(tableSchema string, tableName string) error
 	DMLD0SPart(tableSchema string, tableName string) error
+	DMLCustomPart(string, string, string) error
 	DropPartitionTable(tableSchema string, tableName string) error
 }

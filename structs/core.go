@@ -55,6 +55,7 @@ func (e *ZeroCoreStructs) XsacDbName() string              { return "" }
 func (e *ZeroCoreStructs) XsacTableName() string           { panic("not implemented") }
 func (e *ZeroCoreStructs) XsacDeleteOpt() byte             { return 0b10000000 }
 func (e *ZeroCoreStructs) XsacPartition() string           { return XSAC_PARTITION_NONE }
+func (e *ZeroCoreStructs) XsacCustomPartTrigger() string   { return "" }
 func (e *ZeroCoreStructs) XsacTriggers() []ZeroXsacTrigger { return nil }
 func (e *ZeroCoreStructs) XsacApiName() string             { return "" }
 func (e *ZeroCoreStructs) XsacApiEnums() []string          { return nil }
@@ -222,6 +223,8 @@ func (e *ZeroCoreStructs) XsacRefDeclares(args ...string) ZeroXsacEntrySet {
 		entries = append(entries, NewMonthPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
 	case XSAC_PARTITION_DAY:
 		entries = append(entries, NewDayPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName()))
+	case XSAC_PARTITION_CUSTOM:
+		entries = append(entries, NewCustomPartition(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), e.This().(ZeroXsacDeclares).XsacCustomPartTrigger()))
 	}
 	return entries
 }

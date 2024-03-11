@@ -209,6 +209,10 @@ func XahttpOptIO() byte {
 	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F)
 }
 
+func XahttpOptFO() byte {
+	return XahttpOpt(XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
+}
+
 func XahttpOptSO() byte {
 	return XahttpOpt(XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T)
 }

@@ -162,6 +162,11 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 			if err != nil {
 				panic(err)
 			}
+		case structs.ZEOR_XSAC_ENTRY_TYPE_CUSTOM_PARTITION:
+			err := xsacProcessor.DMLCustomPart(entry.EntryParams()[0], entry.EntryParams()[1], entry.EntryParams()[2])
+			if err != nil {
+				panic(err)
+			}
 		default:
 			panic(errors.New(fmt.Sprintf("unknown entry type: %s", entry.EntryType())))
 		}

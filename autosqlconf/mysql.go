@@ -317,6 +317,10 @@ func (processor *ZeroXsacMysqlProcessor) DMLD0SPart(tableSchema string, tableNam
 	return errors.New("not support")
 }
 
+func (processor *ZeroXsacMysqlProcessor) DMLCustomPart(string, string, string) error {
+	return errors.New("not support")
+}
+
 func (processor *ZeroXsacMysqlProcessor) DropPartitionTable(tableSchema string, tableName string) error {
 	return errors.New("not support")
 }

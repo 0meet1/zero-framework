@@ -41,6 +41,11 @@ type ZeroXsacHttpSearchTrigger interface {
 	On(string, *database.EQueryRequest, *structs.ZeroRequest, ...interface{}) error
 }
 
+type ZeroXsacCustomPartChecker interface {
+	Expands() map[string]string
+	Check(xRequest *structs.ZeroRequest, xOperation processors.ZeroQueryOperation) error
+}
+
 type ZeroXsacXhttpDeclares interface {
 	structs.ZeroXsacDeclares
 
@@ -51,6 +56,8 @@ type ZeroXsacXhttpDeclares interface {
 
 	XhttpCheckTable() string
 	XhttpSearchIndex() string
+
+	XhttpCustomPartChecker() ZeroXsacCustomPartChecker
 
 	XhttpDMLTrigger() ZeroXsacHttpDMLTrigger
 	XhttpFetchTrigger() ZeroXsacHttpFetchTrigger
@@ -74,9 +81,10 @@ func (e *ZeroXsacXhttpStructs) XhttpQueryOperation() processors.ZeroQueryOperati
 	return &processors.ZeroPostgresQueryOperation{}
 }
 
-func (e *ZeroXsacXhttpStructs) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger       { return nil }
-func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger   { return nil }
-func (e *ZeroXsacXhttpStructs) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger { return nil }
+func (e *ZeroXsacXhttpStructs) XhttpCustomPartChecker() ZeroXsacCustomPartChecker { return nil }
+func (e *ZeroXsacXhttpStructs) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger           { return nil }
+func (e *ZeroXsacXhttpStructs) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger       { return nil }
+func (e *ZeroXsacXhttpStructs) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger     { return nil }
 
 func (e *ZeroXsacXhttpStructs) makeApiWriteReq() string {
 	fields := e.This().(structs.ZeroXsacFields).XsacFields()
@@ -208,7 +216,11 @@ func (e *ZeroXsacXhttpStructs) makeApiQueryOptions() [][]string {
 
 func (e *ZeroXsacXhttpStructs) makeApiQueryExpands() [][]string {
 	expands := make([][]string, 0)
-	if e.This().(ZeroXsacXhttpDeclares).XsacPartition() != structs.XSAC_PARTITION_NONE {
+	if e.This().(ZeroXsacXhttpDeclares).XsacPartition() != structs.XSAC_PARTITION_CUSTOM {
+		for k, v := range e.This().(ZeroXsacXhttpDeclares).XhttpCustomPartChecker().Expands() {
+			expands = append(expands, []string{k, v})
+		}
+	} else if e.This().(ZeroXsacXhttpDeclares).XsacPartition() != structs.XSAC_PARTITION_NONE {
 		expands = append(expands, []string{"zone", "时间区间"})
 	}
 	return expands
@@ -699,7 +711,12 @@ func (xhttp *ZeroXsacXhttp) restore(writer http.ResponseWriter, req *http.Reques
 }
 
 func (xhttp *ZeroXsacXhttp) checkpart(xRequest *structs.ZeroRequest, xOperation processors.ZeroQueryOperation) {
-	if xhttp.instance.XsacPartition() != structs.XSAC_PARTITION_NONE {
+	if xhttp.instance.XsacPartition() == structs.XSAC_PARTITION_CUSTOM {
+		err := xhttp.instance.XhttpCustomPartChecker().Check(xRequest, xOperation)
+		if err != nil {
+			panic(err)
+		}
+	} else if xhttp.instance.XsacPartition() != structs.XSAC_PARTITION_NONE {
 		if xRequest.Expands == nil {
 			panic("missing necessary parameter `expands.zone`")
 		}

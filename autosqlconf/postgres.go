@@ -328,6 +328,12 @@ func (processor *ZeroXsacPostgresProcessor) DMLD0SPart(tableSchema string, table
 	return err
 }
 
+func (processor *ZeroXsacPostgresProcessor) DMLCustomPart(tableSchema string, tableName string, partTriggerName string) error {
+	const DML_CUSTOM_PART_SQL = "SELECT DML_CUSTOM_PART($1 ,$2, $3)"
+	_, err := processor.PreparedStmt(DML_CUSTOM_PART_SQL).Exec(tableSchema, tableName, partTriggerName)
+	return err
+}
+
 func (processor *ZeroXsacPostgresProcessor) DropPartitionTable(tableSchema string, tableName string) error {
 	const DROP_PARTITION_TABLE_SQL = "SELECT DROP_PARTITION_TABLE($1 ,$2)"
 	_, err := processor.PreparedStmt(DROP_PARTITION_TABLE_SQL).Exec(tableSchema, tableName)
