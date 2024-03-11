@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/0meet1/zero-framework/global"
@@ -14,13 +14,13 @@ const (
 	DATABASE_REDIS = "zero.database.redis"
 )
 
-func InitRedisDatabase() {
+func InitRedisDatabase(hooks ...redis.Hook) {
 
 	if len(global.StringValue("zero.redis.sentinel")) > 0 {
 		if len(global.StringValue("zero.redis.password")) > 0 {
 			failoverClient := redis.NewFailoverClient(&redis.FailoverOptions{
 				MasterName:    global.StringValue("zero.redis.sentinel"),
-				SentinelAddrs: []string{global.StringValue("zero.redis.hostname") + ":" + strconv.Itoa(global.IntValue("zero.redis.hostport"))},
+				SentinelAddrs: global.SliceStringValue("zero.redis.hosts"),
 				Password:      global.StringValue("zero.redis.password"),
 				DB:            global.IntValue("zero.redis.database"),
 				IdleTimeout:   time.Duration(global.IntValue("zero.redis.idleTimeout")),
@@ -29,12 +29,13 @@ func InitRedisDatabase() {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(failoverClient)
+			keeper.init(failoverClient, hooks...)
 			global.Key(DATABASE_REDIS, keeper)
 		} else {
+
 			failoverClient := redis.NewFailoverClient(&redis.FailoverOptions{
 				MasterName:    global.StringValue("zero.redis.sentinel"),
-				SentinelAddrs: []string{global.StringValue("zero.redis.hostname") + ":" + strconv.Itoa(global.IntValue("zero.redis.hostport"))},
+				SentinelAddrs: global.SliceStringValue("zero.redis.hosts"),
 				DB:            global.IntValue("zero.redis.database"),
 				IdleTimeout:   time.Duration(global.IntValue("zero.redis.idleTimeout")),
 				PoolSize:      global.IntValue("zero.redis.maxActive"),
@@ -42,13 +43,13 @@ func InitRedisDatabase() {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(failoverClient)
+			keeper.init(failoverClient, hooks...)
 			global.Key(DATABASE_REDIS, keeper)
 		}
 	} else {
 		if len(global.StringValue("zero.redis.password")) > 0 {
 			client := redis.NewClient(&redis.Options{
-				Addr:         global.StringValue("zero.redis.hostname") + ":" + strconv.Itoa(global.IntValue("zero.redis.hostport")),
+				Addr:         fmt.Sprintf("%s:%d", global.StringValue("zero.redis.hostname"), global.IntValue("zero.redis.hostport")),
 				Password:     global.StringValue("zero.redis.password"),
 				DB:           global.IntValue("zero.redis.database"),
 				IdleTimeout:  time.Duration(global.IntValue("zero.redis.idleTimeout")),
@@ -57,11 +58,11 @@ func InitRedisDatabase() {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(client)
+			keeper.init(client, hooks...)
 			global.Key(DATABASE_REDIS, keeper)
 		} else {
 			client := redis.NewClient(&redis.Options{
-				Addr:         global.StringValue("zero.redis.hostname") + ":" + strconv.Itoa(global.IntValue("zero.redis.hostport")),
+				Addr:         fmt.Sprintf("%s:%d", global.StringValue("zero.redis.hostname"), global.IntValue("zero.redis.hostport")),
 				DB:           global.IntValue("zero.redis.database"),
 				IdleTimeout:  time.Duration(global.IntValue("zero.redis.idleTimeout")),
 				PoolSize:     global.IntValue("zero.redis.maxActive"),
@@ -69,10 +70,18 @@ func InitRedisDatabase() {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(client)
+			keeper.init(client, hooks...)
 			global.Key(DATABASE_REDIS, keeper)
 		}
 	}
+}
+
+type RedisKeeper interface {
+	RedisClient() *redis.Client
+	RedisDel(key ...string) error
+	RedisSet(key string, value string) error
+	RedisSetEx(key string, value string, interval int) error
+	RedisGet(key string) (string, error)
 }
 
 type xRedisKeeper struct {
@@ -80,15 +89,31 @@ type xRedisKeeper struct {
 	redisClient  *redis.Client
 }
 
-func (xrk *xRedisKeeper) init(client *redis.Client) {
+func (xrk *xRedisKeeper) init(client *redis.Client, hooks ...redis.Hook) {
 	xrk.redisContext = context.Background()
 	client.Ping(xrk.redisContext)
 	xrk.redisClient = client
+	if len(hooks) > 0 {
+		for _, hook := range hooks {
+			xrk.redisClient.AddHook(hook)
+		}
+	}
+}
+
+func (xrk *xRedisKeeper) RedisClient() *redis.Client {
+	return xrk.redisClient
+}
+
+func (xrk *xRedisKeeper) RedisDel(key ...string) error {
+	return xrk.redisClient.Del(xrk.redisContext, key...).Err()
+}
+
+func (xrk *xRedisKeeper) RedisSet(key string, value string) error {
+	return xrk.redisClient.Set(xrk.redisContext, key, value, 0).Err()
 }
 
 func (xrk *xRedisKeeper) RedisSetEx(key string, value string, interval int) error {
-	cmd := xrk.redisClient.Do(xrk.redisContext, "setex", key, strconv.Itoa(interval+60), value)
-	return cmd.Err()
+	return xrk.redisClient.SetEX(xrk.redisContext, key, value, time.Duration(interval)*time.Second).Err()
 }
 
 func (xrk *xRedisKeeper) RedisGet(key string) (string, error) {
@@ -101,7 +126,6 @@ func (xrk *xRedisKeeper) RedisGet(key string) (string, error) {
 	if exists <= 0 {
 		return "", nil
 	}
-
 	cmd = xrk.redisClient.Do(xrk.redisContext, "get", key)
 	val, err := cmd.Text()
 	if err != nil {

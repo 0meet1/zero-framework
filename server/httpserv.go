@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"path"
 	"strings"
 
@@ -181,6 +183,74 @@ func XhttpEQueryRequest(xRequest *structs.ZeroRequest, indexName string) (*datab
 	eRequest := &database.EQueryRequest{Query: xEQuery}
 	eRequest.InitIndex(indexName)
 	return eRequest, xEQuery, nil
+}
+
+type XhttpFromFile struct {
+	header     *multipart.FileHeader
+	filesbytes []byte
+}
+
+func (xfile *XhttpFromFile) MIMEHeader() textproto.MIMEHeader {
+	return xfile.header.Header
+}
+
+func (xfile *XhttpFromFile) FileName() string {
+	return xfile.header.Filename
+}
+
+func (xfile *XhttpFromFile) FileSize() int64 {
+	return xfile.header.Size
+}
+
+func (xfile *XhttpFromFile) FileHeader() *multipart.FileHeader {
+	return xfile.header
+}
+
+func (xfile *XhttpFromFile) FilesBytes() []byte {
+	return xfile.filesbytes
+}
+
+func XhttpFromFileRequest(req *http.Request, maxmem int64) ([]*XhttpFromFile, error) {
+	err := req.ParseMultipartForm(maxmem)
+	if err != nil {
+		return nil, err
+	}
+
+	formfiles := make([]*XhttpFromFile, 0)
+	for formName := range req.MultipartForm.File {
+		formFile, formFileHeader, err := req.FormFile(formName)
+		defer formFile.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		filebytes, err := io.ReadAll(formFile)
+		if err != nil {
+			return nil, err
+		}
+
+		formfiles = append(formfiles, &XhttpFromFile{
+			header:     formFileHeader,
+			filesbytes: filebytes,
+		})
+	}
+	return formfiles, nil
+}
+
+func XhttpKeyValueRequest(req *http.Request) map[string]string {
+	kv := make(map[string]string)
+	if req.URL.Query() != nil {
+		for k := range req.URL.Query() {
+			kv[k] = req.URL.Query().Get(k)
+		}
+	}
+
+	if req.PostForm != nil {
+		for k := range req.PostForm {
+			kv[k] = req.PostFormValue(k)
+		}
+	}
+	return kv
 }
 
 type XhttpExecutor struct {

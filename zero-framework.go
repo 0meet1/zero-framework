@@ -9,6 +9,7 @@ import (
 	"github.com/0meet1/zero-framework/protocol"
 	"github.com/0meet1/zero-framework/rocketmq"
 	"github.com/0meet1/zero-framework/server"
+	"github.com/0meet1/zero-framework/signatures"
 	"github.com/0meet1/zero-framework/structs"
 )
 
@@ -33,6 +34,7 @@ const DATABASE_MYSQL = database.DATABASE_MYSQL
 const DATABASE_POSTGRES = database.DATABASE_POSTGRES
 const DATABASE_REDIS = database.DATABASE_REDIS
 
+type RedisKeeper = database.RedisKeeper
 type EQueryRequest = database.EQueryRequest
 type EQueryResponse = database.EQueryResponse
 type EQuerySearch = database.EQuerySearch
@@ -40,6 +42,8 @@ type DataSource = database.DataSource
 
 type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
+
+type XhttpFromFile = server.XhttpFromFile
 
 type ZeroServ = server.ZeroServ
 type ZeroDataChecker = server.ZeroDataChecker
@@ -236,3 +240,5 @@ func XsacTombstoneAndRestore() byte {
 func XsacTombstoneWhole() byte {
 	return 0b00000111
 }
+
+type ZeroSignature = signatures.ZeroSignature
