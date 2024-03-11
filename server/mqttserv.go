@@ -94,13 +94,13 @@ func (mqttconn *MqttConnect) OnMessage(datas []byte) error {
 	return err
 }
 
-func (mqttconn *MqttConnect) onConnect(mqttMessage *MqttMessage) error {
+func (mqttconn *MqttConnect) onConnect(_ *MqttMessage) error {
 	message := &MqttMessage{}
 	message.MakeConnackMessage()
 	return mqttconn.Write(message.Bytes())
 }
 
-func (mqttconn *MqttConnect) onPingreq(mqttMessage *MqttMessage) error {
+func (mqttconn *MqttConnect) onPingreq(_ *MqttMessage) error {
 	global.Logger().Info(fmt.Sprintf("mqtt connect %s on pingreq", mqttconn.RemoteAddr()))
 
 	message := &MqttMessage{}
