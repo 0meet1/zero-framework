@@ -14,7 +14,11 @@ const (
 	DATABASE_REDIS = "zero.database.redis"
 )
 
-func InitRedisDatabase(hooks ...redis.Hook) {
+type RedisKeyspaceExpiredObserver interface {
+	OnMessage(*redis.Message) error
+}
+
+func InitRedisDatabase(observers ...RedisKeyspaceExpiredObserver) {
 
 	if len(global.StringValue("zero.redis.sentinel")) > 0 {
 		if len(global.StringValue("zero.redis.password")) > 0 {
@@ -29,7 +33,7 @@ func InitRedisDatabase(hooks ...redis.Hook) {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(failoverClient, hooks...)
+			keeper.init(failoverClient, observers...)
 			global.Key(DATABASE_REDIS, keeper)
 		} else {
 
@@ -43,7 +47,7 @@ func InitRedisDatabase(hooks ...redis.Hook) {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(failoverClient, hooks...)
+			keeper.init(failoverClient, observers...)
 			global.Key(DATABASE_REDIS, keeper)
 		}
 	} else {
@@ -58,7 +62,7 @@ func InitRedisDatabase(hooks ...redis.Hook) {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(client, hooks...)
+			keeper.init(client, observers...)
 			global.Key(DATABASE_REDIS, keeper)
 		} else {
 			client := redis.NewClient(&redis.Options{
@@ -70,66 +74,86 @@ func InitRedisDatabase(hooks ...redis.Hook) {
 			})
 
 			keeper := &xRedisKeeper{}
-			keeper.init(client, hooks...)
+			keeper.init(client, observers...)
 			global.Key(DATABASE_REDIS, keeper)
 		}
 	}
 }
 
 type RedisKeeper interface {
-	RedisClient() *redis.Client
-	RedisDel(key ...string) error
-	RedisSet(key string, value string) error
-	RedisSetEx(key string, value string, interval int) error
-	RedisGet(key string) (string, error)
+	Client() *redis.Client
+	Del(...string) error
+	Set(string, string) error
+	SetEx(string, string, int) error
+	Get(string) (string, error)
 }
 
 type xRedisKeeper struct {
 	redisContext context.Context
 	redisClient  *redis.Client
+	observers    []RedisKeyspaceExpiredObserver
 }
 
-func (xrk *xRedisKeeper) init(client *redis.Client, hooks ...redis.Hook) {
+func (xrk *xRedisKeeper) init(client *redis.Client, observers ...RedisKeyspaceExpiredObserver) {
 	xrk.redisContext = context.Background()
 	client.Ping(xrk.redisContext)
 	xrk.redisClient = client
-	if len(hooks) > 0 {
-		for _, hook := range hooks {
-			xrk.redisClient.AddHook(hook)
+	xrk.observers = observers
+	if len(observers) > 0 {
+		_, err := xrk.redisClient.ConfigSet(xrk.redisContext, "notify-keyspace-events", "Ex").Result()
+		if err != nil {
+			panic(err)
 		}
+		go func() {
+			pubsub := client.Subscribe(xrk.redisContext, "__keyevent@0__:expired")
+			defer pubsub.Close()
+			for eventMessage := range pubsub.Channel() {
+				for _, observer := range xrk.observers {
+					err := observer.OnMessage(eventMessage)
+					if err != nil {
+						global.Logger().Error(fmt.Sprintf("redis observer error: %s", err.Error()))
+					}
+				}
+			}
+		}()
 	}
 }
 
-func (xrk *xRedisKeeper) RedisClient() *redis.Client {
+func (xrk *xRedisKeeper) Client() *redis.Client {
 	return xrk.redisClient
 }
 
-func (xrk *xRedisKeeper) RedisDel(key ...string) error {
+func (xrk *xRedisKeeper) Del(key ...string) error {
 	return xrk.redisClient.Del(xrk.redisContext, key...).Err()
 }
 
-func (xrk *xRedisKeeper) RedisSet(key string, value string) error {
+func (xrk *xRedisKeeper) Set(key string, value string) error {
 	return xrk.redisClient.Set(xrk.redisContext, key, value, 0).Err()
 }
 
-func (xrk *xRedisKeeper) RedisSetEx(key string, value string, interval int) error {
+func (xrk *xRedisKeeper) SetEx(key string, value string, interval int) error {
 	return xrk.redisClient.SetEX(xrk.redisContext, key, value, time.Duration(interval)*time.Second).Err()
 }
 
-func (xrk *xRedisKeeper) RedisGet(key string) (string, error) {
-	cmd := xrk.redisClient.Do(xrk.redisContext, "exists", key)
-	exists, err := cmd.Int()
+func (xrk *xRedisKeeper) SetNX(key string, value string, interval int) error {
+	return xrk.redisClient.SetNX(xrk.redisContext, key, value, time.Duration(interval)*time.Second).Err()
+}
+
+func (xrk *xRedisKeeper) Expire(key string, interval int) error {
+	return xrk.redisClient.Expire(xrk.redisContext, key, time.Duration(interval)*time.Second).Err()
+}
+
+func (xrk *xRedisKeeper) Exists(key string) (int64, error) {
+	return xrk.redisClient.Exists(xrk.redisContext, key).Result()
+}
+
+func (xrk *xRedisKeeper) Get(key string) (string, error) {
+	vcount, err := xrk.Exists(key)
 	if err != nil {
 		return "", err
 	}
-
-	if exists <= 0 {
+	if vcount <= 0 {
 		return "", nil
 	}
-	cmd = xrk.redisClient.Do(xrk.redisContext, "get", key)
-	val, err := cmd.Text()
-	if err != nil {
-		return "", err
-	}
-	return val, nil
+	return xrk.redisClient.Get(xrk.redisContext, key).Result()
 }

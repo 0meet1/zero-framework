@@ -190,14 +190,14 @@ func (zox *ZeroSignature) Check() error {
 
 func (zox *ZeroSignature) checknonce() error {
 	redisKeeper := global.Value(database.DATABASE_REDIS).(database.RedisKeeper)
-	xnonce, err := redisKeeper.RedisGet(fmt.Sprintf("%s%s", ZERO_SIGNATURE_NONCE_PREFIX, zox.ZoXnonce))
+	xnonce, err := redisKeeper.Get(fmt.Sprintf("%s%s", ZERO_SIGNATURE_NONCE_PREFIX, zox.ZoXnonce))
 	if err != nil {
 		return err
 	}
 	if xnonce == ZERO_SIGNATURE_NONCE_VALUE {
 		return errors.New("signature repeat")
 	} else {
-		return redisKeeper.RedisSetEx(
+		return redisKeeper.SetEx(
 			fmt.Sprintf("%s%s", ZERO_SIGNATURE_NONCE_PREFIX, zox.ZoXnonce),
 			ZERO_SIGNATURE_NONCE_VALUE,
 			SIGNATURE_VALID_DURATION)
