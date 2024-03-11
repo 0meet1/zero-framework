@@ -44,6 +44,7 @@ type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
 
 type XhttpFromFile = server.XhttpFromFile
+type XhttpExecutor = server.XhttpExecutor
 
 type ZeroServ = server.ZeroServ
 type ZeroDataChecker = server.ZeroDataChecker

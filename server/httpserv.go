@@ -185,6 +185,23 @@ func XhttpEQueryRequest(xRequest *structs.ZeroRequest, indexName string) (*datab
 	return eRequest, xEQuery, nil
 }
 
+func XhttpURIParams(req *http.Request, xPattern string) map[string]string {
+	uriparams := make(map[string]string)
+	xAfter := xPattern[:strings.Index(xPattern, ":")]
+	if strings.Index(req.URL.Path, xAfter) > 0 {
+		xFieldItems := strings.Split(xPattern[strings.Index(xPattern, xAfter)+len(xAfter):], "/")
+		xParamsURI := req.URL.Path[strings.Index(req.URL.Path, xAfter)+len(xAfter):]
+		xParamsItems := strings.Split(xParamsURI, "/")
+
+		for i, item := range xFieldItems {
+			if strings.HasPrefix(item, ":") && len(xParamsItems) > i {
+				uriparams[item[1:]] = xParamsItems[i]
+			}
+		}
+	}
+	return uriparams
+}
+
 type XhttpFromFile struct {
 	header     *multipart.FileHeader
 	filesbytes []byte
