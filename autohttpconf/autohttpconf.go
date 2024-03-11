@@ -216,7 +216,7 @@ func (e *ZeroXsacXhttpStructs) makeApiQueryOptions() [][]string {
 
 func (e *ZeroXsacXhttpStructs) makeApiQueryExpands() [][]string {
 	expands := make([][]string, 0)
-	if e.This().(ZeroXsacXhttpDeclares).XsacPartition() != structs.XSAC_PARTITION_CUSTOM {
+	if e.This().(ZeroXsacXhttpDeclares).XsacPartition() == structs.XSAC_PARTITION_CUSTOM {
 		for k, v := range e.This().(ZeroXsacXhttpDeclares).XhttpCustomPartChecker().Expands() {
 			expands = append(expands, []string{k, v})
 		}
