@@ -191,5 +191,6 @@ func TestZeroCoreStructs(t *testing.T) {
 
 	// fmt.Println(structs.NumberToChinese(892000843))
 
-	fmt.Println(reflect.ValueOf(reflect.ValueOf(xt).Elem().FieldByName("ID")).Type().Kind())
+	met := reflect.ValueOf(reflect.ValueOf(xt).Elem().MethodByName("XhttpPath111"))
+	fmt.Println(met.TryRecv())
 }
