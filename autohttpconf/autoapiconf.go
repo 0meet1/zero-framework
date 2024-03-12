@@ -19,6 +19,7 @@ func (_ *ZeroXsacXhttpApi) XsacCustomPartTrigger() string                      {
 func (_ *ZeroXsacXhttpApi) XsacTriggers() []structs.ZeroXsacTrigger            { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiName() string                                { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiEnums() []string                             { panic("not support") }
+func (_ *ZeroXsacXhttpApi) XsacApi(...string) []string                         { return make([]string, 0) }
 func (_ *ZeroXsacXhttpApi) XhttpPath() string                                  { return "" }
 func (_ *ZeroXsacXhttpApi) XhttpAutoProc() processors.ZeroXsacAutoProcessor    { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XhttpQueryOperation() processors.ZeroQueryOperation { panic("not support") }
@@ -36,4 +37,4 @@ func (_ *ZeroXsacXhttpApi) XsacDeclares(...string) structs.ZeroXsacEntrySet {
 func (_ *ZeroXsacXhttpApi) XsacRefDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }
-func (_ *ZeroXsacXhttpApi) XsacApis(...string) []string { return make([]string, 0) }
+func (_ *ZeroXsacXhttpApi) XsacApiExports(...string) []string { return make([]string, 0) }
