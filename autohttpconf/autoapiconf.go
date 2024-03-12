@@ -6,6 +6,7 @@ import (
 )
 
 type ZeroXsacXhttpApi struct {
+	structs.ZeroMeta
 }
 
 func (_ *ZeroXsacXhttpApi) XsacPrimaryType() string                            { panic("not support") }
