@@ -5,7 +5,8 @@ import (
 	"github.com/0meet1/zero-framework/structs"
 )
 
-type ZeroXsacXhttpApi struct{}
+type ZeroXsacXhttpApi struct {
+}
 
 func (_ *ZeroXsacXhttpApi) XsacPrimaryType() string                            { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacDataSource() string                             { panic("not support") }
