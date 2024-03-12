@@ -133,19 +133,23 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField, dbName strin
 
 			xsacKey := fields.Tag.Get(XSAC_KEY)
 			if len(xsacKey) > 0 {
+				xrKeyItems := strings.Split(xsacKey, ",")
 				if strings.HasPrefix(xsacKey, "foreign") {
-					xrKeyItems := strings.Split(xsacKey, ",")
 					if len(xrKeyItems) == 3 {
 						entries = append(entries, NewForeignKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName, xrKeyItems[1], xrKeyItems[2]))
 					}
 				} else {
+					idxcolumns := columnName
+					if len(xrKeyItems) > 1 {
+						idxcolumns = strings.Join(xrKeyItems[1:], ",")
+					}
 					switch xsacKey {
 					case "primary":
-						entries = append(entries, NewPrimaryKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewPrimaryKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), idxcolumns))
 					case "key":
-						entries = append(entries, NewKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), idxcolumns))
 					case "unique":
-						entries = append(entries, NewUniqueKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), columnName))
+						entries = append(entries, NewUniqueKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), idxcolumns))
 					}
 				}
 			}
