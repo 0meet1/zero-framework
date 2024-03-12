@@ -18,6 +18,7 @@ func (_ *ZeroXsacXhttpApi) XsacPartition() string                              {
 func (_ *ZeroXsacXhttpApi) XsacCustomPartTrigger() string                      { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacTriggers() []structs.ZeroXsacTrigger            { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiName() string                                { panic("not support") }
+func (_ *ZeroXsacXhttpApi) XsacApiFields() [][]string                          { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiEnums() []string                             { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApi(...string) []string                         { return make([]string, 0) }
 func (_ *ZeroXsacXhttpApi) XhttpPath() string                                  { return "" }
