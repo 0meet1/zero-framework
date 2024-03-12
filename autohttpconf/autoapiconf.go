@@ -20,7 +20,7 @@ func (_ *ZeroXsacXhttpApi) XsacTriggers() []structs.ZeroXsacTrigger            {
 func (_ *ZeroXsacXhttpApi) XsacApiName() string                                { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiFields() [][]string                          { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XsacApiEnums() []string                             { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacApi(...string) []string                         { return make([]string, 0) }
+func (_ *ZeroXsacXhttpApi) XsacApis(...string) []string                        { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XhttpPath() string                                  { return "" }
 func (_ *ZeroXsacXhttpApi) XhttpAutoProc() processors.ZeroXsacAutoProcessor    { panic("not support") }
 func (_ *ZeroXsacXhttpApi) XhttpQueryOperation() processors.ZeroQueryOperation { panic("not support") }
