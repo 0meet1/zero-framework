@@ -146,7 +146,7 @@ func (e *ZeroXsacXhttpStructs) makeApiRemoveReq() string {
 	return string(jsonbytes)
 }
 
-func (e *ZeroXsacXhttpStructs) makeApiFetchReq() string {
+func (e *ZeroXsacXhttpStructs) makeApiFetchReq(options, expands [][]string) string {
 	xQuery := &processors.ZeroQuery{
 		Orderby: []*processors.ZeroOrderBy{
 			{
@@ -159,9 +159,23 @@ func (e *ZeroXsacXhttpStructs) makeApiFetchReq() string {
 			Length: 10,
 		},
 	}
+
+	xOptions := ""
+	for _, option := range options {
+		if len(xOptions) > 0 {
+			xOptions = fmt.Sprintf("%s|%s", xOptions, option[0])
+		} else {
+			xOptions = option[0]
+		}
+	}
+	xExpands := map[string]interface{}{"options": xOptions}
+	for _, expand := range expands {
+		xExpands[expand[0]] = fmt.Sprintf("*%s*", expand[0], expand[1])
+	}
+
 	reqdata := &structs.ZeroRequest{
 		Querys:  []interface{}{xQuery},
-		Expands: make(map[string]interface{}),
+		Expands: xExpands,
 	}
 	jsonbytes, _ := json.MarshalIndent(reqdata, "", "\t")
 	return string(jsonbytes)
@@ -305,13 +319,13 @@ func (e *ZeroXsacXhttpStructs) XsacApis(args ...string) []string {
 		rows = append(rows, structs.NewApiContent(
 			fmt.Sprintf("查询%s：%s/fetch", xapidec.XsacApiName(), xhttp.XhttpPath()),
 			path.Join(prefix, xhttp.XhttpPath(), "fetch"),
-			e.makeApiFetchReq(), e.makeApiDatas(), options, expands)...)
+			e.makeApiFetchReq(options, expands), e.makeApiDatas(), options, expands)...)
 
 		if xsacdec.XsacDeleteOpt()&0b00000001 == 0b00000001 {
 			rows = append(rows, structs.NewApiContent(
 				fmt.Sprintf("查询%s回收站：%s/history", xapidec.XsacApiName(), xhttp.XhttpPath()),
 				path.Join(prefix, xhttp.XhttpPath(), "history"),
-				e.makeApiFetchReq(), e.makeApiDatas(), options, expands)...)
+				e.makeApiFetchReq(options, expands), e.makeApiDatas(), options, expands)...)
 		}
 	}
 
