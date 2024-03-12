@@ -143,7 +143,7 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField, dbName strin
 					if len(xrKeyItems) > 1 {
 						idxcolumns = strings.Join(xrKeyItems[1:], ",")
 					}
-					switch xsacKey {
+					switch xrKeyItems[0] {
 					case "primary":
 						entries = append(entries, NewPrimaryKey(dbName, e.This().(ZeroXsacDeclares).XsacTableName(), idxcolumns))
 					case "key":
