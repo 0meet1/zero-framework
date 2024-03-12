@@ -170,7 +170,7 @@ func (e *ZeroXsacXhttpStructs) makeApiFetchReq(options, expands [][]string) stri
 	}
 	xExpands := map[string]interface{}{"options": xOptions}
 	for _, expand := range expands {
-		xExpands[expand[0]] = fmt.Sprintf("*%s*", expand[0], expand[1])
+		xExpands[expand[0]] = fmt.Sprintf("*%s*", expand[1])
 	}
 
 	reqdata := &structs.ZeroRequest{
