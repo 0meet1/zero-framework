@@ -92,6 +92,10 @@ func NewSignatureParser(xhttpreq *http.Request, fetchers ...ZeroAppSecretFetcher
 	}
 }
 
+func (zox *ZeroSignature) Xhttpreq() *http.Request {
+	return zox.xhttpreq
+}
+
 func (zox *ZeroSignature) AddParams(params map[string]string) *ZeroSignature {
 	for k, v := range params {
 		zox.params[k] = v
