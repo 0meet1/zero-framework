@@ -275,7 +275,7 @@ func NewSignatureKeyValueParser(req *http.Request, fetchers ...ZeroAppSecretFetc
 			}
 			xParser.ZoXtimestamp = timestamp
 		case HEADER_SIGNATURE_SIGN:
-			xParser.ZoXsecret = v
+			xParser.ZoXsignature = v
 		default:
 			xParser.AddParam(k, v)
 		}
