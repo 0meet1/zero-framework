@@ -33,7 +33,7 @@ type MqttConnect struct {
 	xListener MqttMessageListener
 }
 
-func (mqttconn *MqttConnect) addListener(xListener MqttMessageListener) {
+func (mqttconn *MqttConnect) AddListener(xListener MqttMessageListener) {
 	mqttconn.xListener = xListener
 }
 
