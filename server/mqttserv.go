@@ -203,6 +203,8 @@ func NewMqttServer(address string, authWaitSeconds int64, heartbeatSeconds int64
 }
 
 func (mqttserv *MqttServer) RunServer() {
-	mqttserv.ConnectBuilder = &xMqttConnectBuilder{}
+	if mqttserv.ConnectBuilder == nil {
+		mqttserv.ConnectBuilder = &xMqttConnectBuilder{}
+	}
 	mqttserv.TCPServer.RunServer()
 }
