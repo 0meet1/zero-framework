@@ -39,20 +39,9 @@ type ZeroMfgrcGroup struct {
 func (group *ZeroMfgrcGroup) LoadRowData(rowmap map[string]interface{}) {
 	group.ZeroCoreStructs.LoadRowData(rowmap)
 
-	_, ok := rowmap["unique_code"]
-	if ok {
-		group.UniqueCode = string(rowmap["unique_code"].([]uint8))
-	}
-
-	_, ok = rowmap["option"]
-	if ok {
-		group.Option = string(rowmap["option"].([]uint8))
-	}
-
-	_, ok = rowmap["status"]
-	if ok {
-		group.status = string(rowmap["status"].([]uint8))
-	}
+	group.UniqueCode = structs.ParseStringField(rowmap, "unique_code")
+	group.Option = structs.ParseStringField(rowmap, "option")
+	group.status = structs.ParseStringField(rowmap, "status")
 
 	reason, ok := group.Features["reason"]
 	if ok {
