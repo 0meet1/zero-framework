@@ -75,7 +75,7 @@ func (mqttconn *MqttConnect) updateSerialNnumber(serialNnumber uint16) {
 	mqttconn.serialNnumberMutex.Unlock()
 }
 
-func (mqttconn *MqttConnect) useSerialNnumber() uint16 {
+func (mqttconn *MqttConnect) UseSerialNnumber() uint16 {
 	mqttconn.serialNnumberMutex.Lock()
 	mqttconn.messageSerialNnumber++
 	serialNnumber := mqttconn.messageSerialNnumber
