@@ -364,6 +364,10 @@ func (keeper *ZeroMfgrcKeeper) closeFlux(flux *ZeroMfgrcFlux) {
 	keeper.mfgrcMutex.Unlock()
 }
 
+func (keeper *ZeroMfgrcKeeper) TaskWaitSeconds() int {
+	return keeper.taskWaitSeconds
+}
+
 func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 	keeper.statusMutex.Lock()
 	xStatus := keeper.status
