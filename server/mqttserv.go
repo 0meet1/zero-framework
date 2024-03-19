@@ -8,7 +8,7 @@ import (
 	"github.com/0meet1/zero-framework/global"
 )
 
-type MqttMessageProcessor interface {
+type MqttMessageListener interface {
 	Publish(*MqttMessage) error
 }
 
@@ -30,7 +30,11 @@ type MqttConnect struct {
 
 	active bool
 
-	processor MqttMessageProcessor
+	xListener MqttMessageListener
+}
+
+func (mqttconn *MqttConnect) addProcessor(xListener MqttMessageListener) {
+	mqttconn.xListener = xListener
 }
 
 func (mqttconn *MqttConnect) RegisterId() string {
@@ -141,8 +145,8 @@ func (mqttconn *MqttConnect) onPublish(mqttMessage *MqttMessage) error {
 		}
 	}()
 
-	if mqttconn.processor != nil {
-		err := mqttconn.processor.Publish(mqttMessage)
+	if mqttconn.xListener != nil {
+		err := mqttconn.xListener.Publish(mqttMessage)
 		if err != nil {
 			global.Logger().Error(fmt.Sprintf("mqttserv process publish err : %s", err))
 		}

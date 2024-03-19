@@ -79,7 +79,7 @@ type MqttPublishVariableHeader = server.MqttPublishVariableHeader
 type MqttParamsPayload = server.MqttParamsPayload
 type MqttTopic = server.MqttTopic
 
-type MqttMessageProcessor = server.MqttMessageProcessor
+type MqttMessageListener = server.MqttMessageListener
 type MqttConnect = server.MqttConnect
 type MqttServer = server.MqttServer
 
