@@ -267,7 +267,7 @@ func (mono *ZeroMfgrcMono) Delete() error {
 }
 
 func (mono *ZeroMfgrcMono) Do() error {
-	return errors.New(fmt.Sprintf("mono `%s` unknow option `%s`", mono.MonoID, mono.Option))
+	return errors.New(fmt.Sprintf("mono `%s` option `%s` not implement", mono.MonoID, mono.Option))
 }
 
 func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {
