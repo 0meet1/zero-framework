@@ -44,39 +44,19 @@ type ZeroMfgrcMono struct {
 func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
 	mono.ZeroCoreStructs.LoadRowData(rowmap)
 
-	_, ok := rowmap["mono_id"]
-	if ok {
-		mono.MonoID = string(rowmap["mono_id"].([]uint8))
-	}
+	mono.MonoID = structs.ParseStringField(rowmap, "mono_id")
+	mono.UniqueCode = structs.ParseStringField(rowmap, "unique_code")
+	mono.Option = structs.ParseStringField(rowmap, "option")
+	mono.Progress = structs.ParseIntField(rowmap, "progress")
+	mono.status = structs.ParseStringField(rowmap, "status")
+	mono.maxExecuteTimes = structs.ParseIntField(rowmap, "max_execute_times")
+	mono.executeTimes = structs.ParseIntField(rowmap, "execute_times")
 
-	_, ok = rowmap["unique_code"]
-	if ok {
-		mono.UniqueCode = string(rowmap["unique_code"].([]uint8))
-	}
-
-	_, ok = rowmap["option"]
-	if ok {
-		mono.Option = string(rowmap["option"].([]uint8))
-	}
-
-	_, ok = rowmap["progress"]
-	if ok {
-		mono.Progress = int(rowmap["progress"].(int64))
-	}
-
-	_, ok = rowmap["status"]
-	if ok {
-		mono.status = string(rowmap["status"].([]uint8))
-	}
-
-	_, ok = rowmap["execute_times"]
-	if ok {
-		mono.executeTimes = int(rowmap["execute_times"].(int64))
-	}
-
-	reason, ok := mono.Features["reason"]
-	if ok {
-		mono.reason = reason.(string)
+	if mono.Features != nil {
+		reason, ok := mono.Features["reason"]
+		if ok {
+			mono.reason = reason.(string)
+		}
 	}
 }
 
