@@ -108,7 +108,7 @@ type ZeroMfgrcGroupStore interface {
 	DeleteGroup(MfgrcGroup) error
 	AddGroupMono(MfgrcGroup, MfgrcMono) error
 	MonoStore() ZeroMfgrcMonoStore
-	NewSerial(string, string) (int64, error)
+	NextSerialNumber(string, string) (int, error)
 }
 
 type ZeroMfgrcMonoActuator struct {
