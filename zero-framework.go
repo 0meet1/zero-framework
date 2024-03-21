@@ -42,6 +42,7 @@ type DataSource = database.DataSource
 
 const ROCKETMQ_KEEPER = rocketmq.ROCKETMQ_KEEPER
 
+type RocketmqKeeper = rocketmq.RocketmqKeeper
 type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
 
