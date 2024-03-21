@@ -9,7 +9,7 @@ import (
 )
 
 type MqttMessageListener interface {
-	Publish(*MqttMessage) error
+	Publish(ZeroConnect, *MqttMessage) error
 }
 
 type xMqttConnectBuilder struct{}
@@ -38,7 +38,7 @@ func (mqttconn *MqttConnect) AddListener(xListener MqttMessageListener) {
 }
 
 func (mqttconn *MqttConnect) RegisterId() string {
-	return mqttconn.RemoteAddr()
+	return mqttconn.This().(ZeroConnect).RemoteAddr()
 }
 
 func (mqttconn *MqttConnect) Accept(zserv ZeroServ, connect net.Conn) error {
@@ -67,7 +67,7 @@ func (mqttconn *MqttConnect) Close() error {
 	return err
 }
 
-func (mqttconn *MqttConnect) updateSerialNnumber(serialNnumber uint16) {
+func (mqttconn *MqttConnect) UpdateSerialNnumber(serialNnumber uint16) {
 	mqttconn.serialNnumberMutex.Lock()
 	if mqttconn.messageSerialNnumber < serialNnumber || serialNnumber < 10 {
 		mqttconn.messageSerialNnumber = serialNnumber
@@ -101,16 +101,16 @@ func (mqttconn *MqttConnect) OnMessage(datas []byte) error {
 func (mqttconn *MqttConnect) onConnect(_ *MqttMessage) error {
 	message := &MqttMessage{}
 	message.MakeConnackMessage()
-	return mqttconn.Write(message.Bytes())
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
 func (mqttconn *MqttConnect) onPingreq(_ *MqttMessage) error {
-	global.Logger().Info(fmt.Sprintf("mqtt connect %s on pingreq", mqttconn.RemoteAddr()))
+	global.Logger().Info(fmt.Sprintf("mqtt connect %s on pingreq", mqttconn.This().(ZeroConnect).RemoteAddr()))
 
 	message := &MqttMessage{}
 	message.MakePingrespMessage()
-	defer mqttconn.Heartbeat()
-	return mqttconn.Write(message.Bytes())
+	defer mqttconn.This().(ZeroConnect).Heartbeat()
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
 func (mqttconn *MqttConnect) onSubscribe(mqttMessage *MqttMessage) error {
@@ -119,7 +119,7 @@ func (mqttconn *MqttConnect) onSubscribe(mqttMessage *MqttMessage) error {
 		mqttconn.topcis[topic.TopicName] = topic.Qos
 		results = append(results, topic.Qos)
 	}
-	mqttconn.Authorized()
+	mqttconn.This().(ZeroConnect).Authorized()
 
 	mqttserv := mqttconn.zserv.(*MqttServer)
 	mqttserv.topicsMapMutex.Lock()
@@ -128,13 +128,13 @@ func (mqttconn *MqttConnect) onSubscribe(mqttMessage *MqttMessage) error {
 		if !ok {
 			mqttserv.topicsMap[topic] = make(map[string]*MqttConnect)
 		}
-		mqttserv.topicsMap[topic][mqttconn.RemoteAddr()] = mqttconn
+		mqttserv.topicsMap[topic][mqttconn.This().(ZeroConnect).RemoteAddr()] = mqttconn
 	}
 	mqttserv.topicsMapMutex.Unlock()
 
 	message := &MqttMessage{}
 	message.MakeSubackMessage(mqttMessage.VariableHeader().(*MqttIdentifierVariableHeader).Identifier(), results)
-	return mqttconn.Write(message.Bytes())
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
 func (mqttconn *MqttConnect) onPublish(mqttMessage *MqttMessage) error {
@@ -146,22 +146,22 @@ func (mqttconn *MqttConnect) onPublish(mqttMessage *MqttMessage) error {
 	}()
 
 	if mqttconn.xListener != nil {
-		err := mqttconn.xListener.Publish(mqttMessage)
+		err := mqttconn.xListener.Publish(mqttconn.This().(ZeroConnect), mqttMessage)
 		if err != nil {
 			global.Logger().Error(fmt.Sprintf("mqttserv process publish err : %s", err))
 		}
 	}
 
-	mqttconn.updateSerialNnumber(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
+	mqttconn.UpdateSerialNnumber(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
 	message := &MqttMessage{}
 	message.MakePubackMessage(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
-	return mqttconn.Write(message.Bytes())
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
 func (mqttconn *MqttConnect) onPubrec(mqttMessage *MqttMessage) error {
 	message := &MqttMessage{}
 	message.MakePubrelMessage(mqttMessage.VariableHeader().(*MqttIdentifierVariableHeader).Identifier())
-	return mqttconn.Write(message.Bytes())
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
 func (mqttconn *MqttConnect) onMqttMessage(mqttMessage *MqttMessage) error {
