@@ -79,7 +79,7 @@ func (processor *ZeroCoreProcessor) PreparedStmt(preparedSQL string) *sql.Stmt {
 }
 
 func (processor *ZeroCoreProcessor) DatabaseDatetime() (*time.Time, error) {
-	const FETCH_DATE_SQL = "SELECT current_timestamp FROM DUAL"
+	const FETCH_DATE_SQL = "SELECT current_timestamp"
 	rows, err := processor.PreparedStmt(FETCH_DATE_SQL).Query()
 	defer func() {
 		if rows != nil {
