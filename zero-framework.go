@@ -40,6 +40,8 @@ type EQueryResponse = database.EQueryResponse
 type EQuerySearch = database.EQuerySearch
 type DataSource = database.DataSource
 
+const ROCKETMQ_KEEPER = rocketmq.ROCKETMQ_KEEPER
+
 type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
 
