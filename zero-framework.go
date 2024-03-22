@@ -5,6 +5,7 @@ import (
 	"github.com/0meet1/zero-framework/autosqlconf"
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/mfgrc"
+	"github.com/0meet1/zero-framework/ossminiv2"
 	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/protocol"
 	"github.com/0meet1/zero-framework/rocketmq"
@@ -252,3 +253,4 @@ func XsacTombstoneWhole() byte {
 }
 
 type ZeroSignature = signatures.ZeroSignature
+type OssminiV2Keeper = ossminiv2.OssminiV2Keeper
