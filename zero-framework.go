@@ -1,6 +1,11 @@
 package zeroframework
 
 import (
+	"errors"
+	"io"
+	"os"
+	"path"
+
 	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/autosqlconf"
 	"github.com/0meet1/zero-framework/database"
@@ -254,3 +259,67 @@ func XsacTombstoneWhole() byte {
 
 type ZeroSignature = signatures.ZeroSignature
 type OssminiV2Keeper = ossminiv2.OssminiV2Keeper
+
+func Xfexists(srcpath string) bool {
+	_, err := os.Open(srcpath)
+	return !(err != nil && os.IsNotExist(err))
+}
+
+func Xfmake(xpath string) error {
+	xdir := path.Dir(xpath)
+	if !Xfexists(xdir) {
+		err := os.MkdirAll(xdir, 0777)
+		if err != nil {
+			return err
+		}
+	}
+
+	if Xfexists(xpath) {
+		err := os.Remove(xpath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Xfwrite(srcpath string, datas []byte) error {
+	err := Xfmake(srcpath)
+	if err != nil {
+		return err
+	}
+
+	distfile, err := os.Create(srcpath)
+	defer distfile.Close()
+	if err != nil {
+		return err
+	}
+	distfile.Write(datas)
+	return nil
+}
+
+func Xfread(srcpath string) ([]byte, error) {
+	if !Xfexists(srcpath) {
+		return nil, errors.New("file `" + srcpath + "` not found")
+	}
+	file, err := os.Open(srcpath)
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+	return io.ReadAll(file)
+}
+
+func Xfmove(srcpath string, distpath string) error {
+	srcdatas, err := Xfread(srcpath)
+	if err != nil {
+		return err
+	}
+
+	err = Xfwrite(distpath, srcdatas)
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(srcpath)
+}
