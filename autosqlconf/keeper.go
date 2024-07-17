@@ -66,7 +66,7 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 		return
 	}
 
-	transaction := global.Value(keeper.dataSource).(*database.DataSource).Transaction()
+	transaction := global.Value(keeper.dataSource).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {

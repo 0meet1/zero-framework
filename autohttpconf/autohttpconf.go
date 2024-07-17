@@ -450,7 +450,7 @@ func (xhttp *ZeroXsacXhttp) xhttpParse(querys []interface{}, callback func(inter
 }
 
 func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -504,7 +504,7 @@ func (xhttp *ZeroXsacXhttp) add(writer http.ResponseWriter, req *http.Request) {
 }
 
 func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -559,7 +559,7 @@ func (xhttp *ZeroXsacXhttp) up(writer http.ResponseWriter, req *http.Request) {
 }
 
 func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -615,7 +615,7 @@ func (xhttp *ZeroXsacXhttp) rm(writer http.ResponseWriter, req *http.Request) {
 }
 
 func (xhttp *ZeroXsacXhttp) tombstone(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -670,7 +670,7 @@ func (xhttp *ZeroXsacXhttp) tombstone(writer http.ResponseWriter, req *http.Requ
 }
 
 func (xhttp *ZeroXsacXhttp) restore(writer http.ResponseWriter, req *http.Request) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -791,7 +791,7 @@ func (xhttp *ZeroXsacXhttp) parserowdata(xoptions []string, processor processors
 }
 
 func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Request, flag int) {
-	transaction := global.Value(xhttp.XDataSource()).(*database.DataSource).Transaction()
+	transaction := global.Value(xhttp.XDataSource()).(database.DataSource).Transaction()
 	defer func() {
 		err := recover()
 		if err != nil {
