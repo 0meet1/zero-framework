@@ -302,7 +302,7 @@ func (e *ZeroCoreStructs) Map() map[string]interface{} {
 
 func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
 	v, ok := rowmap[fieldName]
-	if ok {
+	if ok && v != nil {
 		if reflect.TypeOf(v).Kind() == reflect.String {
 			return v.(string)
 		} else {
@@ -314,7 +314,7 @@ func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
 
 func ParseDateField(rowmap map[string]interface{}, fieldName string) *Time {
 	fielddata, ok := rowmap[fieldName]
-	if ok {
+	if ok && fielddata != nil {
 		rowdata := Time(fielddata.(time.Time))
 		return &rowdata
 	}
@@ -333,7 +333,7 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 
 func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 	fielddata, ok := rowmap[fieldName]
-	if ok {
+	if ok && fielddata != nil {
 		return int(fielddata.(int64))
 	}
 	return 0
@@ -341,7 +341,7 @@ func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 
 func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
 	fielddata, ok := rowmap[fieldName]
-	if ok {
+	if ok && fielddata != nil {
 		return fielddata.(float64)
 	}
 	return 0
@@ -349,7 +349,7 @@ func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
 
 func ParseBytesField(rowmap map[string]interface{}, fieldName string) []byte {
 	fielddata, ok := rowmap[fieldName]
-	if ok {
+	if ok && fielddata != nil {
 		return fielddata.([]uint8)
 	}
 	return nil
