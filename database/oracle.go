@@ -62,3 +62,19 @@ func InitOracleDatabase() {
 		global.StringValue("zero.oracle.password"), nil))
 	global.Key(DATABASE_ORACLE, dataSource)
 }
+
+func InitCustomOracleDatabase(registerName, hostname string, hostport int, servOsid, dbname, password string) {
+
+	err := os.Setenv("NLS_LANG", "AMERICAN_AMERICA.AL32UTF8")
+	if err != nil {
+		panic(err)
+	}
+
+	dataSource := newOracleConnectsKeeper(ora.BuildUrl(
+		hostname,
+		hostport,
+		servOsid,
+		dbname,
+		password, nil))
+	global.Key(registerName, dataSource)
+}
