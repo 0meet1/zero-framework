@@ -177,6 +177,7 @@ const (
 type ZeroXsacTrigger = structs.ZeroXsacTrigger
 type ZeroXsacAutoProcessor = processors.ZeroXsacAutoProcessor
 type ZeroXsacPostgresAutoProcessor = processors.ZeroXsacPostgresAutoProcessor
+type ZeroXsacMysqlAutoProcessor = processors.ZeroXsacMysqlAutoProcessor
 
 const (
 	XSAC_DML_ADD       = autohttpconf.XSAC_DML_ADD
