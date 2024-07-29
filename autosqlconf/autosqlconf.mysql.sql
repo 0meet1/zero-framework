@@ -10,6 +10,7 @@
 
 CREATE DATABASE IF NOT EXISTS `<databaseName>` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;	
 USE `<databaseName>`;
+SET GLOBAL log_bin_trust_function_creators=1;
 
 DELIMITER $$
 DROP FUNCTION IF EXISTS `COLUMN_EXISTS` $$
