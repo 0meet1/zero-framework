@@ -122,7 +122,7 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField, dbName strin
 	xrProp := fields.Tag.Get(XSAC_PROP)
 	if len(xrProp) > 0 {
 		xrPropItems := strings.Split(xrProp, ",")
-		if len(xrPropItems) <= 3 {
+		if len(xrPropItems) > 2 {
 			columnName := fields.Tag.Get(XSAC_NAME)
 			if len(columnName) <= 0 {
 				columnName = exHumpToLine(fields.Name)
