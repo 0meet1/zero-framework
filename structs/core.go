@@ -122,14 +122,14 @@ func (e *ZeroCoreStructs) findXsacEntry(fields reflect.StructField, dbName strin
 	xrProp := fields.Tag.Get(XSAC_PROP)
 	if len(xrProp) > 0 {
 		xrPropItems := strings.Split(xrProp, ",")
-		if len(xrPropItems) == 3 {
+		if len(xrPropItems) <= 3 {
 			columnName := fields.Tag.Get(XSAC_NAME)
 			if len(columnName) <= 0 {
 				columnName = exHumpToLine(fields.Name)
 			}
 
 			entries = append(entries, NewColumn(dbName, e.This().(ZeroXsacDeclares).XsacTableName(),
-				columnName, xrPropItems[0], xrPropItems[1], xrPropItems[2]))
+				columnName, xrPropItems[0], strings.Join(xrPropItems[1:len(xrPropItems)-1], ","), xrPropItems[len(xrPropItems)-1]))
 
 			xsacKey := fields.Tag.Get(XSAC_KEY)
 			if len(xsacKey) > 0 {
