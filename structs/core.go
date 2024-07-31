@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -334,7 +335,15 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 	fielddata, ok := rowmap[fieldName]
 	if ok && fielddata != nil {
-		return int(fielddata.(int64))
+		if reflect.TypeOf(fielddata).Kind() == reflect.Array {
+			n, err := strconv.Atoi(ParseStringField(rowmap, fieldName))
+			if err != nil {
+				panic(err)
+			}
+			return n
+		} else {
+			return int(fielddata.(int64))
+		}
 	}
 	return 0
 }
@@ -342,7 +351,15 @@ func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
 	fielddata, ok := rowmap[fieldName]
 	if ok && fielddata != nil {
-		return fielddata.(float64)
+		if reflect.TypeOf(fielddata).Kind() == reflect.Array {
+			n, err := strconv.ParseFloat(ParseStringField(rowmap, fieldName), 64)
+			if err != nil {
+				panic(err)
+			}
+			return n
+		} else {
+			return fielddata.(float64)
+		}
 	}
 	return 0
 }
