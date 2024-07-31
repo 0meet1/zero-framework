@@ -335,7 +335,7 @@ func ParseJSONField(rowmap map[string]interface{}, fieldName string) map[string]
 func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 	fielddata, ok := rowmap[fieldName]
 	if ok && fielddata != nil {
-		if reflect.TypeOf(fielddata).Kind() == reflect.Array {
+		if reflect.TypeOf(fielddata).Kind() == reflect.Slice {
 			n, err := strconv.Atoi(ParseStringField(rowmap, fieldName))
 			if err != nil {
 				panic(err)
@@ -351,7 +351,7 @@ func ParseIntField(rowmap map[string]interface{}, fieldName string) int {
 func ParseFloatField(rowmap map[string]interface{}, fieldName string) float64 {
 	fielddata, ok := rowmap[fieldName]
 	if ok && fielddata != nil {
-		if reflect.TypeOf(fielddata).Kind() == reflect.Array {
+		if reflect.TypeOf(fielddata).Kind() == reflect.Slice {
 			n, err := strconv.ParseFloat(ParseStringField(rowmap, fieldName), 64)
 			if err != nil {
 				panic(err)
