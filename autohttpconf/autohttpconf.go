@@ -57,6 +57,9 @@ type ZeroXsacXhttpDeclares interface {
 	XhttpCheckTable() string
 	XhttpSearchIndex() string
 
+	XhttpDistinctID() string
+	XhttpFilterTable() string
+
 	XhttpCustomPartChecker() ZeroXsacCustomPartChecker
 
 	XhttpDMLTrigger() ZeroXsacHttpDMLTrigger
@@ -72,6 +75,8 @@ func (e *ZeroXsacXhttpStructs) XhttpPath() string        { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpOpt() byte           { return 0b00001111 }
 func (e *ZeroXsacXhttpStructs) XhttpCheckTable() string  { return "" }
 func (e *ZeroXsacXhttpStructs) XhttpSearchIndex() string { return "" }
+func (e *ZeroXsacXhttpStructs) XhttpDistinctID() string  { return "id" }
+func (e *ZeroXsacXhttpStructs) XhttpFilterTable() string { return "" }
 
 func (e *ZeroXsacXhttpStructs) XhttpAutoProc() processors.ZeroXsacAutoProcessor {
 	return processors.NewXsacPostgresProcessor()
@@ -816,6 +821,12 @@ func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Requ
 	if err != nil {
 		panic(err)
 	}
+
+	if len(xhttp.instance.XhttpFilterTable()) > 0 && len(xhttp.instance.XhttpDistinctID()) > 0 {
+		xOperation.AddFilterTableName(xhttp.instance.XhttpFilterTable())
+		xOperation.AddDistinctID(xhttp.instance.XhttpDistinctID())
+	}
+
 	xOperation.Build(transaction)
 	if flag >= 0 {
 		xOperation.AppendCondition(fmt.Sprintf("flag = %d", flag))
