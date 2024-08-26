@@ -225,6 +225,9 @@ func (opera *ZeroPostgresQueryOperation) Exec() ([]map[string]interface{}, map[s
 
 	querySQL := opera.makeQuerySQL()
 	rows, err = opera.PreparedStmt(querySQL).Query()
+	if err != nil {
+		panic(err)
+	}
 
 	rowsmap := opera.Parser(rows)
 	expands := make(map[string]interface{})

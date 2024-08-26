@@ -224,6 +224,9 @@ func (opera *ZeroMysqlQueryOperation) Exec() ([]map[string]interface{}, map[stri
 
 	querySQL := opera.makeQuerySQL()
 	rows, err = opera.PreparedStmt(querySQL).Query()
+	if err != nil {
+		panic(err)
+	}
 
 	rowsmap := opera.Parser(rows)
 	expands := make(map[string]interface{})
