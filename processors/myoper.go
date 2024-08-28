@@ -64,7 +64,7 @@ func (opera *ZeroMysqlQueryOperation) parserConditions(condition *ZeroCondition)
 		}
 
 		if strings.Index(condition.Column, ".") > 1 {
-			return fmt.Sprintf("(`%s` %s '%s')", parseJSONColumnName(condition.Column), symbol, condition.Value), nil
+			return fmt.Sprintf("(%s %s '%s')", parseJSONColumnName(condition.Column), symbol, condition.Value), nil
 		} else {
 			return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
 		}
