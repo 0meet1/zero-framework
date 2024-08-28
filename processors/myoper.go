@@ -63,7 +63,11 @@ func (opera *ZeroMysqlQueryOperation) parserConditions(condition *ZeroCondition)
 			return "", errors.New(fmt.Sprintf("symbol `%s` not found", condition.Symbol))
 		}
 
-		return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
+		if strings.Index(condition.Column, ".") > 1 {
+			return fmt.Sprintf("(`%s` %s '%s')", parseJSONColumnName(condition.Column), symbol, condition.Value), nil
+		} else {
+			return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
+		}
 	} else {
 		relatSymbol, ok := relations()[condition.Symbol]
 		if !ok {
@@ -119,6 +123,7 @@ func (opera *ZeroMysqlQueryOperation) makeOrderby() {
 	} else {
 		orders := make([]string, len(opera.query.Orderby))
 		for i, o := range opera.query.Orderby {
+
 			orders[i] = fmt.Sprintf(" `%s` %s", exHumpToLine(o.Column), o.Seq)
 		}
 		opera.orderby = fmt.Sprintf(" ORDER BY %s ", strings.Join(orders, ","))

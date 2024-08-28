@@ -2,10 +2,6 @@ package zeroframework_test
 
 import (
 	"testing"
-	"time"
-
-	ora "github.com/cengsin/oracle"
-	"gorm.io/gorm"
 )
 
 // func TestOSSMiniV2(t *testing.T) {
@@ -41,18 +37,20 @@ import (
 // }
 
 func TestConnectOracle(t *testing.T) {
-	database, err := gorm.Open(ora.Open("kangni/BSZnvPgL@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	dbPool, err := database.DB()
-	if err != nil {
-		panic(err)
-	}
+	// database, err := gorm.Open(ora.Open("kangni/BSZnvPgL@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// dbPool, err := database.DB()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	dbPool.SetMaxIdleConns(10)
-	dbPool.SetMaxOpenConns(30)
-	dbPool.SetConnMaxLifetime(time.Second * time.Duration(100))
+	// dbPool.SetMaxIdleConns(10)
+	// dbPool.SetMaxOpenConns(30)
+	// dbPool.SetConnMaxLifetime(time.Second * time.Duration(100))
 
 	// do somethings
+
+	// fmt.Println(processors.ParseJSONColumnName("Xc1Feature.abc"))
 }
