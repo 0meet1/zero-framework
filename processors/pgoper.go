@@ -149,13 +149,13 @@ const DISTINCT_POSTGRES_QUERY_SQL_TEMPLATE = `
 		{{columns}}
 	FROM 
 		(SELECT 
-			distinct {{distinctID}} 
+			distinct {{distinctID}} AS row095c_id
 			FROM 
 				{{filterTableName}} 
 				{{conditions}}) t,
 				{{tableName}} a
 	WHERE 
-		t.{{distinctID}} = a.ID 
+		t.row0c_id = a.{{distinctID}} 
 		{{orderby}} {{limit}}
 `
 

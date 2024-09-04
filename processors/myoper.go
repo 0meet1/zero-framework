@@ -153,13 +153,13 @@ const DISTINCT_MYSQL_QUERY_SQL_TEMPLATE = `
 		{{columns}}
 	FROM 
 		(SELECT 
-			distinct {{distinctID}} 
+			distinct {{distinctID}} AS row095c_id
 			FROM 
 				{{filterTableName}} 
 				{{conditions}}) t,
 				{{tableName}} a
 	WHERE 
-		t.{{distinctID}} = a.ID 
+		t.row095c_id = a.{{distinctID}}
 		{{orderby}} {{limit}}
 `
 
