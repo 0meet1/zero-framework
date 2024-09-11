@@ -783,12 +783,19 @@ func (xhttp *ZeroXsacXhttp) parserowdata(xoptions []string, processor processors
 	for _, xoption := range xoptions {
 		if xoption == server.XHTTP_QUERY_OPTIONS_ALL {
 			for _, field := range xhttp.xhttpinlines() {
-				processor.FetchChildrens(field, data)
+				err := processor.FetchChildrens(field, data)
+				if err != nil {
+					panic(err)
+				}
 			}
+			break
 		} else {
 			field, ok := xhttp.xhttpinlines()[xoption]
 			if ok {
-				processor.FetchChildrens(field, data)
+				err := processor.FetchChildrens(field, data)
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 	}
