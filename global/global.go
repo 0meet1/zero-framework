@@ -121,9 +121,9 @@ func Contains(key string) bool {
 	return ok
 }
 
-var (
-	channel chan os.Signal
-)
+// var (
+// 	channel chan os.Signal
+// )
 
 func RunServer() {
 	if _observers == nil {
@@ -169,11 +169,11 @@ func findMainPackage(xCaller int) (string, string, error) {
 	if ok {
 		dir, file := path.Split(filename)
 		if !strings.HasPrefix(file, _appName) && !strings.HasPrefix(file, "main") {
-			return "", file, errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' .")
+			return "", file, errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' . ")
 		}
 		return dir, file, nil
 	}
-	return "", "", errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' .")
+	return "", "", errors.New("global context must be initialized in `main func` and appname must same as main package filename or 'main' . ")
 }
 
 func systemAbsPath() string {
@@ -217,10 +217,8 @@ func GlobalContext(appName string) {
 
 func Run(appName string, initiators ...ZeroGlobalInitiator) {
 	GlobalContext(appName)
-	if initiators != nil {
-		for _, initiator := range initiators {
-			initiator()
-		}
+	for _, initiator := range initiators {
+		initiator()
 	}
 	RunServer()
 }
