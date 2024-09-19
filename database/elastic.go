@@ -14,14 +14,14 @@ import (
 
 var (
 	serverAddr string
-	user       string
-	auth       string
+	// user       string
+	// auth       string
 )
 
 func InitElasticDatabase() {
 	serverAddr = global.StringValue("zero.elastic.serverAddr")
-	user = global.StringValue("zero.elastic.user")
-	auth = global.StringValue("zero.elastic.auth")
+	// user = global.StringValue("zero.elastic.user")
+	// auth = global.StringValue("zero.elastic.auth")
 }
 
 type EQueryRequest struct {
@@ -65,7 +65,7 @@ func (query *EQueryRequest) Append() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("request failed status code : %d", resp.StatusCode))
+		return fmt.Errorf("request failed status code : %d", resp.StatusCode)
 	}
 	return nil
 }
@@ -91,7 +91,7 @@ func (query *EQueryRequest) Update() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("request failed status code : %d", resp.StatusCode))
+		return fmt.Errorf("request failed status code : %d", resp.StatusCode)
 	}
 	return nil
 }
@@ -117,7 +117,7 @@ func (query *EQueryRequest) Delete() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("request failed status code : %d", resp.StatusCode))
+		return fmt.Errorf("request failed status code : %d", resp.StatusCode)
 	}
 	return nil
 }
@@ -143,7 +143,7 @@ func (query *EQueryRequest) Get() (*EQueryResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("request failed status code : %d", resp.StatusCode))
+		return nil, fmt.Errorf("request failed status code : %d", resp.StatusCode)
 	}
 	qreqp := &EQueryResponse{}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -201,7 +201,7 @@ func (query *EQueryRequest) DeleteByQuery() error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("request failed status code : %d", resp.StatusCode))
+		return fmt.Errorf("request failed status code : %d", resp.StatusCode)
 	}
 	return nil
 }
