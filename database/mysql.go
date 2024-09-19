@@ -55,3 +55,46 @@ func InitMYSQLDatabase() {
 	dataSource.init(database)
 	global.Key(DATABASE_MYSQL, dataSource)
 }
+
+func InitCustomMysqlDatabase(registerName, prefix string) {
+
+	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true",
+		global.StringValue(fmt.Sprintf("%s.username", prefix)),
+		global.StringValue(fmt.Sprintf("%s.password", prefix)),
+		global.StringValue(fmt.Sprintf("%s.hostname", prefix)),
+		global.IntValue(fmt.Sprintf("%s.hostport", prefix)),
+		global.StringValue(fmt.Sprintf("%s.dbname", prefix)))
+	dialector := mysql.New(mysql.Config{
+		DSN:                       dbURI,
+		DefaultStringSize:         256,
+		DisableDatetimePrecision:  true,
+		DontSupportRenameIndex:    true,
+		DontSupportRenameColumn:   true,
+		SkipInitializeWithVersion: false,
+	})
+	database, err := gorm.Open(dialector, &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	dbPool, err := database.DB()
+	if err != nil {
+		panic(err)
+	}
+
+	dbPool.SetMaxIdleConns(global.IntValue(fmt.Sprintf("%s.maxIdleConns", prefix)))
+	dbPool.SetMaxOpenConns(global.IntValue(fmt.Sprintf("%s.maxOpenConns", prefix)))
+	dbPool.SetConnMaxLifetime(time.Second * time.Duration(global.IntValue(fmt.Sprintf("%s.maxLifetime", prefix))))
+
+	global.Logger().Info(fmt.Sprintf(
+		"mysql connect pool init success with %s, maxIdleConns: %d, maxOpenConns: %d, maxLifetime: %d",
+		fmt.Sprintf("username:password@tcp(%s:%d)/%s?charset=utf8&parseTime=true",
+			global.StringValue(fmt.Sprintf("%s.hostname", prefix)),
+			global.IntValue(fmt.Sprintf("%s.hostport", prefix)),
+			global.StringValue(fmt.Sprintf("%s.dbname", prefix))),
+		global.IntValue(fmt.Sprintf("%s.maxIdleConns", prefix)),
+		global.IntValue(fmt.Sprintf("%s.maxOpenConns", prefix)),
+		global.IntValue(fmt.Sprintf("%s.maxLifetime", prefix))))
+	dataSource := &GormDataSource{}
+	dataSource.init(database)
+	global.Key(registerName, dataSource)
+}
