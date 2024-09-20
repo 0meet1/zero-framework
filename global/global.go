@@ -26,7 +26,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.14.15.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.14.16.RELEASE )  **/
 
 `
 
@@ -120,10 +120,6 @@ func Contains(key string) bool {
 	_, ok := _map[key]
 	return ok
 }
-
-// var (
-// 	channel chan os.Signal
-// )
 
 func RunServer() {
 	if _observers == nil {
@@ -227,6 +223,10 @@ func ServerAbsPath() string {
 	return cfg.ServerAbsPath()
 }
 
+func Find(cfgName string) any {
+	return cfg.Find(cfgName)
+}
+
 func StringValue(cfgName string) string {
 	return cfg.StringValue(cfgName)
 }
@@ -237,6 +237,18 @@ func IntValue(cfgName string) int {
 
 func SliceStringValue(cfgName string) []string {
 	return cfg.SliceStringValue(cfgName)
+}
+
+func StringMap(cfgName string) map[string]any {
+	return cfg.StringMap(cfgName)
+}
+
+func StringMapString(cfgName string) map[string]string {
+	return cfg.StringMapString(cfgName)
+}
+
+func StringMapStringSlice(cfgName string) map[string][]string {
+	return cfg.StringMapStringSlice(cfgName)
 }
 
 func Logger() *log.ZeroLogger {

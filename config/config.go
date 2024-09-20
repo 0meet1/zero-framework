@@ -51,6 +51,14 @@ func cfgStringSlice(aViper *viper.Viper, cfgName string) []string {
 	return aViper.GetStringSlice(cfgName)
 }
 
+func cfg(aViper *viper.Viper, cfgName string) any {
+	return aViper.Get(cfgName)
+}
+
+func cfgStringMap(aViper *viper.Viper, cfgName string) map[string]any {
+	return aViper.GetStringMap(cfgName)
+}
+
 func cfgStringMapString(aViper *viper.Viper, cfgName string) map[string]string {
 	return aViper.GetStringMapString(cfgName)
 }
@@ -80,6 +88,10 @@ func ServerAbsPath() string {
 	return _servAbsPath
 }
 
+func Find(cfgName string) any {
+	return cfg(_aViper, cfgName)
+}
+
 func StringValue(cfgName string) string {
 	return cfgString(_aViper, cfgName)
 }
@@ -90,6 +102,10 @@ func IntValue(cfgName string) int {
 
 func SliceStringValue(cfgName string) []string {
 	return cfgStringSlice(_aViper, cfgName)
+}
+
+func StringMap(cfgName string) map[string]any {
+	return cfgStringMap(_aViper, cfgName)
 }
 
 func StringMapString(cfgName string) map[string]string {
