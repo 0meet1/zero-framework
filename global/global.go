@@ -26,7 +26,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.14.16.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.14.17.RELEASE )  **/
 
 `
 
@@ -208,6 +208,14 @@ func GlobalContext(appName string) {
 		cfg.NewConfigs(systemAbsPath())
 		Key("zero.system.logger", log.InitLogger())
 		Logger().Info(ZERO_FRAMEWORK_BANNER)
+	}
+}
+
+func RunTest(appName, cfgpath string) {
+	if _observers == nil {
+		_observers = make(map[string]ZeroGlobalEventsObserver)
+		_appName = appName
+		cfg.NewConfigs(cfgpath)
 	}
 }
 
