@@ -8,6 +8,7 @@ import (
 
 	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/autosqlconf"
+	"github.com/0meet1/zero-framework/consul"
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/mfgrc"
 	"github.com/0meet1/zero-framework/ossminiv2"
@@ -135,6 +136,13 @@ type ZeroMfgrcGroupEventListener = mfgrc.ZeroMfgrcGroupEventListener
 type ZeroMfgrcMonoActuator = mfgrc.ZeroMfgrcMonoActuator
 type ZeroMfgrcGroupActuator = mfgrc.ZeroMfgrcGroupActuator
 type ZeroMfgrcMonoQueueActuator = mfgrc.ZeroMfgrcMonoQueueActuator
+
+const (
+	DSC_LOCK_TRUNK = consul.DSC_LOCK_TRUNK
+)
+
+type ZeroDCSMutex = consul.ZeroDCSMutex
+type ZeroDCSMutexTrunk = consul.ZeroDCSMutexTrunk
 
 const (
 	ZEOR_XSAC_ENTRY_TYPE_TABLE0S          = structs.ZEOR_XSAC_ENTRY_TYPE_TABLE0S
