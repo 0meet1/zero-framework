@@ -154,6 +154,14 @@ func XhttpQueryOptions(xRequest *structs.ZeroRequest) []string {
 	return xoptions
 }
 
+func XhttpContainsOptions(xRequest *structs.ZeroRequest, option string) bool {
+	if _, ok := xRequest.Expands["options"]; ok {
+		return strings.Contains(xRequest.Expands["options"].(string), option) ||
+			strings.Contains(xRequest.Expands["options"].(string), XHTTP_QUERY_OPTIONS_ALL)
+	}
+	return false
+}
+
 func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
@@ -236,10 +244,10 @@ func XhttpFromFileRequest(req *http.Request, maxmem int64) ([]*XhttpFromFile, er
 	formfiles := make([]*XhttpFromFile, 0)
 	for formName := range req.MultipartForm.File {
 		formFile, formFileHeader, err := req.FormFile(formName)
-		defer formFile.Close()
 		if err != nil {
 			return nil, err
 		}
+		defer formFile.Close()
 
 		filebytes, err := io.ReadAll(formFile)
 		if err != nil {
