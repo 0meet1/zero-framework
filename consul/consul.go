@@ -36,9 +36,6 @@ func RunServeRegistry() {
 // 		wg.Add(1)
 // 		go func() {
 // 			defer wg.Done()
-// 			// 1. 获取锁
-// 			// 锁具备默认的超时时间
-// 			// 如果想自定义超时时间以及一些额外的配置可以用 LockOpts
 // 			// client.LockOpts()
 // 			lock, err := client.LockKey("lock")
 // 			if err != nil {

@@ -100,7 +100,7 @@ func (mtx *xZeroDCSMutexTrunk) Lock(keyName, operator string, timeout ...int) (*
 func (mtx *xZeroDCSMutexTrunk) Unlock(_mutex *ZeroDCSMutex) error {
 	_mutex.Lock.Unlock()
 	close(_mutex.Lockc)
-	return mtx.Del(_mutex.KeyName)
+	return _mutex.Lock.Destroy()
 }
 
 func (mtx *xZeroDCSMutexTrunk) runDCSMutex() error {
