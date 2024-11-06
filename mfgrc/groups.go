@@ -102,7 +102,7 @@ func (group *ZeroMfgrcGroup) Ready(store ZeroMfgrcGroupStore) error {
 
 func (group *ZeroMfgrcGroup) Pending() error {
 	if group.status != WORKER_MONOGROUP_STATUS_READY {
-		return errors.New(fmt.Sprintf("could not pending mono group `%s` status `%s`", group.ID, group.status))
+		return fmt.Errorf("could not pending mono group `%s` status `%s`", group.ID, group.status)
 	}
 	group.status = WORKER_MONOGROUP_STATUS_PENDING
 	if group.xStore != nil {
@@ -120,7 +120,7 @@ func (group *ZeroMfgrcGroup) Pending() error {
 
 func (group *ZeroMfgrcGroup) Executing() error {
 	if group.status != WORKER_MONOGROUP_STATUS_PENDING {
-		return errors.New(fmt.Sprintf("could not executing group `%s` status `%s`", group.ID, group.status))
+		return fmt.Errorf("could not executing group `%s` status `%s`", group.ID, group.status)
 	}
 
 	group.status = WORKER_MONOGROUP_STATUS_EXECUTING
@@ -142,7 +142,7 @@ func (group *ZeroMfgrcGroup) Executing() error {
 
 func (group *ZeroMfgrcGroup) Complete() error {
 	if group.status != WORKER_MONOGROUP_STATUS_EXECUTING {
-		return errors.New(fmt.Sprintf("could not complete group `%s` status `%s`", group.ID, group.status))
+		return fmt.Errorf("could not complete group `%s` status `%s`", group.ID, group.status)
 	}
 	group.status = WORKER_MONOGROUP_STATUS_COMPLETE
 	if group.xStore != nil {
@@ -368,7 +368,7 @@ func (keeper *ZeroMfgrcGroupKeeper) revokeMonoGroups() {
 	defer keeper.statusMutex.Unlock()
 	keeper.status = xKEEPER_STATUS_RUNNING
 
-	global.Logger().Info(fmt.Sprintf(" workergroup check and resume monos complete "))
+	global.Logger().Info(" workergroup check and resume monos complete ")
 }
 
 func (keeper *ZeroMfgrcGroupKeeper) closeWorker(worker *ZeroMfgrcGroupWorker) {
@@ -413,7 +413,7 @@ func (keeper *ZeroMfgrcGroupKeeper) AddGroup(group MfgrcGroup) error {
 		group.Pending()
 		keeper.groupChan <- group
 	} else {
-		return errors.New(fmt.Sprintf("device `%s` is busy now", group.XuniqueCode()))
+		return fmt.Errorf("device `%s` is busy now", group.XuniqueCode())
 	}
 
 	return nil
@@ -435,7 +435,7 @@ func (keeper *ZeroMfgrcGroupKeeper) Check(group MfgrcGroup) error {
 	keeper.groupMutex.Unlock()
 
 	if ok {
-		return errors.New(fmt.Sprintf("device `%s` is busy now", group.XuniqueCode()))
+		return fmt.Errorf("device `%s` is busy now", group.XuniqueCode())
 	}
 
 	if groupMapLen >= keeper.maxGroupQueues {

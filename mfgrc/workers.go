@@ -41,11 +41,11 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono) error {
 	_, ok := flux.monoMap[mono.XmonoId()]
 
 	if ok {
-		return errors.New(fmt.Sprintf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId()))
+		return fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
 	}
 
 	if monoLen >= flux.keeper.maxQueueLimit {
-		return errors.New(fmt.Sprintf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit))
+		return fmt.Errorf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit)
 	}
 
 	flux.monoMutex.Lock()
@@ -70,7 +70,7 @@ func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 	mono, ok := flux.monoMap[mono.XmonoId()]
 	flux.monoMutex.Unlock()
 	if !ok {
-		return errors.New(fmt.Sprintf("mono `%s` not found", mono.XmonoId()))
+		return fmt.Errorf("mono `%s` not found", mono.XmonoId())
 	}
 	err := mono.Revoke()
 
@@ -340,7 +340,7 @@ func (keeper *ZeroMfgrcKeeper) resumeMonos() {
 	defer keeper.statusMutex.Unlock()
 	keeper.status = xKEEPER_STATUS_RUNNING
 
-	global.Logger().Info(fmt.Sprintf(" worker check and resume monos complete "))
+	global.Logger().Info(" worker check and resume monos complete ")
 }
 
 func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
@@ -411,7 +411,7 @@ func (keeper *ZeroMfgrcKeeper) RevokeMono(mono MfgrcMono) error {
 	keeper.mfgrcMutex.Unlock()
 
 	if !ok {
-		return errors.New(fmt.Sprintf("device `%s` flux not found", mono.XuniqueCode()))
+		return fmt.Errorf("device `%s` flux not found", mono.XuniqueCode())
 	} else {
 		err := flux.Revoke(mono)
 		if err != nil {
@@ -432,7 +432,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 	}
 
 	if len(monos) > keeper.maxQueueLimit {
-		return errors.New(fmt.Sprintf("exceeding maximum number of monos = %d", keeper.maxQueueLimit))
+		return fmt.Errorf("exceeding maximum number of monos = %d", keeper.maxQueueLimit)
 	}
 
 	keeper.mfgrcMutex.Lock()

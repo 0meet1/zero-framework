@@ -2,7 +2,6 @@ package mfgrc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/0meet1/zero-framework/global"
@@ -98,7 +97,7 @@ func (mono *ZeroMfgrcMono) Ready(keeper *ZeroMfgrcKeeper, store ...ZeroMfgrcMono
 	mono.status = WORKER_MONO_STATUS_READY
 	mono.executeTimes = 0
 	mono.reason = ""
-	if store != nil && len(store) > 0 {
+	if len(store) > 0 {
 		mono.xStore = store[0]
 	}
 	if mono.xStore != nil {
@@ -110,7 +109,7 @@ func (mono *ZeroMfgrcMono) Ready(keeper *ZeroMfgrcKeeper, store ...ZeroMfgrcMono
 
 func (mono *ZeroMfgrcMono) Pending(flux *ZeroMfgrcFlux) error {
 	if mono.status != WORKER_MONO_STATUS_READY {
-		return errors.New(fmt.Sprintf("could not pending mono `%s` status `%s`", mono.MonoID, mono.status))
+		return fmt.Errorf("could not pending mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	mono.fromFlux = flux
 	mono.status = WORKER_MONO_STATUS_PENDING
@@ -170,10 +169,10 @@ func (mono *ZeroMfgrcMono) Timeout() error {
 
 func (mono *ZeroMfgrcMono) Executing() error {
 	if mono.status != WORKER_MONO_STATUS_PENDING {
-		return errors.New(fmt.Sprintf("could not executing mono `%s` status `%s`", mono.MonoID, mono.status))
+		return fmt.Errorf("could not executing mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	if mono.executeTimes != 0 {
-		return errors.New(fmt.Sprintf("mono `%s` is already executing", mono.MonoID))
+		return fmt.Errorf("mono `%s` is already executing", mono.MonoID)
 	}
 	mono.status = WORKER_MONO_STATUS_EXECUTING
 	mono.executeTimes++
@@ -195,10 +194,10 @@ func (mono *ZeroMfgrcMono) Executing() error {
 
 func (mono *ZeroMfgrcMono) Retrying(reason string) error {
 	if mono.status != WORKER_MONO_STATUS_EXECUTING && mono.status != WORKER_MONO_STATUS_RETRYING {
-		return errors.New(fmt.Sprintf("could not retrying mono `%s` status `%s`", mono.MonoID, mono.status))
+		return fmt.Errorf("could not retrying mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	if mono.executeTimes >= mono.maxExecuteTimes {
-		return errors.New(fmt.Sprintf("exceeded maximum attempts, maxExecuteTimes:%d executeTimes:%d", mono.maxExecuteTimes, mono.executeTimes))
+		return fmt.Errorf("exceeded maximum attempts, maxExecuteTimes:%d executeTimes:%d at lastest error: %s", mono.maxExecuteTimes, mono.executeTimes, reason)
 	}
 	mono.reason = reason
 	mono.status = WORKER_MONO_STATUS_RETRYING
@@ -221,7 +220,7 @@ func (mono *ZeroMfgrcMono) Retrying(reason string) error {
 
 func (mono *ZeroMfgrcMono) Complete() error {
 	if mono.status != WORKER_MONO_STATUS_EXECUTING && mono.status != WORKER_MONO_STATUS_RETRYING {
-		return errors.New(fmt.Sprintf("could not complete mono `%s` status `%s`", mono.MonoID, mono.status))
+		return fmt.Errorf("could not complete mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	mono.status = WORKER_MONO_STATUS_COMPLETE
 	if mono.xStore != nil {
@@ -267,7 +266,7 @@ func (mono *ZeroMfgrcMono) Delete() error {
 }
 
 func (mono *ZeroMfgrcMono) Do() error {
-	return errors.New(fmt.Sprintf("mono `%s` option `%s` not implement", mono.MonoID, mono.Option))
+	return fmt.Errorf("mono `%s` option `%s` not implement", mono.MonoID, mono.Option)
 }
 
 func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {

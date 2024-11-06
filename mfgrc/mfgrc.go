@@ -1,7 +1,6 @@
 package mfgrc
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -142,7 +141,7 @@ func (act *ZeroMfgrcMonoActuator) OnExecuting(MfgrcMono) error { return nil }
 func (act *ZeroMfgrcMonoActuator) OnRetrying(MfgrcMono) error  { return nil }
 func (act *ZeroMfgrcMonoActuator) OnRevoke(mono MfgrcMono) error {
 	if act.errchan != nil {
-		act.errchan <- errors.New(fmt.Sprintf("mono `%s` is already revoke", act.mono.XmonoId()))
+		act.errchan <- fmt.Errorf("mono `%s` is already revoke", act.mono.XmonoId())
 	}
 	return nil
 }
@@ -154,7 +153,7 @@ func (act *ZeroMfgrcMonoActuator) OnComplete(MfgrcMono) error {
 }
 func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error {
 	if act.errchan != nil {
-		act.errchan <- errors.New(fmt.Sprintf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason))
+		act.errchan <- fmt.Errorf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason)
 	}
 	return nil
 }
@@ -185,8 +184,8 @@ func (act *ZeroMfgrcGroupActuator) Group() MfgrcGroup {
 	return act.group
 }
 
-func (_ *ZeroMfgrcGroupActuator) OnPending(MfgrcGroup) error   { return nil }
-func (_ *ZeroMfgrcGroupActuator) OnExecuting(MfgrcGroup) error { return nil }
+func (*ZeroMfgrcGroupActuator) OnPending(MfgrcGroup) error   { return nil }
+func (*ZeroMfgrcGroupActuator) OnExecuting(MfgrcGroup) error { return nil }
 func (act *ZeroMfgrcGroupActuator) OnComplete(MfgrcGroup) error {
 	if act.errchan != nil {
 		act.errchan <- nil
@@ -195,7 +194,7 @@ func (act *ZeroMfgrcGroupActuator) OnComplete(MfgrcGroup) error {
 }
 func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason string) error {
 	if act.errchan != nil {
-		act.errchan <- errors.New(fmt.Sprintf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason))
+		act.errchan <- fmt.Errorf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason)
 	}
 	return nil
 }
@@ -294,7 +293,7 @@ func (act *ZeroMfgrcMonoQueueActuator) check() {
 
 	if completes == len(act.monos) {
 		if act.failed > 0 {
-			act.errchan <- errors.New(fmt.Sprintf("queue exec failed, failed: %d, success: %d", act.failed, act.success))
+			act.errchan <- fmt.Errorf("queue exec failed, failed: %d, success: %d", act.failed, act.success)
 		} else {
 			act.errchan <- nil
 		}
