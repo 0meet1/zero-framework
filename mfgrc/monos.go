@@ -220,6 +220,11 @@ func (mono *ZeroMfgrcMono) Retrying(reason string) error {
 
 func (mono *ZeroMfgrcMono) Complete() error {
 	if mono.status != WORKER_MONO_STATUS_EXECUTING && mono.status != WORKER_MONO_STATUS_RETRYING {
+		if mono.status == WORKER_MONO_STATUS_FAILED ||
+			mono.status == WORKER_MONO_STATUS_TIMEOUT ||
+			mono.status == WORKER_MONO_STATUS_REVOKE {
+			return nil
+		}
 		return fmt.Errorf("could not complete mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	mono.status = WORKER_MONO_STATUS_COMPLETE
