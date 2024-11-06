@@ -27,7 +27,7 @@ type ZeroDCSMutexTrunk interface {
 	Release(string) (bool, *api.WriteMeta, error)
 
 	Lock(string, string, ...int) (*ZeroDCSMutex, error)
-	Unlock(*ZeroDCSMutex)
+	Unlock(*ZeroDCSMutex) error
 }
 
 type xZeroDCSMutexTrunk struct {
