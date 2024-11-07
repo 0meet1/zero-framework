@@ -35,19 +35,17 @@ type TCPClient struct {
 func (client *TCPClient) initHeartbeatTimer() {
 	client.heartbeatTimer = time.NewTimer(time.Second * time.Duration(client.heartbeatCheckInterval))
 	for {
-		select {
-		case <-client.heartbeatTimer.C:
-			if client.connect == nil || !client.HeartbeatCheck(client.heartbeatSeconds) {
-				client.connect.Close()
-				client.heartbeatTimer = nil
-				break
-			}
+		<-client.heartbeatTimer.C
+		if client.connect == nil || !client.HeartbeatCheck(client.heartbeatSeconds) {
+			client.connect.Close()
+			client.heartbeatTimer = nil
+			break
+		}
 
-			if client.xListener != nil {
-				err := client.xListener.OnHeartbeat(client.This().(ZeroClientConnect))
-				if err != nil {
-					global.Logger().Error(err.Error())
-				}
+		if client.xListener != nil {
+			err := client.xListener.OnHeartbeat(client.This().(ZeroClientConnect))
+			if err != nil {
+				global.Logger().Error(err.Error())
 			}
 		}
 		client.heartbeatTimer = time.NewTimer(time.Second * time.Duration(client.heartbeatCheckInterval))

@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 
 	"github.com/0meet1/zero-framework/global"
@@ -187,22 +186,22 @@ type MqttMessage struct {
 	variableHeader MqttCoreVariableHeader
 	payload        MqttCorePayload
 
-	caches []byte
+	// caches []byte
 }
 
-func (message *MqttMessage) makeCache(header *MqttFixedHeader, datas []byte) {
-	message.caches = make([]byte, 0)
-	message.fixedHeader = header
-	message.caches = append(message.caches, datas...)
-}
+// func (message *MqttMessage) makeCache(header *MqttFixedHeader, datas []byte) {
+// 	message.caches = make([]byte, 0)
+// 	message.fixedHeader = header
+// 	message.caches = append(message.caches, datas...)
+// }
 
-func (message *MqttMessage) cache(datas []byte) bool {
-	message.caches = append(message.caches, datas...)
-	if len(message.caches)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
-		return false
-	}
-	return true
-}
+// func (message *MqttMessage) cache(datas []byte) bool {
+// 	message.caches = append(message.caches, datas...)
+// 	if len(message.caches)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
+// 		return false
+// 	}
+// 	return true
+// }
 
 func (message *MqttMessage) build(data []byte) error {
 	defer func() {
@@ -232,7 +231,7 @@ func (message *MqttMessage) build(data []byte) error {
 	message.fixedHeader.build(data[0], lengthBytes)
 
 	if len(data)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
-		return errors.New(fmt.Sprintf("message less length inconsistent real %d record %d", len(data), message.fixedHeader.LessLength()))
+		return fmt.Errorf("message less length inconsistent real %d record %d", len(data), message.fixedHeader.LessLength())
 	}
 
 	fixedHeaderLen := len(message.fixedHeader.length) + 1
@@ -440,7 +439,7 @@ type MqttIdentifierVariableHeader struct {
 func (identifierHeader *MqttIdentifierVariableHeader) build(data []byte) error {
 	identifierHeader.MqttVariableHeader.build(data)
 	if len(identifierHeader.MqttVariableHeader.variableHeader) != 2 {
-		return errors.New(fmt.Sprintf("invalid connect variable header length : %d", len(identifierHeader.MqttVariableHeader.variableHeader)))
+		return fmt.Errorf("invalid connect variable header length : %d", len(identifierHeader.MqttVariableHeader.variableHeader))
 	}
 	return nil
 }
@@ -461,58 +460,58 @@ type MqttConnectVariableHeader struct {
 func (connectHeader *MqttConnectVariableHeader) build(data []byte) error {
 	connectHeader.MqttVariableHeader.build(data)
 	if len(connectHeader.MqttVariableHeader.variableHeader) != 10 {
-		return errors.New(fmt.Sprintf("invalid connect variable header length : %d", len(connectHeader.MqttVariableHeader.variableHeader)))
+		return fmt.Errorf("invalid connect variable header length : %d", len(connectHeader.MqttVariableHeader.variableHeader))
 	}
 
 	if connectHeader.ProtocolLength() != 4 {
-		return errors.New(fmt.Sprintf("invalid connect variable protocol length : %d", connectHeader.ProtocolLength()))
+		return fmt.Errorf("invalid connect variable protocol length : %d", connectHeader.ProtocolLength())
 	}
 
 	if connectHeader.Protocol() != MQTT_HEADER {
-		return errors.New(fmt.Sprintf("invalid connect variable protocol : %s", connectHeader.Protocol()))
+		return fmt.Errorf("invalid connect variable protocol : %s", connectHeader.Protocol())
 	}
 
 	return nil
 }
 
-func (connectHeader *MqttConnectVariableHeader) make(
-	level byte,
-	UserNameFlag byte,
-	PasswordFlag byte,
-	WillRetain byte,
-	WillQos byte,
-	WillFlag byte,
-	CleanSession byte,
-	KeepAlive int,
-) {
-	protocolLength := make([]byte, 8)
-	protocolLength[0] = 0x00
-	protocolLength[1] = 0x04
-	protocolLength[2] = 'M'
-	protocolLength[3] = 'Q'
-	protocolLength[4] = 'T'
-	protocolLength[5] = 'T'
-	protocolLength[6] = level
-	protocolLength[7] = 0x00
+// func (connectHeader *MqttConnectVariableHeader) make(
+// 	level byte,
+// 	UserNameFlag byte,
+// 	PasswordFlag byte,
+// 	WillRetain byte,
+// 	WillQos byte,
+// 	WillFlag byte,
+// 	CleanSession byte,
+// 	KeepAlive int,
+// ) {
+// 	protocolLength := make([]byte, 8)
+// 	protocolLength[0] = 0x00
+// 	protocolLength[1] = 0x04
+// 	protocolLength[2] = 'M'
+// 	protocolLength[3] = 'Q'
+// 	protocolLength[4] = 'T'
+// 	protocolLength[5] = 'T'
+// 	protocolLength[6] = level
+// 	protocolLength[7] = 0x00
 
-	keepAliveBuf := make([]byte, 2)
-	binary.BigEndian.PutUint16(keepAliveBuf, uint16(KeepAlive))
-	protocolLength = append(protocolLength, keepAliveBuf...)
+// 	keepAliveBuf := make([]byte, 2)
+// 	binary.BigEndian.PutUint16(keepAliveBuf, uint16(KeepAlive))
+// 	protocolLength = append(protocolLength, keepAliveBuf...)
 
-	protocolLength[7] += UserNameFlag
-	protocolLength[7] <<= 1
-	protocolLength[7] += PasswordFlag
-	protocolLength[7] <<= 1
-	protocolLength[7] += WillRetain
-	protocolLength[7] <<= 2
-	protocolLength[7] += WillQos
-	protocolLength[7] <<= 1
-	protocolLength[7] += WillFlag
-	protocolLength[7] <<= 1
-	protocolLength[7] += CleanSession
-	protocolLength[7] <<= 1
-	protocolLength[7] += 0b0
-}
+// 	protocolLength[7] += UserNameFlag
+// 	protocolLength[7] <<= 1
+// 	protocolLength[7] += PasswordFlag
+// 	protocolLength[7] <<= 1
+// 	protocolLength[7] += WillRetain
+// 	protocolLength[7] <<= 2
+// 	protocolLength[7] += WillQos
+// 	protocolLength[7] <<= 1
+// 	protocolLength[7] += WillFlag
+// 	protocolLength[7] <<= 1
+// 	protocolLength[7] += CleanSession
+// 	protocolLength[7] <<= 1
+// 	protocolLength[7] += 0b0
+// }
 
 func (connectHeader *MqttConnectVariableHeader) ProtocolLength() int {
 	return int(binary.BigEndian.Uint16(connectHeader.MqttVariableHeader.variableHeader[:2]))
@@ -565,7 +564,7 @@ type MqttConnackVariableHeader struct {
 func (connackHeader *MqttConnackVariableHeader) build(data []byte) error {
 	connackHeader.MqttVariableHeader.build(data)
 	if len(connackHeader.MqttVariableHeader.variableHeader) != 2 {
-		return errors.New(fmt.Sprintf("invalid connack variable header length : %d", len(connackHeader.MqttVariableHeader.variableHeader)))
+		return fmt.Errorf("invalid connack variable header length : %d", len(connackHeader.MqttVariableHeader.variableHeader))
 	}
 	return nil
 }
@@ -637,19 +636,19 @@ func (connectPayload *MqttParamsPayload) build(data []byte) error {
 	return nil
 }
 
-func (connectPayload *MqttParamsPayload) make(params ...string) error {
-	connectPayload.params = params
-	connectPayload.payload = make([]byte, 0)
+// func (connectPayload *MqttParamsPayload) make(params ...string) error {
+// 	connectPayload.params = params
+// 	connectPayload.payload = make([]byte, 0)
 
-	for i := 0; i < len(params); i++ {
-		paramLenBuf := make([]byte, 2)
-		binary.BigEndian.PutUint16(paramLenBuf, uint16(len(params[i])))
-		connectPayload.payload = append(connectPayload.payload, paramLenBuf...)
-		connectPayload.payload = append(connectPayload.payload, string(params[i])...)
-	}
+// 	for i := 0; i < len(params); i++ {
+// 		paramLenBuf := make([]byte, 2)
+// 		binary.BigEndian.PutUint16(paramLenBuf, uint16(len(params[i])))
+// 		connectPayload.payload = append(connectPayload.payload, paramLenBuf...)
+// 		connectPayload.payload = append(connectPayload.payload, string(params[i])...)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (connectPayload *MqttParamsPayload) Params() []string {
 	return connectPayload.params
@@ -688,20 +687,20 @@ func (subscribePayload *MqttSubscribePayload) build(data []byte) error {
 	return nil
 }
 
-func (subscribePayload *MqttSubscribePayload) make(topics []*MqttTopic) error {
-	subscribePayload.topics = topics
-	subscribePayload.payload = make([]byte, 0)
+// func (subscribePayload *MqttSubscribePayload) make(topics []*MqttTopic) error {
+// 	subscribePayload.topics = topics
+// 	subscribePayload.payload = make([]byte, 0)
 
-	for i := 0; i < len(topics); i++ {
-		paramLenBuf := make([]byte, 2)
-		binary.BigEndian.PutUint16(paramLenBuf, uint16(len(topics[i].TopicName)))
-		subscribePayload.payload = append(subscribePayload.payload, paramLenBuf...)
-		subscribePayload.payload = append(subscribePayload.payload, string(topics[i].TopicName)...)
-		subscribePayload.payload = append(subscribePayload.payload, topics[i].Qos)
-	}
+// 	for i := 0; i < len(topics); i++ {
+// 		paramLenBuf := make([]byte, 2)
+// 		binary.BigEndian.PutUint16(paramLenBuf, uint16(len(topics[i].TopicName)))
+// 		subscribePayload.payload = append(subscribePayload.payload, paramLenBuf...)
+// 		subscribePayload.payload = append(subscribePayload.payload, string(topics[i].TopicName)...)
+// 		subscribePayload.payload = append(subscribePayload.payload, topics[i].Qos)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (subscribePayload *MqttSubscribePayload) Topics() []*MqttTopic {
 	return subscribePayload.topics

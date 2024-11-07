@@ -285,6 +285,10 @@ type XhttpExecutor struct {
 	executor     http.Handler
 }
 
+type XhttpInterceptor interface {
+	Registry(*XhttpExecutor) http.Handler
+}
+
 func XhttpFuncHandle(funcx func(http.ResponseWriter, *http.Request), path ...string) *XhttpExecutor {
 	return &XhttpExecutor{
 		funcmode:     true,
@@ -298,6 +302,14 @@ func XhttpHandle(handler http.Handler, path ...string) *XhttpExecutor {
 		funcmode: false,
 		path:     mkuri(path...),
 		executor: handler,
+	}
+}
+
+func XhttpPerform(executor *XhttpExecutor, writer http.ResponseWriter, request *http.Request) {
+	if executor.funcmode {
+		executor.executorfunc(writer, request)
+	} else {
+		executor.executor.ServeHTTP(writer, request)
 	}
 }
 
@@ -321,6 +333,22 @@ func RunHttpServer(handlers ...*XhttpExecutor) {
 				http.Handle(path.Join(prefix, handler.path), handler.executor)
 				global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
 			}
+		}
+	}
+	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d%s", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"), prefix))
+	server.ListenAndServe()
+}
+
+func RunInterceptor(interceptor XhttpInterceptor, handlers ...*XhttpExecutor) {
+	prefix = path.Join("/", global.StringValue("zero.httpserver.prefix"))
+	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
+	for _, handler := range handlers {
+		if strings.HasSuffix(handler.path, "/") {
+			http.Handle(fmt.Sprintf("%s/", path.Join(prefix, handler.path)), interceptor.Registry(handler))
+			global.Logger().Info(fmt.Sprintf("http server register path : %s", fmt.Sprintf("%s/", path.Join(prefix, handler.path))))
+		} else {
+			http.Handle(path.Join(prefix, handler.path), interceptor.Registry(handler))
+			global.Logger().Info(fmt.Sprintf("http server register path : %s", path.Join(prefix, handler.path)))
 		}
 	}
 	global.Logger().Info(fmt.Sprintf("http server start on : http://%s:%d%s", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"), prefix))

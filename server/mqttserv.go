@@ -25,10 +25,10 @@ type MqttConnect struct {
 
 	topcis               map[string]byte
 	messageSerialNnumber uint16
-	connectMutex         sync.Mutex
-	serialNnumberMutex   sync.Mutex
+	// connectMutex         sync.Mutex
+	serialNnumberMutex sync.Mutex
 
-	active bool
+	// active bool
 
 	xListener MqttMessageListener
 }

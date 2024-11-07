@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -251,33 +250,31 @@ func (sockServer *ZeroSocketServer) UseConnect(registerId string) (ZeroConnect, 
 	if ok {
 		return connect, nil
 	}
-	return nil, errors.New(fmt.Sprintf("connect %s not found", registerId))
+	return nil, fmt.Errorf("connect %s not found", registerId)
 }
 
 func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
 	sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
 	for {
-		select {
-		case <-sockServer.heartbeatTimer.C:
-			global.Logger().Info(fmt.Sprintf("sock heartbeat check starting"))
-			removes := make([]ZeroConnect, 0)
-			sockServer.connectMutex.RLock()
-			for _, connect := range sockServer.connects {
-				if !connect.HeartbeatCheck(sockServer.heartbeatSeconds) {
-					removes = append(removes, connect)
-				}
+		<-sockServer.heartbeatTimer.C
+		global.Logger().Info("sock heartbeat check starting")
+		removes := make([]ZeroConnect, 0)
+		sockServer.connectMutex.RLock()
+		for _, connect := range sockServer.connects {
+			if !connect.HeartbeatCheck(sockServer.heartbeatSeconds) {
+				removes = append(removes, connect)
 			}
-			sockServer.connectMutex.RUnlock()
-
-			for _, conn := range removes {
-				global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.This().(ZeroConnect).RegisterId()))
-				err := conn.This().(ZeroConnect).Close()
-				if err != nil {
-					global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
-				}
-			}
-			global.Logger().Info(fmt.Sprintf("sock heartbeat check finished"))
 		}
+		sockServer.connectMutex.RUnlock()
+
+		for _, conn := range removes {
+			global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.This().(ZeroConnect).RegisterId()))
+			err := conn.This().(ZeroConnect).Close()
+			if err != nil {
+				global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
+			}
+		}
+		global.Logger().Info("sock heartbeat check finished")
 		sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
 	}
 }
