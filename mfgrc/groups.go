@@ -264,11 +264,9 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 				if err != nil {
 					xGroup.Failed(err.Error())
 				} else {
-					if xGroup.State() != WORKER_MONOGROUP_STATUS_COMPLETE {
-						err = xGroup.Complete()
-						if err != nil {
-							xGroup.Failed(err.Error())
-						}
+					err = xGroup.Complete()
+					if err != nil {
+						xGroup.Failed(err.Error())
 					}
 				}
 			}
