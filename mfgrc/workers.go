@@ -36,9 +36,9 @@ func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 
 func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono) error {
 	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 	monoLen := len(flux.monoMap)
 	_, ok := flux.monoMap[mono.XmonoId()]
-	flux.monoMutex.Unlock()
 
 	if ok {
 		return fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
@@ -48,29 +48,22 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono) error {
 		return fmt.Errorf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit)
 	}
 
-	flux.monoMutex.Lock()
 	flux.monoMap[mono.XmonoId()] = mono
-	flux.monoMutex.Unlock()
-
 	err := mono.Pending(flux)
 	if err != nil {
-		flux.monoMutex.Lock()
 		delete(flux.monoMap, mono.XmonoId())
-		flux.monoMutex.Unlock()
 		mono.Failed(err.Error())
 		return err
 	}
-	go func() {
-		flux.monos <- mono
-	}()
-
+	go func() { flux.monos <- mono }()
 	return nil
 }
 
 func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 	mono, ok := flux.monoMap[mono.XmonoId()]
-	flux.monoMutex.Unlock()
+
 	if !ok {
 		return fmt.Errorf("mono `%s` not found", mono.XmonoId())
 	}
@@ -81,8 +74,8 @@ func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 
 func (flux *ZeroMfgrcFlux) Check(mono MfgrcMono) bool {
 	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 	monoLen := len(flux.monoMap)
-	flux.monoMutex.Unlock()
 	return !(monoLen >= flux.keeper.maxQueueLimit)
 }
 
@@ -94,14 +87,12 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 			flux.monoMutex.Lock()
 			delete(flux.monoMap, mono.XmonoId())
 			monoLen := len(flux.monoMap)
-			flux.monoMutex.Unlock()
 			if monoLen <= 0 {
-				flux.monoMutex.Lock()
 				flux.monoMap = nil
 				flux.monos = nil
 				hasNext = false
-				flux.monoMutex.Unlock()
 			}
+			flux.monoMutex.Unlock()
 		}
 
 		var respmono func(err error)
@@ -147,7 +138,6 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 
 		<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
 		respmono(mono.Do())
-
 		cleanFluxMono()
 		if !hasNext {
 			break
