@@ -252,7 +252,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 		}
 
 		if xGroup != nil {
-			global.Logger().Info(fmt.Sprintf("[%s] workergroup with group `%s` device `%s`", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
+			global.Logger().Info(fmt.Sprintf("[%s] workergroup with group `%s` unique code `%s`", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
 			worker.executing = xGroup.XuniqueCode()
 
 			xGroup.AddWorker(worker)
@@ -273,7 +273,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 
 			worker.keeper.closeGroup(xGroup)
 
-			global.Logger().Info(fmt.Sprintf("[%s] workergroup `%s` device `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
+			global.Logger().Info(fmt.Sprintf("[%s] workergroup `%s` unique code `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
 			worker.executing = ""
 		}
 	}
@@ -413,7 +413,7 @@ func (keeper *ZeroMfgrcGroupKeeper) AddGroup(group MfgrcGroup) error {
 		group.Pending()
 		keeper.groupChan <- group
 	} else {
-		return fmt.Errorf("device `%s` is busy now", group.XuniqueCode())
+		return fmt.Errorf("unique code `%s` is busy now", group.XuniqueCode())
 	}
 
 	return nil
@@ -435,7 +435,7 @@ func (keeper *ZeroMfgrcGroupKeeper) Check(group MfgrcGroup) error {
 	keeper.groupMutex.Unlock()
 
 	if ok {
-		return fmt.Errorf("device `%s` is busy now", group.XuniqueCode())
+		return fmt.Errorf("unique code `%s` is busy now", group.XuniqueCode())
 	}
 
 	if groupMapLen >= keeper.maxGroupQueues {

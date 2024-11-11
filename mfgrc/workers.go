@@ -411,7 +411,7 @@ func (keeper *ZeroMfgrcKeeper) RevokeMono(mono MfgrcMono) error {
 	keeper.mfgrcMutex.Unlock()
 
 	if !ok {
-		return fmt.Errorf("device `%s` flux not found", mono.XuniqueCode())
+		return fmt.Errorf("unique code `%s` flux not found", mono.XuniqueCode())
 	} else {
 		err := flux.Revoke(mono)
 		if err != nil {
