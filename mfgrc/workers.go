@@ -14,7 +14,6 @@ type ZeroMfgrcFlux struct {
 	monoMap   map[string]MfgrcMono
 	monos     chan MfgrcMono
 	monoMutex sync.RWMutex
-	destroy   func()
 
 	keeper *ZeroMfgrcKeeper
 	worker *ZeroMfgrcWorker
@@ -79,15 +78,12 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 
 func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
 	mono, ok := flux.monoMap[mono.XmonoId()]
-
+	flux.monoMutex.Unlock()
 	if !ok {
 		return fmt.Errorf("mono `%s` not found", mono.XmonoId())
 	}
-	err := mono.Revoke()
-
-	return err
+	return mono.Revoke()
 }
 
 func (flux *ZeroMfgrcFlux) Check(mono MfgrcMono) bool {
@@ -165,11 +161,6 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 }
 
 func (flux *ZeroMfgrcFlux) Complete() *ZeroMfgrcFlux {
-	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
-	if flux.destroy != nil {
-		flux.destroy()
-	}
 	return flux.nextflux
 }
 
@@ -359,8 +350,8 @@ func (keeper *ZeroMfgrcKeeper) resumeMonos() {
 		}
 	}
 	keeper.statusMutex.Lock()
-	defer keeper.statusMutex.Unlock()
 	keeper.status = xKEEPER_STATUS_RUNNING
+	keeper.statusMutex.Unlock()
 
 	global.Logger().Info(" worker check and resume monos complete ")
 }
@@ -373,8 +364,8 @@ func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
 
 	if workerLen == 0 {
 		keeper.statusMutex.Lock()
-		defer keeper.statusMutex.Unlock()
 		keeper.status = xKEEPER_STATUS_STOPPED
+		keeper.statusMutex.Unlock()
 	} else {
 		global.Logger().Warn(fmt.Sprintf("[%s] warning! workers limit %d plans, actually %d", keeper.keeperName, keeper.maxQueues, workerLen))
 	}
