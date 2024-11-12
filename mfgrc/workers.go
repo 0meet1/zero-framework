@@ -211,17 +211,15 @@ func (worker *ZeroMfgrcWorker) Start() {
 
 	global.Logger().Info(fmt.Sprintf("[%s] ready waiting ...", worker.workName))
 	for xQueue := range worker.keeper.mfgrcChan {
-		fmt.Println("xxxxxxxxxxxxxx2")
 		worker.statusMutex.Lock()
 		xstatus := worker.status
 		worker.statusMutex.Unlock()
-		fmt.Println("xxxxxxxxxxxxxx3")
+
 		if xstatus != xWORKER_STATUS_RUNNING {
 			break
 		}
-		fmt.Println("xxxxxxxxxxxxxx4")
+
 		if xQueue != nil {
-			fmt.Println("xxxxxxxxxxxxxx5")
 			global.Logger().Info(fmt.Sprintf("[%s] exec flux `%s`", worker.workName, xQueue.UniqueId))
 			worker.executing = xQueue.UniqueId
 
@@ -406,7 +404,7 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 		mfgrcflux := &ZeroMfgrcFlux{}
 		mfgrcflux.Join(mono, keeper)
 		keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-		go func() { keeper.mfgrcChan <- flux }()
+		go func() { keeper.mfgrcChan <- mfgrcflux }()
 	} else {
 		err := flux.Push(mono, keeper)
 		if err != nil {
@@ -466,8 +464,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 				return err
 			}
 			keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-			go func() { keeper.mfgrcChan <- flux }()
-			fmt.Println("xxxxxxxxxxxxxx1")
+			go func() { keeper.mfgrcChan <- mfgrcflux }()
 		} else {
 			err := flux.Push(mono, keeper)
 			if err != nil {
