@@ -407,13 +407,10 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 
 	keeper.mfgrcMutex.Lock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
-	keeper.mfgrcMutex.Unlock()
 	if !ok {
 		mfgrcflux := &ZeroMfgrcFlux{}
 		mfgrcflux.Join(mono, keeper)
-		keeper.mfgrcMutex.Lock()
 		keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-		keeper.mfgrcMutex.Unlock()
 		go func() { keeper.mfgrcChan <- flux }()
 	} else {
 		err := flux.Push(mono, keeper)
@@ -421,6 +418,7 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 			return err
 		}
 	}
+	keeper.mfgrcMutex.Unlock()
 	return nil
 }
 
@@ -472,9 +470,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 			if err != nil {
 				return err
 			}
-			keeper.mfgrcMutex.Lock()
 			keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-			keeper.mfgrcMutex.Unlock()
 			go func() { keeper.mfgrcChan <- flux }()
 		} else {
 			err := flux.Push(mono, keeper)
