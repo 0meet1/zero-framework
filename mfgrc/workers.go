@@ -14,9 +14,12 @@ type ZeroMfgrcFlux struct {
 	monoMap   map[string]MfgrcMono
 	monos     chan MfgrcMono
 	monoMutex sync.RWMutex
+	destroy   func()
 
 	keeper *ZeroMfgrcKeeper
 	worker *ZeroMfgrcWorker
+
+	nextflux *ZeroMfgrcFlux
 }
 
 func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
@@ -24,19 +27,34 @@ func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux.UniqueId = mono.XuniqueCode()
 	flux.monoMap = make(map[string]MfgrcMono)
 	flux.monos = make(chan MfgrcMono, flux.keeper.maxQueueLimit)
-	err := flux.Push(mono)
+
+	err := flux.Push(mono, keeper)
 	if err != nil {
 		return err
 	}
-	go func() {
-		flux.keeper.mfgrcChan <- flux
-	}()
 	return nil
 }
 
-func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono) error {
+func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux.monoMutex.Lock()
 	defer flux.monoMutex.Unlock()
+
+	if flux.monoMap == nil {
+		if flux.nextflux == nil {
+			flux.nextflux = &ZeroMfgrcFlux{}
+			err := flux.nextflux.Join(mono, keeper)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := flux.nextflux.Push(mono, keeper)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	monoLen := len(flux.monoMap)
 	_, ok := flux.monoMap[mono.XmonoId()]
 
@@ -143,6 +161,16 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 			break
 		}
 	}
+
+}
+
+func (flux *ZeroMfgrcFlux) Complete() *ZeroMfgrcFlux {
+	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
+	if flux.destroy != nil {
+		flux.destroy()
+	}
+	return flux.nextflux
 }
 
 func (flux *ZeroMfgrcFlux) Export() (map[string]interface{}, error) {
@@ -355,6 +383,11 @@ func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
 func (keeper *ZeroMfgrcKeeper) closeFlux(flux *ZeroMfgrcFlux) {
 	keeper.mfgrcMutex.Lock()
 	delete(keeper.mfgrcMap, flux.UniqueId)
+	nextflux := flux.Complete()
+	if nextflux != nil {
+		keeper.mfgrcMap[nextflux.UniqueId] = nextflux
+		go func() { keeper.mfgrcChan <- flux }()
+	}
 	keeper.mfgrcMutex.Unlock()
 }
 
@@ -376,13 +409,14 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 	keeper.mfgrcMutex.Unlock()
 	if !ok {
-		mfgrcflux := ZeroMfgrcFlux{}
+		mfgrcflux := &ZeroMfgrcFlux{}
 		mfgrcflux.Join(mono, keeper)
 		keeper.mfgrcMutex.Lock()
-		keeper.mfgrcMap[mfgrcflux.UniqueId] = &mfgrcflux
+		keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
 		keeper.mfgrcMutex.Unlock()
+		go func() { keeper.mfgrcChan <- flux }()
 	} else {
-		err := flux.Push(mono)
+		err := flux.Push(mono, keeper)
 		if err != nil {
 			return err
 		}
@@ -433,14 +467,17 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 	for _, mono := range monos {
 		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 		if !ok {
-			mfgrcflux := ZeroMfgrcFlux{}
+			mfgrcflux := &ZeroMfgrcFlux{}
 			err := mfgrcflux.Join(mono, keeper)
 			if err != nil {
 				return err
 			}
-			keeper.mfgrcMap[mfgrcflux.UniqueId] = &mfgrcflux
+			keeper.mfgrcMutex.Lock()
+			keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
+			keeper.mfgrcMutex.Unlock()
+			go func() { keeper.mfgrcChan <- flux }()
 		} else {
-			err := flux.Push(mono)
+			err := flux.Push(mono, keeper)
 			if err != nil {
 				return err
 			}
