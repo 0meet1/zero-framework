@@ -209,23 +209,26 @@ func (worker *ZeroMfgrcWorker) Start() {
 	worker.status = xWORKER_STATUS_RUNNING
 	worker.statusMutex.Unlock()
 
-	global.Logger().Info(fmt.Sprintf("[%s] worker is ready and waiting", worker.workName))
+	global.Logger().Info(fmt.Sprintf("[%s] ready waiting ...", worker.workName))
 	for xQueue := range worker.keeper.mfgrcChan {
+		fmt.Println("xxxxxxxxxxxxxx2")
 		worker.statusMutex.Lock()
 		xstatus := worker.status
 		worker.statusMutex.Unlock()
+		fmt.Println("xxxxxxxxxxxxxx3")
 		if xstatus != xWORKER_STATUS_RUNNING {
 			break
 		}
-
+		fmt.Println("xxxxxxxxxxxxxx4")
 		if xQueue != nil {
-			global.Logger().Info(fmt.Sprintf("[%s] working with flux `%s`", worker.workName, xQueue.UniqueId))
+			fmt.Println("xxxxxxxxxxxxxx5")
+			global.Logger().Info(fmt.Sprintf("[%s] exec flux `%s`", worker.workName, xQueue.UniqueId))
 			worker.executing = xQueue.UniqueId
 
 			xQueue.Start(worker)
 			worker.keeper.closeFlux(xQueue)
 
-			global.Logger().Info(fmt.Sprintf("[%s] flux `%s` work complete", worker.workName, xQueue.UniqueId))
+			global.Logger().Info(fmt.Sprintf("[%s] flux `%s` complete", worker.workName, xQueue.UniqueId))
 			worker.executing = ""
 		}
 	}
@@ -373,13 +376,13 @@ func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
 
 func (keeper *ZeroMfgrcKeeper) closeFlux(flux *ZeroMfgrcFlux) {
 	keeper.mfgrcMutex.Lock()
+	defer keeper.mfgrcMutex.Unlock()
 	delete(keeper.mfgrcMap, flux.UniqueId)
 	nextflux := flux.Complete()
 	if nextflux != nil {
 		keeper.mfgrcMap[nextflux.UniqueId] = nextflux
 		go func() { keeper.mfgrcChan <- flux }()
 	}
-	keeper.mfgrcMutex.Unlock()
 }
 
 func (keeper *ZeroMfgrcKeeper) TaskWaitSeconds() int {
@@ -397,6 +400,7 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 	}
 
 	keeper.mfgrcMutex.Lock()
+	defer keeper.mfgrcMutex.Unlock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 	if !ok {
 		mfgrcflux := &ZeroMfgrcFlux{}
@@ -409,7 +413,6 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 			return err
 		}
 	}
-	keeper.mfgrcMutex.Unlock()
 	return nil
 }
 
@@ -453,6 +456,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 	}
 
 	keeper.mfgrcMutex.Lock()
+	defer keeper.mfgrcMutex.Unlock()
 	for _, mono := range monos {
 		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 		if !ok {
@@ -463,6 +467,7 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 			}
 			keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
 			go func() { keeper.mfgrcChan <- flux }()
+			fmt.Println("xxxxxxxxxxxxxx1")
 		} else {
 			err := flux.Push(mono, keeper)
 			if err != nil {
@@ -470,7 +475,6 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 			}
 		}
 	}
-	keeper.mfgrcMutex.Unlock()
 	return nil
 }
 

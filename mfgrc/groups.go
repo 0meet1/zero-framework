@@ -242,7 +242,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 	worker.status = xWORKER_STATUS_RUNNING
 	worker.statusMutex.Unlock()
 
-	global.Logger().Info(fmt.Sprintf("[%s] workergroup is ready and waiting", worker.workName))
+	global.Logger().Info(fmt.Sprintf("[%s] ready and waiting ...", worker.workName))
 	for xGroup := range worker.keeper.groupChan {
 		worker.statusMutex.Lock()
 		xstatus := worker.status
@@ -252,7 +252,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 		}
 
 		if xGroup != nil {
-			global.Logger().Info(fmt.Sprintf("[%s] workergroup with group `%s` unique code `%s`", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
+			global.Logger().Info(fmt.Sprintf("[%s] exec group `%s` unique code `%s`", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
 			worker.executing = xGroup.XuniqueCode()
 
 			xGroup.AddWorker(worker)
@@ -273,7 +273,7 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 
 			worker.keeper.closeGroup(xGroup)
 
-			global.Logger().Info(fmt.Sprintf("[%s] workergroup `%s` unique code `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
+			global.Logger().Info(fmt.Sprintf("[%s] `%s` unique code `%s` work complete", worker.workName, xGroup.XgroupId(), xGroup.XuniqueCode()))
 			worker.executing = ""
 		}
 	}
