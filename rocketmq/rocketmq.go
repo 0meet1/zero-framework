@@ -2,7 +2,6 @@ package rocketmq
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -154,14 +153,14 @@ func onMessage(_ context.Context, messages ...*primitive.MessageExt) (consumer.C
 			global.Logger().Info(fmt.Sprintf(" topic : %s test success", message.Topic))
 		default:
 			observerMutex.RLock()
-			if observers != nil {
-				for _, obs := range observers {
-					err := obs.OnMessage(&notify)
-					if err != nil {
-						global.Logger().Error(fmt.Sprintf(" message observer error %s", err.Error()))
-					}
+
+			for _, obs := range observers {
+				err := obs.OnMessage(&notify)
+				if err != nil {
+					global.Logger().Error(fmt.Sprintf(" message observer error %s", err.Error()))
 				}
 			}
+
 			observerMutex.RUnlock()
 			global.Logger().Debug(fmt.Sprintf(" topic : %s on message %s", message.Topic, string(message.Body)))
 		}
@@ -201,7 +200,7 @@ func (keeper *RocketmqKeeper) AddObservers(newObservers ...MQMessageObserver) er
 	for _, obs := range newObservers {
 		_, ok := observers[obs.Name()]
 		if ok {
-			return errors.New(fmt.Sprintf("mqobserver '%s' is already exists", obs.Name()))
+			return fmt.Errorf("mqobserver '%s' is already exists", obs.Name())
 		}
 	}
 	for _, obs := range newObservers {
