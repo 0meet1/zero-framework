@@ -113,7 +113,7 @@ func InitRocketMQ(newObservers ...MQMessageObserver) {
 }
 
 func initRocketMQConsumer() {
-	notifyPushConsumer, err := rocketmq.NewPushConsumer(
+	_notifyPushConsumer, err := rocketmq.NewPushConsumer(
 		consumer.WithGroupName(groupName),
 		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{nameserv})),
 		consumer.WithConsumerModel(consumer.Clustering),
@@ -123,22 +123,26 @@ func initRocketMQConsumer() {
 	}
 
 	for _, topic := range topics {
-		err = notifyPushConsumer.Subscribe(topic, consumer.MessageSelector{}, onMessage)
+		err = _notifyPushConsumer.Subscribe(topic, consumer.MessageSelector{}, onMessage)
 		if err != nil {
 			panic(err)
 		}
-		err = notifyPushConsumer.Start()
+		err = _notifyPushConsumer.Start()
 		if err != nil {
 			panic(err)
 		}
 	}
+	notifyPushConsumer = _notifyPushConsumer
 }
 
 func ShutdownNotifyConsumer() {
-	err := notifyPushConsumer.Shutdown()
-	if err != nil {
-		panic(err)
+	if notifyPushConsumer != nil {
+		err := notifyPushConsumer.Shutdown()
+		if err != nil {
+			panic(err)
+		}
 	}
+	global.Pop(ROCKETMQ_KEEPER)
 }
 
 func onMessage(_ context.Context, messages ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
