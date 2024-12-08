@@ -72,3 +72,10 @@ func (errdef *ZeroExceptionDef) Error() string {
 func Is(err error) bool {
 	return reflect.TypeOf(err) == reflect.TypeOf(ZeroExceptionDef{}) || reflect.TypeOf(err) == reflect.TypeOf(&ZeroExceptionDef{})
 }
+
+func Parse(errdef interface{}) *ZeroExceptionDef {
+	jsonbytes, _ := json.Marshal(errdef)
+	def := &ZeroExceptionDef{}
+	json.Unmarshal(jsonbytes, def)
+	return def
+}
