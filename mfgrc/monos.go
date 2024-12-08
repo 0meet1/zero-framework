@@ -193,14 +193,17 @@ func (mono *ZeroMfgrcMono) Executing() error {
 	return nil
 }
 
-func (mono *ZeroMfgrcMono) Retrying(reason string) error {
+func (mono *ZeroMfgrcMono) Retrying(reason error) error {
 	if mono.status != WORKER_MONO_STATUS_EXECUTING && mono.status != WORKER_MONO_STATUS_RETRYING {
 		return fmt.Errorf("could not retrying mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
 	if mono.executeTimes >= mono.maxExecuteTimes {
+		if errdef.Is(reason) {
+			mono.Features["errdef"] = reason
+		}
 		return fmt.Errorf("exceeded maximum attempts, maxExecuteTimes:%d executeTimes:%d at lastest error: %s", mono.maxExecuteTimes, mono.executeTimes, reason)
 	}
-	mono.reason = reason
+	mono.reason = reason.Error()
 	mono.status = WORKER_MONO_STATUS_RETRYING
 	mono.executeTimes++
 	if mono.xStore != nil {
@@ -276,6 +279,10 @@ func (mono *ZeroMfgrcMono) Delete() error {
 
 func (mono *ZeroMfgrcMono) Do() error {
 	return fmt.Errorf("mono `%s` option `%s` not implement", mono.MonoID, mono.Option)
+}
+
+func (mono *ZeroMfgrcMono) MaxExecuteTimes() int {
+	return mono.maxExecuteTimes
 }
 
 func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {

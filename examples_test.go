@@ -57,6 +57,6 @@ func TestConnectOracle(t *testing.T) {
 	// do somethings
 
 	// fmt.Println(processors.ParseJSONColumnName("Xc1Feature.abc"))
-
-	fmt.Println(reflect.TypeOf(&errdef.ZeroExceptionDef{}))
+	var err error = &errdef.ZeroExceptionDef{}
+	fmt.Println(reflect.TypeOf(err) == reflect.TypeOf(errdef.ZeroExceptionDef{}))
 }

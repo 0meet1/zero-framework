@@ -118,13 +118,17 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 				}
 			} else {
 				global.Logger().Error(fmt.Sprintf("flux `%s` mono `%s` error : %s", flux.UniqueId, mono.XmonoId(), err.Error()))
-				err := mono.Retrying(err.Error())
-				if err != nil {
+				if mono.MaxExecuteTimes() > 1 {
+					err := mono.Retrying(err)
+					if err != nil {
+						mono.Failed(err)
+						return
+					}
+					<-time.After(time.Second * time.Duration(flux.keeper.taskRetryInterval))
+					respmono(mono.Do())
+				} else {
 					mono.Failed(err)
-					return
 				}
-				<-time.After(time.Second * time.Duration(flux.keeper.taskRetryInterval))
-				respmono(mono.Do())
 			}
 		}
 

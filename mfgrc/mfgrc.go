@@ -33,11 +33,13 @@ type MfgrcMono interface {
 	Revoke() error
 	Timeout() error
 	Executing() error
-	Retrying(string) error
+	Retrying(error) error
 	Complete() error
 	Failed(error) error
 
 	Do() error
+
+	MaxExecuteTimes() int
 	Export() (map[string]interface{}, error)
 
 	Store(ZeroMfgrcMonoStore)
