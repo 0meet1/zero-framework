@@ -10,6 +10,7 @@ import (
 	"github.com/0meet1/zero-framework/autosqlconf"
 	"github.com/0meet1/zero-framework/consul"
 	"github.com/0meet1/zero-framework/database"
+	"github.com/0meet1/zero-framework/errdef"
 	"github.com/0meet1/zero-framework/mfgrc"
 	"github.com/0meet1/zero-framework/ossminiv2"
 	"github.com/0meet1/zero-framework/processors"
@@ -332,3 +333,15 @@ func Xfmove(srcpath string, distpath string) error {
 
 	return os.Remove(srcpath)
 }
+
+type ZeroExceptionDef = errdef.ZeroExceptionDef
+
+const (
+	EXCEPTION_KEEPER    = errdef.EXCEPTION_KEEPER
+	EXCEPTION_AUTO_PROC = errdef.EXCEPTION_AUTO_PROC
+	EXCEPTION_OPERATION = errdef.EXCEPTION_OPERATION
+
+	ES00500 = errdef.ES00500
+)
+
+type ZeroExceptionKeeper = errdef.ZeroExceptionKeeper
