@@ -161,7 +161,7 @@ func (group *ZeroMfgrcGroup) Complete() error {
 
 func (group *ZeroMfgrcGroup) Failed(reason error) error {
 	if errdef.Is(reason) {
-		group.Features["errdef"] = reason
+		group.Features["errdef"] = reason.(*errdef.ZeroExceptionDef).Export()
 	}
 	group.reason = reason.Error()
 	group.status = WORKER_MONOGROUP_STATUS_FAILED

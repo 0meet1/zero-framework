@@ -199,7 +199,7 @@ func (mono *ZeroMfgrcMono) Retrying(reason error) error {
 	}
 	if mono.executeTimes >= mono.maxExecuteTimes {
 		if errdef.Is(reason) {
-			mono.Features["errdef"] = reason
+			mono.Features["errdef"] = reason.(*errdef.ZeroExceptionDef).Export()
 		}
 		return fmt.Errorf("exceeded maximum attempts, maxExecuteTimes:%d executeTimes:%d at lastest error: %s", mono.maxExecuteTimes, mono.executeTimes, reason)
 	}
@@ -250,7 +250,7 @@ func (mono *ZeroMfgrcMono) Complete() error {
 
 func (mono *ZeroMfgrcMono) Failed(reason error) error {
 	if errdef.Is(reason) {
-		mono.Features["errdef"] = reason
+		mono.Features["errdef"] = reason.(*errdef.ZeroExceptionDef).Export()
 	}
 	mono.reason = reason.Error()
 	mono.status = WORKER_MONO_STATUS_FAILED

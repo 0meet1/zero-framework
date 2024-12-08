@@ -69,6 +69,13 @@ func (errdef *ZeroExceptionDef) Error() string {
 	return errdes
 }
 
+func (errdef *ZeroExceptionDef) Export() *ZeroExceptionDef {
+	return &ZeroExceptionDef{
+		Code:       errdef.Code,
+		Parameters: errdef.Parameters,
+	}
+}
+
 func Is(err error) bool {
 	return reflect.TypeOf(err) == reflect.TypeOf(ZeroExceptionDef{}) || reflect.TypeOf(err) == reflect.TypeOf(&ZeroExceptionDef{})
 }
