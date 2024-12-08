@@ -15,7 +15,7 @@ type ZeroExceptionDef struct {
 	autohttpconf.ZeroXsacXhttpStructs
 
 	Code        string                 `json:"code,omitempty" xhttpopt:"OX" xsacprop:"NO,VARCHAR(64),NULL" xsackey:"unique" xapi:"异常编号,String"`
-	Description string                 `json:"description,omitempty" xhttpopt:"OX" xsacprop:"NO,VARCHAR(1024),NULL" xsackey:"unique" xapi:"异常描述,String"`
+	Description string                 `json:"description,omitempty" xhttpopt:"OX" xsacprop:"NO,VARCHAR(1024),NULL" xapi:"异常描述,String"`
 	Parameters  map[string]interface{} `json:"parameters,omitempty"`
 }
 
