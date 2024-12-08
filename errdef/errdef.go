@@ -3,6 +3,7 @@ package errdef
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/0meet1/zero-framework/autohttpconf"
@@ -66,4 +67,8 @@ func (errdef *ZeroExceptionDef) Error() string {
 		}
 	}
 	return errdes
+}
+
+func Is(err error) bool {
+	return reflect.TypeOf(err) == reflect.TypeOf(ZeroExceptionDef{}) || reflect.TypeOf(err) == reflect.TypeOf(&ZeroExceptionDef{})
 }

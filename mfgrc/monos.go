@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/0meet1/zero-framework/errdef"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/structs"
 )
@@ -244,8 +245,11 @@ func (mono *ZeroMfgrcMono) Complete() error {
 	return nil
 }
 
-func (mono *ZeroMfgrcMono) Failed(reason string) error {
-	mono.reason = reason
+func (mono *ZeroMfgrcMono) Failed(reason error) error {
+	if errdef.Is(reason) {
+		mono.Features["errdef"] = reason
+	}
+	mono.reason = reason.Error()
 	mono.status = WORKER_MONO_STATUS_FAILED
 	if mono.xStore != nil {
 		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))

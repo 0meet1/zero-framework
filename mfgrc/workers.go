@@ -69,7 +69,7 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	err := mono.Pending(flux)
 	if err != nil {
 		delete(flux.monoMap, mono.XmonoId())
-		mono.Failed(err.Error())
+		mono.Failed(err)
 		return err
 	}
 	go func() { flux.monos <- mono }()
@@ -114,13 +114,13 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 			if err == nil {
 				err = mono.Complete()
 				if err != nil {
-					mono.Failed(err.Error())
+					mono.Failed(err)
 				}
 			} else {
 				global.Logger().Error(fmt.Sprintf("flux `%s` mono `%s` error : %s", flux.UniqueId, mono.XmonoId(), err.Error()))
 				err := mono.Retrying(err.Error())
 				if err != nil {
-					mono.Failed(err.Error())
+					mono.Failed(err)
 					return
 				}
 				<-time.After(time.Second * time.Duration(flux.keeper.taskRetryInterval))
@@ -140,7 +140,7 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 		if mono.State() == WORKER_MONO_STATUS_PENDING {
 			err := mono.Executing()
 			if err != nil {
-				mono.Failed(err.Error())
+				mono.Failed(err)
 				cleanFluxMono()
 				if !hasNext {
 					break

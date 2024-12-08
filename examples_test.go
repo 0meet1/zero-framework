@@ -1,7 +1,11 @@
 package zeroframework_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
+
+	"github.com/0meet1/zero-framework/errdef"
 )
 
 // func TestOSSMiniV2(t *testing.T) {
@@ -53,4 +57,6 @@ func TestConnectOracle(t *testing.T) {
 	// do somethings
 
 	// fmt.Println(processors.ParseJSONColumnName("Xc1Feature.abc"))
+
+	fmt.Println(reflect.TypeOf(&errdef.ZeroExceptionDef{}))
 }

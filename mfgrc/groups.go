@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/0meet1/zero-framework/errdef"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/structs"
 )
@@ -158,8 +159,11 @@ func (group *ZeroMfgrcGroup) Complete() error {
 	return nil
 }
 
-func (group *ZeroMfgrcGroup) Failed(reason string) error {
-	group.reason = reason
+func (group *ZeroMfgrcGroup) Failed(reason error) error {
+	if errdef.Is(reason) {
+		group.Features["errdef"] = reason
+	}
+	group.reason = reason.Error()
 	group.status = WORKER_MONOGROUP_STATUS_FAILED
 	if group.xStore != nil {
 		group.xStore.UpdateGroup(group.This().(MfgrcGroup))
@@ -258,15 +262,15 @@ func (worker *ZeroMfgrcGroupWorker) Start() {
 			xGroup.AddWorker(worker)
 			err := xGroup.Executing()
 			if err != nil {
-				xGroup.Failed(err.Error())
+				xGroup.Failed(err)
 			} else {
 				err = xGroup.Do()
 				if err != nil {
-					xGroup.Failed(err.Error())
+					xGroup.Failed(err)
 				} else {
 					err = xGroup.Complete()
 					if err != nil {
-						xGroup.Failed(err.Error())
+						xGroup.Failed(err)
 					}
 				}
 			}
@@ -361,7 +365,7 @@ func (keeper *ZeroMfgrcGroupKeeper) revokeMonoGroups() {
 			mono.Store(keeper.keeperOpts.MonoStore())
 			mono.Revoke()
 		}
-		group.Failed("group unexpected termination")
+		group.Failed(fmt.Errorf("group unexpected termination"))
 	}
 
 	keeper.statusMutex.Lock()

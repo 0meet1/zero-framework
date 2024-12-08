@@ -35,7 +35,7 @@ type MfgrcMono interface {
 	Executing() error
 	Retrying(string) error
 	Complete() error
-	Failed(string) error
+	Failed(error) error
 
 	Do() error
 	Export() (map[string]interface{}, error)
@@ -59,7 +59,7 @@ type MfgrcGroup interface {
 	Pending() error
 	Executing() error
 	Complete() error
-	Failed(string) error
+	Failed(error) error
 
 	Do() error
 	Export() (map[string]interface{}, error)
@@ -80,14 +80,14 @@ type ZeroMfgrcMonoEventListener interface {
 	OnExecuting(MfgrcMono) error
 	OnRetrying(MfgrcMono) error
 	OnComplete(MfgrcMono) error
-	OnFailed(MfgrcMono, string) error
+	OnFailed(MfgrcMono, error) error
 }
 
 type ZeroMfgrcGroupEventListener interface {
 	OnPending(MfgrcGroup) error
 	OnExecuting(MfgrcGroup) error
 	OnComplete(MfgrcGroup) error
-	OnFailed(MfgrcGroup, string) error
+	OnFailed(MfgrcGroup, error) error
 }
 
 type ZeroMfgrcKeeperOpts interface {
@@ -151,7 +151,7 @@ func (act *ZeroMfgrcMonoActuator) OnComplete(MfgrcMono) error {
 	}
 	return nil
 }
-func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason string) error {
+func (act *ZeroMfgrcMonoActuator) OnFailed(mono MfgrcMono, reason error) error {
 	if act.errchan != nil {
 		act.errchan <- fmt.Errorf("mono `%s` exec failed, reason: %s", act.mono.XmonoId(), reason)
 	}
@@ -192,7 +192,7 @@ func (act *ZeroMfgrcGroupActuator) OnComplete(MfgrcGroup) error {
 	}
 	return nil
 }
-func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason string) error {
+func (act *ZeroMfgrcGroupActuator) OnFailed(group MfgrcGroup, reason error) error {
 	if act.errchan != nil {
 		act.errchan <- fmt.Errorf("group `%s` exec failed, reason: %s", act.group.XgroupId(), reason)
 	}
@@ -261,7 +261,7 @@ func (act *ZeroMfgrcMonoQueueActuator) OnComplete(mono MfgrcMono) error {
 	act.check()
 	return nil
 }
-func (act *ZeroMfgrcMonoQueueActuator) OnFailed(mono MfgrcMono, reason string) error {
+func (act *ZeroMfgrcMonoQueueActuator) OnFailed(mono MfgrcMono, reason error) error {
 	if act.errchan == nil {
 		return nil
 	}
