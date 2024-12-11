@@ -2,10 +2,8 @@ package zeroframework_test
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
-
-	"github.com/0meet1/zero-framework/errdef"
+	"time"
 )
 
 // func TestOSSMiniV2(t *testing.T) {
@@ -40,6 +38,18 @@ import (
 // 	fmt.Println(xuri)
 // }
 
+func x2(c chan string) bool {
+	select {
+	case s := <-c:
+		fmt.Println(s)
+		return true
+
+	case <-time.After(time.Duration(500) * time.Millisecond):
+		fmt.Println("timeout ")
+		return false
+	}
+}
+
 func TestConnectOracle(t *testing.T) {
 	// database, err := gorm.Open(ora.Open("kangni/BSZnvPgL@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
 	// if err != nil {
@@ -57,6 +67,23 @@ func TestConnectOracle(t *testing.T) {
 	// do somethings
 
 	// fmt.Println(processors.ParseJSONColumnName("Xc1Feature.abc"))
-	var err error = &errdef.ZeroExceptionDef{}
-	fmt.Println(reflect.TypeOf(err) == reflect.TypeOf(errdef.ZeroExceptionDef{}))
+	// var err error = &errdef.ZeroExceptionDef{}
+	// fmt.Println(reflect.TypeOf(err) == reflect.TypeOf(errdef.ZeroExceptionDef{}))
+
+	c := make(chan string)
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			go func() {
+				c <- fmt.Sprintf("%d", i)
+			}()
+		}
+	}()
+
+	for {
+		if !x2(c) {
+			break
+		}
+	}
+
 }

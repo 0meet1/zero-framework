@@ -114,8 +114,8 @@ func (flux *ZeroMfgrcFlux) close() bool {
 
 func (flux *ZeroMfgrcFlux) cleanMono(mono MfgrcMono) {
 	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
 	delete(flux.monoMap, mono.XmonoId())
+	flux.monoMutex.Unlock()
 }
 
 func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
@@ -145,36 +145,36 @@ func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
 func (flux *ZeroMfgrcFlux) runLoop() bool {
 	select {
 	case mono := <-flux.monos:
-		if mono != nil {
-			if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
-				flux.cleanMono(mono)
-			} else {
-				if mono.State() == WORKER_MONO_STATUS_PENDING {
-					err := mono.Executing()
-					if err != nil {
-						mono.Failed(err)
-						flux.cleanMono(mono)
-					}
-				}
-				if mono.State() == WORKER_MONO_STATUS_EXECUTING {
-					flux.completeMono(mono, mono.Do())
+		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
+			flux.cleanMono(mono)
+		} else {
+			if mono.State() == WORKER_MONO_STATUS_PENDING {
+				err := mono.Executing()
+				if err != nil {
+					mono.Failed(err)
 					flux.cleanMono(mono)
 				}
 			}
-			if flux.keeper.taskIntervalSeconds > 0 {
-				<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
+			if mono.State() == WORKER_MONO_STATUS_EXECUTING {
+				flux.completeMono(mono, mono.Do())
+				flux.cleanMono(mono)
 			}
+		}
+		if flux.keeper.taskIntervalSeconds > 0 {
+			<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
 		}
 		return true
 	case <-time.After(time.Millisecond * time.Duration(500)):
-		flux.close()
-		return false
+		return flux.close()
 	}
 }
 
 func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 	flux.worker = worker
-	for ; ; flux.runLoop() {
+	for {
+		if !flux.runLoop() {
+			break
+		}
 	}
 }
 
@@ -196,7 +196,6 @@ func (flux *ZeroMfgrcFlux) Export() (map[string]interface{}, error) {
 		monosMap[key] = monoMap
 	}
 	exportMap["monos"] = monosMap
-
 	return exportMap, nil
 }
 
