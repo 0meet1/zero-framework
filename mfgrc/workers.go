@@ -154,17 +154,21 @@ func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
 			}
 		}
 
-		<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
 		respmono(mono.Do())
 		cleanFluxMono()
 		if !hasNext {
 			break
 		}
-	}
 
+		if flux.keeper.taskIntervalSeconds > 0 {
+			<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
+		}
+	}
 }
 
 func (flux *ZeroMfgrcFlux) Complete() *ZeroMfgrcFlux {
+	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 	return flux.nextflux
 }
 
@@ -520,6 +524,7 @@ func (keeper *ZeroMfgrcKeeper) Export() (map[string]interface{}, error) {
 	for workerName, worker := range keeper.workerMap {
 		workers[workerName] = worker.Export()
 	}
+
 	keeper.workerMutex.RUnlock()
 
 	fluxs := make(map[string]interface{})
