@@ -17,51 +17,27 @@ type ZeroMfgrcFlux struct {
 
 	keeper *ZeroMfgrcKeeper
 	worker *ZeroMfgrcWorker
-
-	nextflux *ZeroMfgrcFlux
 }
 
-func (flux *ZeroMfgrcFlux) Join(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
-	flux.keeper = keeper
+func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
+	flux := &ZeroMfgrcFlux{}
+	flux.open(keeper)
 	flux.UniqueId = mono.XuniqueCode()
-	flux.monoMap = make(map[string]MfgrcMono)
-	flux.monos = make(chan MfgrcMono, flux.keeper.maxQueueLimit)
-
-	err := flux.Push(mono, keeper)
-	if err != nil {
-		return err
-	}
-	return nil
+	keeper.mfgrcMap[flux.UniqueId] = flux
+	go func() { keeper.mfgrcChan <- flux }()
+	return flux.Push(mono, keeper)
 }
 
 func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux.monoMutex.Lock()
 	defer flux.monoMutex.Unlock()
 
-	if flux.monoMap == nil {
-		if flux.nextflux == nil {
-			flux.nextflux = &ZeroMfgrcFlux{}
-			err := flux.nextflux.Join(mono, keeper)
-			if err != nil {
-				return err
-			}
-		} else {
-			err := flux.nextflux.Push(mono, keeper)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	monoLen := len(flux.monoMap)
 	_, ok := flux.monoMap[mono.XmonoId()]
-
 	if ok {
 		return fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
 	}
 
-	if monoLen >= flux.keeper.maxQueueLimit {
+	if len(flux.monoMap) >= flux.keeper.maxQueueLimit {
 		return fmt.Errorf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit)
 	}
 
@@ -78,8 +54,8 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 
 func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 	mono, ok := flux.monoMap[mono.XmonoId()]
-	flux.monoMutex.Unlock()
 	if !ok {
 		return fmt.Errorf("mono `%s` not found", mono.XmonoId())
 	}
@@ -93,83 +69,88 @@ func (flux *ZeroMfgrcFlux) Check(mono MfgrcMono) bool {
 	return !(monoLen >= flux.keeper.maxQueueLimit)
 }
 
-func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
-	flux.worker = worker
-	for mono := range flux.monos {
-		hasNext := true
-		cleanFluxMono := func() {
-			flux.monoMutex.Lock()
-			delete(flux.monoMap, mono.XmonoId())
-			monoLen := len(flux.monoMap)
-			if monoLen <= 0 {
-				flux.monoMap = nil
-				flux.monos = nil
-				hasNext = false
-			}
-			flux.monoMutex.Unlock()
-		}
+func (flux *ZeroMfgrcFlux) open(keeper *ZeroMfgrcKeeper) {
+	flux.keeper = keeper
 
-		var respmono func(err error)
-		respmono = func(err error) {
-			if err == nil {
-				err = mono.Complete()
-				if err != nil {
-					mono.Failed(err)
-				}
-			} else {
-				global.Logger().Error(fmt.Sprintf("flux `%s` mono `%s` error : %s", flux.UniqueId, mono.XmonoId(), err.Error()))
-				if mono.MaxExecuteTimes() > 1 {
-					err := mono.Retrying(err)
-					if err != nil {
-						mono.Failed(err)
-						return
-					}
-					<-time.After(time.Second * time.Duration(flux.keeper.taskRetryInterval))
-					respmono(mono.Do())
-				} else {
-					mono.Failed(err)
-				}
-			}
-		}
+	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
 
-		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
-			cleanFluxMono()
-			if !hasNext {
-				break
-			} else {
-				continue
-			}
-		}
+	flux.monoMap = make(map[string]MfgrcMono)
+	flux.monos = make(chan MfgrcMono, flux.keeper.maxQueueLimit)
+}
 
-		if mono.State() == WORKER_MONO_STATUS_PENDING {
-			err := mono.Executing()
+func (flux *ZeroMfgrcFlux) close() bool {
+	flux.keeper.closeFlux(flux)
+
+	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
+	close(flux.monos)
+	flux.monoMap = nil
+	return false
+}
+
+func (flux *ZeroMfgrcFlux) cleanMono(mono MfgrcMono) {
+	flux.monoMutex.Lock()
+	defer flux.monoMutex.Unlock()
+	delete(flux.monoMap, mono.XmonoId())
+}
+
+func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
+	if err == nil {
+		err = mono.Complete()
+		if err != nil {
+			mono.Failed(err)
+		}
+	} else {
+		global.Logger().Error(fmt.Sprintf("flux `%s` mono `%s` error : %s", flux.UniqueId, mono.XmonoId(), err.Error()))
+		if mono.MaxExecuteTimes() > 1 {
+			err := mono.Retrying(err)
 			if err != nil {
 				mono.Failed(err)
-				cleanFluxMono()
-				if !hasNext {
-					break
-				} else {
-					continue
+			} else {
+				if flux.keeper.taskIntervalSeconds > 0 {
+					<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
 				}
+				flux.completeMono(mono, mono.Do())
 			}
-		}
-
-		respmono(mono.Do())
-		cleanFluxMono()
-		if !hasNext {
-			break
-		}
-
-		if flux.keeper.taskIntervalSeconds > 0 {
-			<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
+		} else {
+			mono.Failed(err)
 		}
 	}
 }
 
-func (flux *ZeroMfgrcFlux) Complete() *ZeroMfgrcFlux {
-	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
-	return flux.nextflux
+func (flux *ZeroMfgrcFlux) runLoop() bool {
+	select {
+	case mono := <-flux.monos:
+		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
+			flux.cleanMono(mono)
+		} else {
+			if mono.State() == WORKER_MONO_STATUS_PENDING {
+				err := mono.Executing()
+				if err != nil {
+					mono.Failed(err)
+					flux.cleanMono(mono)
+				}
+			}
+			if mono.State() == WORKER_MONO_STATUS_EXECUTING {
+				flux.completeMono(mono, mono.Do())
+				flux.cleanMono(mono)
+			}
+		}
+	case <-time.After(time.Millisecond * time.Duration(100)):
+		flux.close()
+		return false
+	}
+	if flux.keeper.taskIntervalSeconds > 0 {
+		<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
+	}
+	return true
+}
+
+func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
+	flux.worker = worker
+	for ; ; flux.runLoop() {
+	}
 }
 
 func (flux *ZeroMfgrcFlux) Export() (map[string]interface{}, error) {
@@ -232,7 +213,6 @@ func (worker *ZeroMfgrcWorker) Start() {
 			worker.executing = xQueue.UniqueId
 
 			xQueue.Start(worker)
-			worker.keeper.closeFlux(xQueue)
 
 			global.Logger().Info(fmt.Sprintf("[%s] flux `%s` complete", worker.workName, xQueue.UniqueId))
 			worker.executing = ""
@@ -384,11 +364,6 @@ func (keeper *ZeroMfgrcKeeper) closeFlux(flux *ZeroMfgrcFlux) {
 	keeper.mfgrcMutex.Lock()
 	defer keeper.mfgrcMutex.Unlock()
 	delete(keeper.mfgrcMap, flux.UniqueId)
-	nextflux := flux.Complete()
-	if nextflux != nil {
-		keeper.mfgrcMap[nextflux.UniqueId] = nextflux
-		go func() { keeper.mfgrcChan <- flux }()
-	}
 }
 
 func (keeper *ZeroMfgrcKeeper) TaskWaitSeconds() int {
@@ -409,17 +384,10 @@ func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
 	defer keeper.mfgrcMutex.Unlock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 	if !ok {
-		mfgrcflux := &ZeroMfgrcFlux{}
-		mfgrcflux.Join(mono, keeper)
-		keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-		go func() { keeper.mfgrcChan <- mfgrcflux }()
+		return newMfgrcFlux(mono, keeper)
 	} else {
-		err := flux.Push(mono, keeper)
-		if err != nil {
-			return err
-		}
+		return flux.Push(mono, keeper)
 	}
-	return nil
 }
 
 func (keeper *ZeroMfgrcKeeper) RevokeMono(mono MfgrcMono) error {
@@ -466,18 +434,9 @@ func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
 	for _, mono := range monos {
 		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 		if !ok {
-			mfgrcflux := &ZeroMfgrcFlux{}
-			err := mfgrcflux.Join(mono, keeper)
-			if err != nil {
-				return err
-			}
-			keeper.mfgrcMap[mfgrcflux.UniqueId] = mfgrcflux
-			go func() { keeper.mfgrcChan <- mfgrcflux }()
+			return newMfgrcFlux(mono, keeper)
 		} else {
-			err := flux.Push(mono, keeper)
-			if err != nil {
-				return err
-			}
+			return flux.Push(mono, keeper)
 		}
 	}
 	return nil
