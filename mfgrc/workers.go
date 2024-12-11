@@ -23,9 +23,13 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux := &ZeroMfgrcFlux{}
 	flux.open(keeper)
 	flux.UniqueId = mono.XuniqueCode()
+	err := flux.Push(mono, keeper)
+	if err != nil {
+		return err
+	}
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
-	return flux.Push(mono, keeper)
+	return nil
 }
 
 func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
@@ -48,7 +52,9 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 		mono.Failed(err)
 		return err
 	}
-	go func() { flux.monos <- mono }()
+	if flux.monos != nil {
+		go func() { flux.monos <- mono }()
+	}
 	return nil
 }
 
@@ -81,13 +87,15 @@ func (flux *ZeroMfgrcFlux) open(keeper *ZeroMfgrcKeeper) {
 
 func (flux *ZeroMfgrcFlux) close() bool {
 	flux.keeper.mfgrcMutex.Lock()
+	flux.monoMutex.Lock()
+
 	defer flux.keeper.mfgrcMutex.Unlock()
 	delete(flux.keeper.mfgrcMap, flux.UniqueId)
 
-	flux.monoMutex.Lock()
 	defer func() {
 		flux.monoMutex.Unlock()
 		<-time.After(time.Duration(500) * time.Millisecond)
+		flux.monoMutex.Lock()
 		for _, mono := range flux.monoMap {
 			if mono != nil {
 				err := flux.keeper.AddMono(mono)
@@ -97,8 +105,10 @@ func (flux *ZeroMfgrcFlux) close() bool {
 			}
 		}
 		flux.monoMap = nil
+		flux.monoMutex.Unlock()
 	}()
 	close(flux.monos)
+	flux.monos = nil
 	return false
 }
 
