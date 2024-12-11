@@ -87,9 +87,11 @@ func (flux *ZeroMfgrcFlux) close() bool {
 		flux.monoMutex.Unlock()
 		<-time.After(time.Duration(500) * time.Millisecond)
 		for _, mono := range flux.monoMap {
-			err := flux.keeper.AddMono(mono)
-			if err != nil {
-				global.Logger().Error(err.Error())
+			if mono != nil {
+				err := flux.keeper.AddMono(mono)
+				if err != nil {
+					global.Logger().Error(err.Error())
+				}
 			}
 		}
 		flux.monoMap = nil
@@ -131,9 +133,7 @@ func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
 func (flux *ZeroMfgrcFlux) runLoop() bool {
 	select {
 	case mono := <-flux.monos:
-		if mono.State() != WORKER_MONO_STATUS_PENDING &&
-			mono.State() != WORKER_MONO_STATUS_EXECUTING &&
-			mono.State() != WORKER_MONO_STATUS_RETRYING {
+		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
 			flux.cleanMono(mono)
 		} else {
 			if mono.State() == WORKER_MONO_STATUS_PENDING {
@@ -215,19 +215,18 @@ func (worker *ZeroMfgrcWorker) Start() {
 		xstatus := worker.status
 		worker.statusMutex.Unlock()
 
-		if xstatus != xWORKER_STATUS_RUNNING {
+		if xQueue == nil || xstatus != xWORKER_STATUS_RUNNING {
 			break
 		}
 
-		if xQueue != nil {
-			global.Logger().Info(fmt.Sprintf("[%s] exec flux `%s`", worker.workName, xQueue.UniqueId))
-			worker.executing = xQueue.UniqueId
+		global.Logger().Info(fmt.Sprintf("[%s] exec flux `%s`", worker.workName, xQueue.UniqueId))
+		worker.executing = xQueue.UniqueId
 
-			xQueue.Start(worker)
+		xQueue.Start(worker)
 
-			global.Logger().Info(fmt.Sprintf("[%s] flux `%s` complete", worker.workName, xQueue.UniqueId))
-			worker.executing = ""
-		}
+		global.Logger().Info(fmt.Sprintf("[%s] flux `%s` complete", worker.workName, xQueue.UniqueId))
+		worker.executing = ""
+
 	}
 	worker.keeper.closeWorker(worker)
 	global.Logger().Info(fmt.Sprintf("[%s] warning! worker is shutdown now", worker.workName))
