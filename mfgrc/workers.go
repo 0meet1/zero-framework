@@ -23,13 +23,9 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux := &ZeroMfgrcFlux{}
 	flux.open(keeper)
 	flux.UniqueId = mono.XuniqueCode()
-	err := flux.Push(mono, keeper)
-	if err != nil {
-		return err
-	}
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
-	return nil
+	return flux.Push(mono, keeper)
 }
 
 func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
@@ -135,7 +131,9 @@ func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
 func (flux *ZeroMfgrcFlux) runLoop() bool {
 	select {
 	case mono := <-flux.monos:
-		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
+		if mono.State() != WORKER_MONO_STATUS_PENDING &&
+			mono.State() != WORKER_MONO_STATUS_EXECUTING &&
+			mono.State() != WORKER_MONO_STATUS_RETRYING {
 			flux.cleanMono(mono)
 		} else {
 			if mono.State() == WORKER_MONO_STATUS_PENDING {
