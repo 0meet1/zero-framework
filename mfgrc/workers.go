@@ -150,14 +150,14 @@ func (flux *ZeroMfgrcFlux) runLoop() bool {
 				flux.cleanMono(mono)
 			}
 		}
+		if flux.keeper.taskIntervalSeconds > 0 {
+			<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
+		}
+		return true
 	case <-time.After(time.Millisecond * time.Duration(100)):
 		flux.close()
 		return false
 	}
-	if flux.keeper.taskIntervalSeconds > 0 {
-		<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
-	}
-	return true
 }
 
 func (flux *ZeroMfgrcFlux) Start(worker *ZeroMfgrcWorker) {
