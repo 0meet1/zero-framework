@@ -109,24 +109,27 @@ func (mono *ZeroMfgrcMono) Ready(keeper *ZeroMfgrcKeeper, store ...ZeroMfgrcMono
 }
 
 func (mono *ZeroMfgrcMono) Pending(flux *ZeroMfgrcFlux) error {
-	if mono.status != WORKER_MONO_STATUS_READY {
+	if mono.status != WORKER_MONO_STATUS_READY && mono.status != WORKER_MONO_STATUS_PENDING {
 		return fmt.Errorf("could not pending mono `%s` status `%s`", mono.MonoID, mono.status)
 	}
-	mono.fromFlux = flux
-	mono.status = WORKER_MONO_STATUS_PENDING
-	if mono.xStore != nil {
-		err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
-		if err != nil {
-			global.Logger().Error(err.Error())
+
+	if mono.status == WORKER_MONO_STATUS_READY {
+		mono.fromFlux = flux
+		mono.status = WORKER_MONO_STATUS_PENDING
+		if mono.xStore != nil {
+			err := mono.xStore.UpdateMono(mono.This().(MfgrcMono))
+			if err != nil {
+				global.Logger().Error(err.Error())
+			}
 		}
-	}
-	if mono.xListener != nil {
-		err := mono.xListener.OnPending(mono.This().(MfgrcMono))
-		if err != nil {
-			global.Logger().Error(err.Error())
+		if mono.xListener != nil {
+			err := mono.xListener.OnPending(mono.This().(MfgrcMono))
+			if err != nil {
+				global.Logger().Error(err.Error())
+			}
 		}
+		global.Logger().Info(fmt.Sprintf("mono `%s` is pending in flux `%s`", mono.MonoID, mono.fromFlux.UniqueId))
 	}
-	global.Logger().Info(fmt.Sprintf("mono `%s` is pending in flux `%s`", mono.MonoID, mono.fromFlux.UniqueId))
 	return nil
 }
 

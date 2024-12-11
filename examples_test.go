@@ -82,6 +82,7 @@ func TestConnectOracle(t *testing.T) {
 
 	for {
 		if !x2(c) {
+			close(c)
 			break
 		}
 	}
