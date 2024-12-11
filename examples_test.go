@@ -1,9 +1,7 @@
 package zeroframework_test
 
 import (
-	"fmt"
 	"testing"
-	"time"
 )
 
 // func TestOSSMiniV2(t *testing.T) {
@@ -38,17 +36,17 @@ import (
 // 	fmt.Println(xuri)
 // }
 
-func x2(c chan string) bool {
-	select {
-	case s := <-c:
-		fmt.Println(s)
-		return true
+// func x2(c chan string) bool {
+// 	select {
+// 	case s := <-c:
+// 		fmt.Println(s)
+// 		return true
 
-	case <-time.After(time.Duration(500) * time.Millisecond):
-		fmt.Println("timeout ")
-		return false
-	}
-}
+// 	case <-time.After(time.Duration(500) * time.Millisecond):
+// 		fmt.Println("timeout ")
+// 		return false
+// 	}
+// }
 
 func TestConnectOracle(t *testing.T) {
 	// database, err := gorm.Open(ora.Open("kangni/BSZnvPgL@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
