@@ -80,7 +80,9 @@ func (flux *ZeroMfgrcFlux) open(keeper *ZeroMfgrcKeeper) {
 }
 
 func (flux *ZeroMfgrcFlux) close() bool {
-	flux.keeper.closeFlux(flux)
+	flux.keeper.mfgrcMutex.Lock()
+	defer flux.keeper.mfgrcMutex.Unlock()
+	delete(flux.keeper.mfgrcMap, flux.UniqueId)
 
 	flux.monoMutex.Lock()
 	defer func() {
@@ -370,12 +372,6 @@ func (keeper *ZeroMfgrcKeeper) closeWorker(worker *ZeroMfgrcWorker) {
 	} else {
 		global.Logger().Warn(fmt.Sprintf("[%s] warning! workers limit %d plans, actually %d", keeper.keeperName, keeper.maxQueues, workerLen))
 	}
-}
-
-func (keeper *ZeroMfgrcKeeper) closeFlux(flux *ZeroMfgrcFlux) {
-	keeper.mfgrcMutex.Lock()
-	defer keeper.mfgrcMutex.Unlock()
-	delete(keeper.mfgrcMap, flux.UniqueId)
 }
 
 func (keeper *ZeroMfgrcKeeper) TaskWaitSeconds() int {
