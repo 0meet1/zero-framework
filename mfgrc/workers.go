@@ -133,26 +133,28 @@ func (flux *ZeroMfgrcFlux) completeMono(mono MfgrcMono, err error) {
 func (flux *ZeroMfgrcFlux) runLoop() bool {
 	select {
 	case mono := <-flux.monos:
-		if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
-			flux.cleanMono(mono)
-		} else {
-			if mono.State() == WORKER_MONO_STATUS_PENDING {
-				err := mono.Executing()
-				if err != nil {
-					mono.Failed(err)
+		if mono != nil {
+			if mono.State() != WORKER_MONO_STATUS_PENDING && mono.State() != WORKER_MONO_STATUS_EXECUTING && mono.State() != WORKER_MONO_STATUS_RETRYING {
+				flux.cleanMono(mono)
+			} else {
+				if mono.State() == WORKER_MONO_STATUS_PENDING {
+					err := mono.Executing()
+					if err != nil {
+						mono.Failed(err)
+						flux.cleanMono(mono)
+					}
+				}
+				if mono.State() == WORKER_MONO_STATUS_EXECUTING {
+					flux.completeMono(mono, mono.Do())
 					flux.cleanMono(mono)
 				}
 			}
-			if mono.State() == WORKER_MONO_STATUS_EXECUTING {
-				flux.completeMono(mono, mono.Do())
-				flux.cleanMono(mono)
+			if flux.keeper.taskIntervalSeconds > 0 {
+				<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
 			}
 		}
-		if flux.keeper.taskIntervalSeconds > 0 {
-			<-time.After(time.Second * time.Duration(flux.keeper.taskIntervalSeconds))
-		}
 		return true
-	case <-time.After(time.Millisecond * time.Duration(100)):
+	case <-time.After(time.Millisecond * time.Duration(500)):
 		flux.close()
 		return false
 	}
