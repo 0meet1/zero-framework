@@ -86,14 +86,7 @@ func (flux *ZeroMfgrcFlux) open(keeper *ZeroMfgrcKeeper) {
 }
 
 func (flux *ZeroMfgrcFlux) close() bool {
-	flux.keeper.mfgrcMutex.Lock()
-	flux.monoMutex.Lock()
-
-	defer flux.keeper.mfgrcMutex.Unlock()
-	delete(flux.keeper.mfgrcMap, flux.UniqueId)
-
 	defer func() {
-		flux.monoMutex.Unlock()
 		<-time.After(time.Duration(500) * time.Millisecond)
 		flux.monoMutex.Lock()
 		for _, mono := range flux.monoMap {
@@ -107,8 +100,15 @@ func (flux *ZeroMfgrcFlux) close() bool {
 		flux.monoMap = nil
 		flux.monoMutex.Unlock()
 	}()
+
+	flux.keeper.mfgrcMutex.Lock()
+	delete(flux.keeper.mfgrcMap, flux.UniqueId)
+	flux.keeper.mfgrcMutex.Unlock()
+
+	flux.monoMutex.Lock()
 	close(flux.monos)
 	flux.monos = nil
+	flux.monoMutex.Unlock()
 	return false
 }
 
