@@ -300,10 +300,11 @@ func Xfwrite(srcpath string, datas []byte) error {
 	}
 
 	distfile, err := os.Create(srcpath)
-	defer distfile.Close()
 	if err != nil {
 		return err
 	}
+	defer distfile.Close()
+
 	distfile.Write(datas)
 	return nil
 }
@@ -313,10 +314,10 @@ func Xfread(srcpath string) ([]byte, error) {
 		return nil, errors.New("file `" + srcpath + "` not found")
 	}
 	file, err := os.Open(srcpath)
-	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	return io.ReadAll(file)
 }
 

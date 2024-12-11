@@ -70,21 +70,21 @@ func TestConnectOracle(t *testing.T) {
 	// var err error = &errdef.ZeroExceptionDef{}
 	// fmt.Println(reflect.TypeOf(err) == reflect.TypeOf(errdef.ZeroExceptionDef{}))
 
-	c := make(chan string)
+	// c := make(chan string)
 
-	go func() {
-		for i := 0; i < 100; i++ {
-			go func() {
-				c <- fmt.Sprintf("%d", i)
-			}()
-		}
-	}()
+	// go func() {
+	// 	for i := 0; i < 100; i++ {
+	// 		go func() {
+	// 			c <- fmt.Sprintf("%d", i)
+	// 		}()
+	// 	}
+	// }()
 
-	for {
-		if !x2(c) {
-			close(c)
-			break
-		}
-	}
+	// for {
+	// 	if !x2(c) {
+	// 		close(c)
+	// 		break
+	// 	}
+	// }
 
 }
