@@ -2,7 +2,6 @@ package processors
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -60,18 +59,23 @@ func (opera *ZeroMysqlQueryOperation) parserConditions(condition *ZeroCondition)
 	if condition.Relation == nil || len(condition.Relation) <= 0 {
 		symbol, ok := symbols()[condition.Symbol]
 		if !ok {
-			return "", errors.New(fmt.Sprintf("symbol `%s` not found", condition.Symbol))
+			return "", fmt.Errorf("symbol `%s` not found", condition.Symbol)
 		}
 
-		if strings.Index(condition.Column, ".") > 1 {
-			return fmt.Sprintf("(%s %s '%s')", parseJSONColumnName(condition.Column), symbol, condition.Value), nil
+		if strings.HasPrefix(condition.Column, "@") {
+			return fmt.Sprintf("(%s %s '%s')", strings.ReplaceAll(condition.Column, "@", ""), symbol, condition.Value), nil
 		} else {
-			return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
+
+			if strings.Index(condition.Column, ".") > 1 {
+				return fmt.Sprintf("(%s %s '%s')", parseJSONColumnName(condition.Column), symbol, condition.Value), nil
+			} else {
+				return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
+			}
 		}
 	} else {
 		relatSymbol, ok := relations()[condition.Symbol]
 		if !ok {
-			return "", errors.New(fmt.Sprintf("relation `%s` not found", condition.Symbol))
+			return "", fmt.Errorf("relation `%s` not found", condition.Symbol)
 		}
 
 		relats := make([]string, len(condition.Relation))
@@ -98,7 +102,11 @@ func (opera *ZeroMysqlQueryOperation) makeColumns() {
 	} else {
 		columns := make([]string, len(opera.query.Columns))
 		for i, column := range opera.query.Columns {
-			columns[i] = fmt.Sprintf("`%s`", exHumpToLine(column))
+			if strings.HasPrefix(column, "@") {
+				columns[i] = strings.ReplaceAll(column, "@", "")
+			} else {
+				columns[i] = fmt.Sprintf("`%s`", exHumpToLine(column))
+			}
 		}
 		opera.columns = fmt.Sprintf(" %s%s ", columnsPrefix, strings.Join(columns, fmt.Sprintf(", %s", columnsPrefix)))
 	}
@@ -123,8 +131,11 @@ func (opera *ZeroMysqlQueryOperation) makeOrderby() {
 	} else {
 		orders := make([]string, len(opera.query.Orderby))
 		for i, o := range opera.query.Orderby {
-
-			orders[i] = fmt.Sprintf(" `%s` %s", exHumpToLine(o.Column), o.Seq)
+			if strings.HasPrefix(o.Column, "@") {
+				orders[i] = fmt.Sprintf(" %s %s", strings.ReplaceAll(o.Column, "@", ""), o.Seq)
+			} else {
+				orders[i] = fmt.Sprintf(" `%s` %s", exHumpToLine(o.Column), o.Seq)
+			}
 		}
 		opera.orderby = fmt.Sprintf(" ORDER BY %s ", strings.Join(orders, ","))
 	}
