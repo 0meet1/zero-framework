@@ -2,7 +2,6 @@ package processors
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 )
@@ -90,7 +89,7 @@ func (processor *ZeroCoreProcessor) DatabaseDatetime() (*time.Time, error) {
 		return nil, err
 	}
 	if !rows.Next() {
-		return nil, errors.New(fmt.Sprintf("query -> %s result error", FETCH_DATE_SQL))
+		return nil, fmt.Errorf("query -> %s result error", FETCH_DATE_SQL)
 	}
 	var datetime time.Time
 	err = rows.Scan(&datetime)

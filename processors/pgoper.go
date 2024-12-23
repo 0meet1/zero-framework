@@ -2,7 +2,6 @@ package processors
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -62,13 +61,13 @@ func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroConditi
 	if condition.Relation == nil || len(condition.Relation) <= 0 {
 		symbol, ok := symbols()[condition.Symbol]
 		if !ok {
-			return "", errors.New(fmt.Sprintf("symbol `%s` not found", condition.Symbol))
+			return "", fmt.Errorf("symbol `%s` not found", condition.Symbol)
 		}
 		return fmt.Sprintf("(\"%s\" %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
 	} else {
 		relatSymbol, ok := relations()[condition.Symbol]
 		if !ok {
-			return "", errors.New(fmt.Sprintf("relation `%s` not found", condition.Symbol))
+			return "", fmt.Errorf("relation `%s` not found", condition.Symbol)
 		}
 
 		relats := make([]string, len(condition.Relation))
@@ -129,9 +128,9 @@ func (opera *ZeroPostgresQueryOperation) makeOrderby() {
 func (opera *ZeroPostgresQueryOperation) makeLimit() {
 
 	if opera.query.Limit.Length > 0 {
-		if opera.query.Limit.Length > 100 {
+		if opera.query.Limit.Length > 5000 {
 			opera.Start = opera.query.Limit.Start
-			opera.Length = 100
+			opera.Length = 5000
 		} else {
 			opera.Start = opera.query.Limit.Start
 			opera.Length = opera.query.Limit.Length
@@ -193,8 +192,8 @@ func (opera *ZeroPostgresQueryOperation) makeQueryCountSQL() string {
 	queryCountSQL := ""
 	if len(opera.distinctID) > 0 && len(opera.filterTableName) > 0 {
 		queryCountSQL = strings.ReplaceAll(DISTINCT_POSTGRES_QUERY_COUNT_SQL_TEMPLATE, "{{conditions}}", opera.conditions)
-		queryCountSQL = strings.ReplaceAll(DISTINCT_POSTGRES_QUERY_COUNT_SQL_TEMPLATE, "{{distinctID}}", opera.distinctID)
-		queryCountSQL = strings.ReplaceAll(DISTINCT_POSTGRES_QUERY_COUNT_SQL_TEMPLATE, "{{filterTableName}}", opera.filterTableName)
+		queryCountSQL = strings.ReplaceAll(queryCountSQL, "{{distinctID}}", opera.distinctID)
+		queryCountSQL = strings.ReplaceAll(queryCountSQL, "{{filterTableName}}", opera.filterTableName)
 	} else {
 		queryCountSQL = fmt.Sprintf("SELECT count(1) AS QUERY_COUNT FROM %s%s", opera.tableName, opera.conditions)
 	}

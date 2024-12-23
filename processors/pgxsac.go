@@ -30,9 +30,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) AddTriggers(triggers ...structs.
 	if processor.triggers == nil {
 		processor.triggers = make([]structs.ZeroXsacTrigger, 0)
 	}
-	for _, trigger := range triggers {
-		processor.triggers = append(processor.triggers, trigger)
-	}
+	processor.triggers = append(processor.triggers, triggers...)
 }
 
 func (processor *ZeroXsacPostgresAutoProcessor) on(eventType string, data interface{}) error {

@@ -30,9 +30,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) AddTriggers(triggers ...structs.Zer
 	if processor.triggers == nil {
 		processor.triggers = make([]structs.ZeroXsacTrigger, 0)
 	}
-	for _, trigger := range triggers {
-		processor.triggers = append(processor.triggers, trigger)
-	}
+	processor.triggers = append(processor.triggers, triggers...)
 }
 
 func (processor *ZeroXsacMysqlAutoProcessor) on(eventType string, data interface{}) error {

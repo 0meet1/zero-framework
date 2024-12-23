@@ -42,7 +42,7 @@ func symbols() map[string]string {
 	}
 }
 
-func orderby() map[string]string {
+func Orderby() map[string]string {
 	return map[string]string{
 		ORDER_BY_ASC:  " ASC ",
 		ORDER_BY_DESC: " DESC ",
@@ -69,10 +69,10 @@ func exHumpToLine(name string) string {
 			buf.WriteByte(c)
 		}
 	}
-	return string(buf.Bytes())
+	return buf.String()
 }
 
-func exLineToHump(name string) string {
+func ExLineToHump(name string) string {
 	namebytes := []byte(name)
 	var buf bytes.Buffer
 	nextc := false
@@ -88,7 +88,7 @@ func exLineToHump(name string) string {
 			buf.WriteByte(c)
 		}
 	}
-	return string(buf.Bytes())
+	return buf.String()
 }
 
 func parseJSONColumnName(name string) string {

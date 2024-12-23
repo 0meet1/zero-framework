@@ -144,9 +144,9 @@ func (opera *ZeroMysqlQueryOperation) makeOrderby() {
 func (opera *ZeroMysqlQueryOperation) makeLimit() {
 
 	if opera.query.Limit.Length > 0 {
-		if opera.query.Limit.Length > 100 {
+		if opera.query.Limit.Length > 5000 {
 			opera.Start = opera.query.Limit.Start
-			opera.Length = 100
+			opera.Length = 5000
 		} else {
 			opera.Start = opera.query.Limit.Start
 			opera.Length = opera.query.Limit.Length
