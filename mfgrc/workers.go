@@ -52,9 +52,15 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 		mono.Failed(err)
 		return err
 	}
-	if flux.monos != nil {
-		go func() { flux.monos <- mono }()
-	}
+
+	go func() {
+		flux.monoMutex.Lock()
+		if flux.monos != nil {
+			flux.monos <- mono
+		}
+		flux.monoMutex.Unlock()
+	}()
+
 	return nil
 }
 
