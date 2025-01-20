@@ -1,6 +1,8 @@
 
 .DS_Store
+vscode
 .vscode
 *.sum
 deploy
+vscode/**
 .vscode/**
