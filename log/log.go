@@ -24,7 +24,7 @@ func (s *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 type ConsoleWriter struct{}
 
 func (writer *ConsoleWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf(string(bytes))
+	fmt.Printf("%s", string(bytes))
 	return len(bytes), nil
 }
 
