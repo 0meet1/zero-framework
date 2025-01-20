@@ -53,13 +53,11 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 		return err
 	}
 
-	go func() {
-		flux.monoMutex.Lock()
-		if flux.monos != nil {
-			flux.monos <- mono
-		}
-		flux.monoMutex.Unlock()
-	}()
+	flux.monoMutex.Lock()
+	if flux.monos != nil {
+		go func() { flux.monos <- mono }()
+	}
+	flux.monoMutex.Unlock()
 
 	return nil
 }
@@ -110,11 +108,6 @@ func (flux *ZeroMfgrcFlux) close() bool {
 	flux.keeper.mfgrcMutex.Lock()
 	delete(flux.keeper.mfgrcMap, flux.UniqueId)
 	flux.keeper.mfgrcMutex.Unlock()
-
-	flux.monoMutex.Lock()
-	close(flux.monos)
-	flux.monos = nil
-	flux.monoMutex.Unlock()
 	return false
 }
 
