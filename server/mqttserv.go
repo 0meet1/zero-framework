@@ -8,6 +8,10 @@ import (
 	"github.com/0meet1/zero-framework/global"
 )
 
+const (
+	CORE_MQTT_SERVER = "##!CORE_MQTT_SERVER"
+)
+
 type MqttMessageListener interface {
 	Publish(ZeroConnect, *MqttMessage) error
 }
@@ -16,6 +20,9 @@ type xMqttConnectBuilder struct{}
 
 func (xDefault *xMqttConnectBuilder) NewConnect() ZeroConnect {
 	return &MqttConnect{
+		ZeroSocketConnect: ZeroSocketConnect{
+			zserv: global.Value(CORE_MQTT_SERVER).(*MqttServer),
+		},
 		topcis: make(map[string]byte),
 	}
 }
@@ -211,4 +218,5 @@ func (mqttserv *MqttServer) RunServer() {
 		mqttserv.ConnectBuilder = &xMqttConnectBuilder{}
 	}
 	mqttserv.TCPServer.RunServer()
+	global.Key(CORE_MQTT_SERVER, mqttserv)
 }

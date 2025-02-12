@@ -82,7 +82,9 @@ func (zSock *ZeroSocketConnect) HeartbeatTime() int64 {
 
 func (zSock *ZeroSocketConnect) Accept(zserv ZeroServ, connect net.Conn) error {
 	zSock.connect = connect
-	zSock.zserv = zserv
+	if zSock.zserv == nil {
+		zSock.zserv = zserv
+	}
 	zSock.acceptTime = time.Now().Unix()
 	zSock.heartbeatTime = 0
 
@@ -291,7 +293,7 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 		sockServer.connectMutex.RUnlock()
 		if !ok {
 			connect.Close()
-			global.Logger().Info(fmt.Sprintf("scok server connect auth time out -> %s", connect.This().(ZeroConnect).RegisterId()))
+			global.Logger().Info(fmt.Sprintf("sock server connect auth time out -> %s", connect.This().(ZeroConnect).RegisterId()))
 		} else {
 			global.Logger().Info(fmt.Sprintf("sock server connect auth checked -> %s", connect.This().(ZeroConnect).RegisterId()))
 		}
