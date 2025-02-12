@@ -82,9 +82,7 @@ func (zSock *ZeroSocketConnect) HeartbeatTime() int64 {
 
 func (zSock *ZeroSocketConnect) Accept(zserv ZeroServ, connect net.Conn) error {
 	zSock.connect = connect
-	if zSock.zserv == nil {
-		zSock.zserv = zserv
-	}
+	zSock.zserv = zserv
 	zSock.acceptTime = time.Now().Unix()
 	zSock.heartbeatTime = 0
 

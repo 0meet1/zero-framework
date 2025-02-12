@@ -20,9 +20,6 @@ type xMqttConnectBuilder struct{}
 
 func (xDefault *xMqttConnectBuilder) NewConnect() ZeroConnect {
 	return &MqttConnect{
-		ZeroSocketConnect: ZeroSocketConnect{
-			zserv: global.Value(CORE_MQTT_SERVER).(*MqttServer),
-		},
 		topcis: make(map[string]byte),
 	}
 }
@@ -48,8 +45,8 @@ func (mqttconn *MqttConnect) RegisterId() string {
 	return mqttconn.This().(ZeroConnect).RemoteAddr()
 }
 
-func (mqttconn *MqttConnect) Accept(zserv ZeroServ, connect net.Conn) error {
-	mqttconn.ZeroSocketConnect.Accept(zserv, connect)
+func (mqttconn *MqttConnect) Accept(_ ZeroServ, connect net.Conn) error {
+	mqttconn.ZeroSocketConnect.Accept(global.Value(CORE_MQTT_SERVER).(*MqttServer), connect)
 	mqttconn.topcis = make(map[string]byte)
 	mqttconn.messageSerialNnumber = 0
 	return nil
