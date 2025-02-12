@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CORE_MQTT_SERVER = "##!CORE_MQTT_SERVER"
+	CORE_MQTT_SERVER = "X##!CORE_MQTT_SERVER"
 )
 
 type MqttMessageListener interface {
@@ -214,6 +214,6 @@ func (mqttserv *MqttServer) RunServer() {
 	if mqttserv.ConnectBuilder == nil {
 		mqttserv.ConnectBuilder = &xMqttConnectBuilder{}
 	}
-	mqttserv.TCPServer.RunServer()
 	global.Key(CORE_MQTT_SERVER, mqttserv)
+	mqttserv.TCPServer.RunServer()
 }
