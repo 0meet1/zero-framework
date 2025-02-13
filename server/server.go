@@ -273,6 +273,7 @@ func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
 			if err != nil {
 				global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
 			}
+			delete(sockServer.connects, conn.This().(ZeroConnect).RegisterId())
 		}
 		global.Logger().Info("sock heartbeat check finished")
 		sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
