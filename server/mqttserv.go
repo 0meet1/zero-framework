@@ -18,10 +18,13 @@ type MqttMessageListener interface {
 
 type xMqttConnectBuilder struct{}
 
-func (xDefault *xMqttConnectBuilder) NewConnect() ZeroConnect {
+func NewMqttConnect() *MqttConnect {
 	return &MqttConnect{
 		topcis: make(map[string]byte),
 	}
+}
+func (xDefault *xMqttConnectBuilder) NewConnect() ZeroConnect {
+	return NewMqttConnect()
 }
 
 type MqttConnect struct {
