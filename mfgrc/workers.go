@@ -499,7 +499,6 @@ func (keeper *ZeroMfgrcKeeper) Export() (map[string]interface{}, error) {
 	for workerName, worker := range keeper.workerMap {
 		workers[workerName] = worker.Export()
 	}
-
 	keeper.workerMutex.RUnlock()
 
 	fluxs := make(map[string]interface{})

@@ -28,6 +28,7 @@ type ZeroMeta = structs.ZeroMeta
 type ZeroCoreStructs = structs.ZeroCoreStructs
 type ZeroRequest = structs.ZeroRequest
 type ZeroResponse = structs.ZeroResponse
+type ZeroXsacAutoParser = structs.ZeroXsacAutoParser
 
 type ZeroCoreProcessor = processors.ZeroCoreProcessor
 type ZeroQuery = processors.ZeroQuery
@@ -164,6 +165,8 @@ const (
 	ZEOR_XSAC_ENTRY_TYPE_CUSTOM_PARTITION = structs.ZEOR_XSAC_ENTRY_TYPE_CUSTOM_PARTITION
 )
 
+const XSAC_AUTO_PARSER_KEEPER = autosqlconf.XSAC_AUTO_PARSER_KEEPER
+
 type ZeroXsacDeclares = structs.ZeroXsacDeclares
 type ZeroXsacEntry = structs.ZeroXsacEntry
 type ZeroXsacField = structs.ZeroXsacField
@@ -172,6 +175,7 @@ type ZeroXsacProcessor = autosqlconf.ZeroXsacProcessor
 type ZeroXsacPostgresProcessor = autosqlconf.ZeroXsacPostgresProcessor
 type ZeroXsacMysqlProcessor = autosqlconf.ZeroXsacMysqlProcessor
 type ZeroXsacKeeper = autosqlconf.ZeroXsacKeeper
+type ZeroXsacAutoParserKeeper = autosqlconf.ZeroXsacAutoParserKeeper
 
 const (
 	XSAC_BE_INSERT = processors.XSAC_BE_INSERT

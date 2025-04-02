@@ -98,7 +98,7 @@ func (e *ZeroCoreStructs) XsacApiFields() [][]string {
 
 func (e *ZeroCoreStructs) XsacApiExports(args ...string) []string {
 	rows := make([]string, 0)
-	if args != nil && len(args) > 0 {
+	if len(args) > 0 {
 		rows = append(rows, NewApiContentHeader(fmt.Sprintf("%s%s", args[0], e.This().(ZeroXsacApiDeclares).XsacApiName())))
 	} else {
 		rows = append(rows, NewApiContentHeader(e.XsacApiName()))
@@ -109,7 +109,7 @@ func (e *ZeroCoreStructs) XsacApiExports(args ...string) []string {
 	if e.This().(ZeroXsacApiDeclares).XsacApiEnums() != nil {
 		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApiEnums()...)
 	}
-	if args != nil && len(args) > 1 {
+	if len(args) > 1 {
 		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApis(args[1])...)
 	} else {
 		rows = append(rows, e.This().(ZeroXsacApiDeclares).XsacApis()...)
@@ -250,6 +250,15 @@ func (e *ZeroCoreStructs) XsacFields(xm ...int) ZeroXsacFieldSet {
 	fields := make([]*ZeroXsacField, 0)
 	fields = append(fields, e.findXopFields(reflect.TypeOf(e.This()).Elem(), len(xm) > 0)...)
 	return fields
+}
+
+func (e *ZeroCoreStructs) XsacAutoParser() []ZeroXsacAutoParser {
+	fields := e.This().(ZeroXsacFields).XsacFields()
+	autoParsers := make([]ZeroXsacAutoParser, 0)
+	for _, field := range fields {
+		autoParsers = append(autoParsers, NewAutoParser(field.columnName, field.fieldName))
+	}
+	return autoParsers
 }
 
 func (e *ZeroCoreStructs) InitDefault() error {

@@ -1,7 +1,6 @@
 package structs
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -85,7 +84,7 @@ func CheckISO70641983MOD112(idCard string) bool {
 
 func BirthdayWithIDCard(idCard string) (*time.Time, error) {
 	if len(idCard) != 18 {
-		return nil, errors.New(fmt.Sprintf("error idCard length (%d）", len(idCard)))
+		return nil, fmt.Errorf("error idCard length (%d）", len(idCard))
 	}
 	t, err := time.Parse("20060102", idCard[6:14])
 	if err != nil {

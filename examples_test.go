@@ -1,7 +1,13 @@
 package zeroframework_test
 
 import (
+	"encoding/json"
+	"fmt"
+	"reflect"
 	"testing"
+	"time"
+
+	"github.com/0meet1/zero-framework/structs"
 )
 
 // func TestOSSMiniV2(t *testing.T) {
@@ -85,4 +91,178 @@ func TestConnectOracle(t *testing.T) {
 	// 	}
 	// }
 
+}
+
+func TestXX(t *testing.T) {
+
+	// jsonbytes, err := json.Marshal(1)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(x0meet1st.Md5Bytes(jsonbytes))
+	// var i byte = 1.0
+	v := reflect.ValueOf(structs.Time{})
+	fmt.Println(v.Type().String())
+	fmt.Println(reflect.Float64.String())
+}
+
+type TesT struct {
+	Terc1 string
+	Terc2 string
+	Terc3 byte
+	Terc4 float32
+}
+
+func TestRT(t *testing.T) {
+	te := &TesT{
+		Terc1: "xxx1",
+		Terc2: "ccx",
+	}
+
+	fmt.Println(te)
+	ptr1 := reflect.ValueOf(te)
+
+	fmt.Println(ptr1.Kind())
+	fmt.Println(ptr1.Kind() == reflect.Pointer)
+
+	Terc1rf := ptr1.Elem().FieldByName("Terc1")
+	fmt.Println(Terc1rf.Addr())
+	fmt.Println(Terc1rf.String())
+	Terc1rf.SetString("1231")
+
+	Terc3rf := ptr1.Elem().FieldByName("Terc3")
+	fmt.Println(Terc3rf.Addr())
+	Terc3rf.SetInt(33)
+
+	Terc4rf := ptr1.Elem().FieldByName("Terc4")
+	fmt.Println(Terc4rf.Addr())
+	Terc4rf.SetFloat(33.3333)
+
+	fmt.Println(te)
+}
+
+func TestRT2(t *testing.T) {
+	ti := structs.Time(time.Now())
+	jsonbytes, err := json.Marshal(&ti)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(jsonbytes))
+
+	jt := `"2025-04-01T17:16:50"`
+	fmt.Println([]byte(jt))
+	ti2 := structs.Time{}
+	err = json.Unmarshal([]byte(jt), &ti2)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(reflect.ValueOf(ti2).Type().String())
+	fmt.Println(reflect.ValueOf(ti2).Type().String() == "structs.Time")
+	fmt.Println(ti2.Time().Format("2006-01-02 15:04:05"))
+
+	jt2 := `"2025-04-01T17:16:50Z"`
+	fmt.Println([]byte(jt2))
+	dat := time.Now()
+	err = json.Unmarshal([]byte(jt2), &dat)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(reflect.ValueOf(dat).Type().String())
+	fmt.Println(reflect.ValueOf(dat).Type().String() == "time.Time")
+	fmt.Println(dat.Format("2006-01-02 15:04:05"))
+}
+
+func TestMap(t *testing.T) {
+
+	te := &TesT{
+		Terc1: "xxx1",
+		Terc2: "ccx",
+	}
+
+	jsonbytes, err := json.Marshal(te)
+	if err != nil {
+		panic(err)
+	}
+
+	m := make(map[string]any)
+
+	mc := reflect.New(reflect.ValueOf(m).Type()).Interface()
+	fmt.Println(mc)
+	err = json.Unmarshal(jsonbytes, &mc)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(m)
+	fmt.Println(reflect.ValueOf(mc).Elem())
+}
+
+func TestStruct(t *testing.T) {
+
+	te := &TesT{
+		Terc1: "xxx1",
+		Terc2: "ccx",
+	}
+
+	jsonbytes, err := json.Marshal(te)
+	if err != nil {
+		panic(err)
+	}
+
+	mc := reflect.New(reflect.ValueOf(te).Elem().Type()).Interface()
+	fmt.Println(mc)
+	err = json.Unmarshal(jsonbytes, mc)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(te)
+	fmt.Println(reflect.ValueOf(mc).Elem())
+}
+
+type TesTChild struct {
+	TesT
+
+	TercCC3 string
+}
+
+/////// 测试父级获取 field
+
+func TestRTChild(t *testing.T) {
+	te := &TesTChild{
+		TesT: TesT{
+			Terc1: "xxx1",
+			Terc2: "ccx",
+		},
+	}
+
+	fmt.Println(te)
+	ptr1 := reflect.ValueOf(te)
+
+	for i := 0; i < ptr1.Elem().NumField(); i++ {
+		fmt.Println("111")
+	}
+
+	fmt.Println(ptr1.Kind())
+	fmt.Println(ptr1.Kind() == reflect.Pointer)
+
+	Terc1rf := ptr1.Elem().FieldByName("Terc1")
+	fmt.Println(Terc1rf.Addr())
+	fmt.Println(Terc1rf.String())
+	Terc1rf.SetString("1231")
+
+	// Terc3rf := ptr1.Elem().FieldByName("Terc3")
+	// fmt.Println(Terc3rf.Addr())
+	// Terc3rf.SetInt(33)
+
+	Terc4rf := ptr1.Elem().FieldByName("Terc4")
+	fmt.Println(Terc4rf.Addr())
+	Terc4rf.SetFloat(33.3333)
+
+	TercCC33rf := ptr1.Elem().FieldByName("TercCC3")
+	fmt.Println(TercCC33rf.Addr())
+	TercCC33rf.SetString("1231xxxx")
+
+	fmt.Println(te)
 }

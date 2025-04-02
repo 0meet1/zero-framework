@@ -1,7 +1,6 @@
 package autosqlconf
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -14,6 +13,12 @@ import (
 	"github.com/0meet1/zero-framework/structs"
 )
 
+const XSAC_AUTO_PARSER_KEEPER = "XsacAutoParserKeeper"
+
+type ZeroXsacAutoParserKeeper interface {
+	FindAutoParser(string) ([]structs.ZeroXsacAutoParser, bool)
+}
+
 type ZeroXsacKeeper struct {
 	proctype   reflect.Type
 	types      []reflect.Type
@@ -23,14 +28,17 @@ type ZeroXsacKeeper struct {
 	httpconfs []*autohttpconf.ZeroXsacXhttp
 
 	apimks string
+
+	autoParsers map[string][]structs.ZeroXsacAutoParser
 }
 
 func NewKeeper(proctype reflect.Type, types ...reflect.Type) *ZeroXsacKeeper {
 	keeper := &ZeroXsacKeeper{
-		proctype:  structs.FindMetaType(proctype),
-		types:     make([]reflect.Type, 0),
-		entries:   make([]*structs.ZeroXsacEntry, 0),
-		httpconfs: make([]*autohttpconf.ZeroXsacXhttp, 0),
+		proctype:    structs.FindMetaType(proctype),
+		types:       make([]reflect.Type, 0),
+		entries:     make([]*structs.ZeroXsacEntry, 0),
+		httpconfs:   make([]*autohttpconf.ZeroXsacXhttp, 0),
+		autoParsers: make(map[string][]structs.ZeroXsacAutoParser),
 	}
 	keeper.AddTypes(types...)
 	return keeper
@@ -42,12 +50,9 @@ func (keeper *ZeroXsacKeeper) DataSource(dataSource string) *ZeroXsacKeeper {
 }
 
 func (keeper *ZeroXsacKeeper) AddTypes(types ...reflect.Type) *ZeroXsacKeeper {
-	if types != nil {
-		for _, t := range types {
-			keeper.types = append(keeper.types, structs.FindMetaType(t))
-		}
+	for _, t := range types {
+		keeper.types = append(keeper.types, structs.FindMetaType(t))
 	}
-
 	return keeper
 }
 
@@ -55,14 +60,14 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 	datasource := global.Value(keeper.dataSource)
 	maxtrytimes := 10
 	for datasource == nil && maxtrytimes > 0 {
-		global.Logger().Warn(fmt.Sprintf("data source is not ready, try after 5s ..."))
+		global.Logger().Warn("data source is not ready, try after 5s ...")
 		<-time.After(time.Duration(5) * time.Second)
 		datasource = global.Value(keeper.dataSource)
 		maxtrytimes--
 	}
 
 	if datasource == nil {
-		global.Logger().Error(fmt.Sprintf("data source is not ready, give up"))
+		global.Logger().Error("data source is not ready, give up")
 		return
 	}
 
@@ -168,7 +173,7 @@ func (keeper *ZeroXsacKeeper) DMLTables() {
 				panic(err)
 			}
 		default:
-			panic(errors.New(fmt.Sprintf("unknown entry type: %s", entry.EntryType())))
+			panic(fmt.Errorf("unknown entry type: %s", entry.EntryType()))
 		}
 	}
 }
@@ -179,6 +184,13 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 	for _, t := range keeper.types {
 		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
 		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
+
+		_, ok := keeper.autoParsers[declares.XsacTableName()]
+		if ok {
+			panic(fmt.Errorf(" duplicate defined table `%s` ", declares.XsacTableName()))
+		}
+
+		keeper.autoParsers[declares.XsacTableName()] = declares.XsacAutoParser()
 
 		keeper.entries = append(keeper.entries, declares.XsacDeclares(xsacProcessor.DbName())...)
 		refDeclares = append(refDeclares, declares.XsacRefDeclares(xsacProcessor.DbName())...)
@@ -191,10 +203,33 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 	keeper.entries = append(keeper.entries, refDeclares...)
 }
 
+func (keeper *ZeroXsacKeeper) mergeAutoParser(parsers map[string][]structs.ZeroXsacAutoParser) {
+	for k, v := range parsers {
+		_, ok := keeper.autoParsers[k]
+		if ok {
+			panic(fmt.Errorf(" merge duplicate defined table `%s` ", k))
+		}
+		keeper.autoParsers[k] = v
+	}
+}
+
+func (keeper *ZeroXsacKeeper) FindAutoParser(tableName string) ([]structs.ZeroXsacAutoParser, bool) {
+	parsers, ok := keeper.autoParsers[tableName]
+	return parsers, ok
+}
+
 func (keeper *ZeroXsacKeeper) RunKeeper() *ZeroXsacKeeper {
 	keeper.pretreat()
 	if global.StringValue("zero.xsac.autocheck") == "enable" {
 		go keeper.DMLTables()
+	}
+	if global.StringValue("zero.xsac.autoparser") == "enable" {
+		history := global.Value(XSAC_AUTO_PARSER_KEEPER)
+		if history == nil {
+			global.Key(XSAC_AUTO_PARSER_KEEPER, keeper)
+		} else {
+			history.(*ZeroXsacKeeper).mergeAutoParser(keeper.autoParsers)
+		}
 	}
 	return keeper
 }

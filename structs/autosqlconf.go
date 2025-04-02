@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const (
@@ -52,6 +53,8 @@ type ZeroXsacDeclares interface {
 	XsacPartition() string
 	XsacCustomPartTrigger() string
 	XsacTriggers() []ZeroXsacTrigger
+
+	XsacAutoParser() []ZeroXsacAutoParser
 }
 
 type ZeroXsacEntrySet []*ZeroXsacEntry
@@ -223,7 +226,7 @@ func exHumpToLine(name string) string {
 			buf.WriteByte(c)
 		}
 	}
-	return string(buf.Bytes())
+	return buf.String()
 }
 
 type ZeroXsacFieldSet []*ZeroXsacField
@@ -440,4 +443,119 @@ type ZeroXsacApiDeclares interface {
 	XsacApis(...string) []string
 
 	XsacApiExports(...string) []string
+}
+
+type ZeroXsacAutoParser interface {
+	Parse(map[string]any, any) error
+}
+
+type xZeroXsacAutoParser struct {
+	ColumnName string
+	FieldName  string
+}
+
+func NewAutoParser(columnName string, fieldName string) ZeroXsacAutoParser {
+	return &xZeroXsacAutoParser{
+		ColumnName: columnName,
+		FieldName:  fieldName,
+	}
+}
+
+func (autoParser *xZeroXsacAutoParser) intValue(row map[string]any, data reflect.Value) error {
+	_, ok := row[autoParser.ColumnName]
+	if ok {
+		data.Elem().FieldByName(autoParser.FieldName).SetInt(int64(ParseIntField(row, autoParser.ColumnName)))
+	}
+	return nil
+}
+
+func (autoParser *xZeroXsacAutoParser) uintValue(row map[string]any, data reflect.Value) error {
+	_, ok := row[autoParser.ColumnName]
+	if ok {
+		data.Elem().FieldByName(autoParser.FieldName).SetUint(uint64(ParseIntField(row, autoParser.ColumnName)))
+	}
+	return nil
+}
+
+func (autoParser *xZeroXsacAutoParser) floatValue(row map[string]any, data reflect.Value) error {
+	_, ok := row[autoParser.ColumnName]
+	if ok {
+		data.Elem().FieldByName(autoParser.FieldName).SetFloat(float64(ParseFloatField(row, autoParser.ColumnName)))
+	}
+	return nil
+}
+
+func (autoParser *xZeroXsacAutoParser) stringValue(row map[string]any, data reflect.Value) error {
+	_, ok := row[autoParser.ColumnName]
+	if ok {
+		data.Elem().FieldByName(autoParser.FieldName).SetString(ParseStringField(row, autoParser.ColumnName))
+	}
+	return nil
+}
+
+func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect.Value, elem reflect.Value) error {
+	_, ok := row[autoParser.ColumnName]
+	if ok {
+		if elem.Type().String() == "structs.Time" {
+			elem.Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+		} else if data.Type().String() == "time.Time" {
+			elem.Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+		} else {
+			contents := ParseStringField(row, autoParser.ColumnName)
+
+			newstruct := reflect.New(elem.Type()).Interface()
+			err := json.Unmarshal([]byte(contents), newstruct)
+			if err != nil {
+				return err
+			}
+			elem.Set(reflect.ValueOf(newstruct).Elem())
+		}
+	}
+	return nil
+}
+
+func (autoParser *xZeroXsacAutoParser) Parse(row map[string]any, data any) error {
+	datarf := reflect.ValueOf(data)
+	if datarf.Kind() != reflect.Pointer {
+		return fmt.Errorf(" data need ptr type ")
+	}
+
+	elem := datarf.Elem().FieldByName(autoParser.FieldName)
+	if elem.Kind() == reflect.Pointer {
+		elem = elem.Elem()
+	}
+
+	switch elem.Type().String() {
+	case reflect.Int.String():
+		fallthrough
+	case reflect.Int8.String():
+		fallthrough
+	case reflect.Int16.String():
+		fallthrough
+	case reflect.Int32.String():
+		fallthrough
+	case reflect.Int64.String():
+		return autoParser.intValue(row, datarf)
+
+	case reflect.Uint.String():
+		fallthrough
+	case reflect.Uint8.String():
+		fallthrough
+	case reflect.Uint16.String():
+		fallthrough
+	case reflect.Uint32.String():
+		fallthrough
+	case reflect.Uint64.String():
+		return autoParser.uintValue(row, datarf)
+
+	case reflect.Float32.String():
+		fallthrough
+	case reflect.Float64.String():
+		return autoParser.floatValue(row, datarf)
+
+	case reflect.String.String():
+		return autoParser.stringValue(row, datarf)
+	default:
+		return autoParser.ptrValue(row, datarf, elem)
+	}
 }

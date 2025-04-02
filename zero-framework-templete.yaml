@@ -71,5 +71,6 @@ zero:
   xsac:
     autoapi: "disable"
     autocheck: "enable"
+    autoparser: "enable"
   consul:
     serverAddr: "<consul addr: 0.0.0.0:8500>"
