@@ -30,7 +30,7 @@ func (processor *ZeroXsacMysqlProcessor) ColumnExists(tableSchema string, tableN
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -53,7 +53,7 @@ func (processor *ZeroXsacMysqlProcessor) ColumnDiff(tableSchema string, tableNam
 			return 0, err
 		}
 		if !rows.Next() {
-			return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+			return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 		}
 		var _state int64
 		err = rows.Scan(&_state)
@@ -72,7 +72,7 @@ func (processor *ZeroXsacMysqlProcessor) ColumnDiff(tableSchema string, tableNam
 			return 0, err
 		}
 		if !rows.Next() {
-			return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+			return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 		}
 		var _state int64
 		err = rows.Scan(&_state)
@@ -111,7 +111,7 @@ func (processor *ZeroXsacMysqlProcessor) IndexExists(tableSchema string, tableNa
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -157,7 +157,7 @@ func (processor *ZeroXsacMysqlProcessor) TriggerExists(tableSchema string, table
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -227,7 +227,7 @@ func (processor *ZeroXsacMysqlProcessor) TableExists(tableSchema string, tableNa
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)

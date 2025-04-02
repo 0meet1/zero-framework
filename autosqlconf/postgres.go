@@ -1,7 +1,6 @@
 package autosqlconf
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -30,7 +29,7 @@ func (processor *ZeroXsacPostgresProcessor) ColumnExists(tableSchema string, tab
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -59,7 +58,7 @@ func (processor *ZeroXsacPostgresProcessor) ColumnDiff(
 			return 0, err
 		}
 		if !rows.Next() {
-			return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+			return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 		}
 		var _state int64
 		err = rows.Scan(&_state)
@@ -78,7 +77,7 @@ func (processor *ZeroXsacPostgresProcessor) ColumnDiff(
 			return 0, err
 		}
 		if !rows.Next() {
-			return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+			return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 		}
 		var _state int64
 		err = rows.Scan(&_state)
@@ -124,7 +123,7 @@ func (processor *ZeroXsacPostgresProcessor) IndexExists(tableSchema string, tabl
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -183,7 +182,7 @@ func (processor *ZeroXsacPostgresProcessor) TriggerExists(
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
@@ -282,7 +281,7 @@ func (processor *ZeroXsacPostgresProcessor) TableExists(tableSchema string, tabl
 		return 0, err
 	}
 	if !rows.Next() {
-		return 0, errors.New(fmt.Sprintf("query `COLUMN_EXISTS_SQL` failed"))
+		return 0, fmt.Errorf("query `COLUMN_EXISTS_SQL` failed")
 	}
 	var _state int64
 	err = rows.Scan(&_state)
