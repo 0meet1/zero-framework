@@ -774,10 +774,9 @@ func (xhttp *ZeroXsacXhttp) checkpart(xRequest *structs.ZeroRequest, xOperation 
 }
 
 func (xhttp *ZeroXsacXhttp) parserowdata(xoptions []string, processor processors.ZeroXsacAutoProcessor, row map[string]interface{}) interface{} {
-	data := reflect.New(xhttp.coretype).Interface()
-	returnValues := reflect.ValueOf(data).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
-	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
-		panic(returnValues[0].Interface())
+	data, err := structs.XautoLoad(xhttp.coretype, row)
+	if err != nil {
+		panic(err)
 	}
 
 	for _, xoption := range xoptions {

@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/0meet1/zero-framework/global"
 )
 
 const (
@@ -558,4 +560,33 @@ func (autoParser *xZeroXsacAutoParser) Parse(row map[string]any, data any) error
 	default:
 		return autoParser.ptrValue(row, datarf, elem)
 	}
+}
+
+const XSAC_AUTO_PARSER_KEEPER = "XsacAutoParserKeeper"
+
+type ZeroXsacAutoParserKeeper interface {
+	FindAutoParser(string) ([]ZeroXsacAutoParser, bool)
+}
+
+func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
+	data := reflect.New(meta)
+	atParserKeeper := global.Value(XSAC_AUTO_PARSER_KEEPER)
+	if atParserKeeper != nil {
+		parsers, ok := atParserKeeper.(ZeroXsacAutoParserKeeper).FindAutoParser(data.Interface().(ZeroXsacDeclares).XsacTableName())
+		if ok {
+			for _, parser := range parsers {
+				err := parser.Parse(row, data)
+				if err != nil {
+					return data, err
+				}
+			}
+			return data, nil
+		}
+	}
+
+	returnValues := data.MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
+	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
+		return data, returnValues[0].Interface().(error)
+	}
+	return data, nil
 }
