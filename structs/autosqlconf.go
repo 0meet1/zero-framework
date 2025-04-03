@@ -575,7 +575,7 @@ func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
 		parsers, ok := atParserKeeper.(ZeroXsacAutoParserKeeper).FindAutoParser(data.Interface().(ZeroXsacDeclares).XsacTableName())
 		if ok {
 			for _, parser := range parsers {
-				err := parser.Parse(row, data)
+				err := parser.Parse(row, data.Interface())
 				if err != nil {
 					return data, err
 				}

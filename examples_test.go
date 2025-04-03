@@ -236,7 +236,7 @@ func TestRTChild(t *testing.T) {
 			Terc2: "ccx",
 		},
 	}
-
+	fmt.Println(reflect.New(reflect.TypeOf(&TesTChild{})).Interface())
 	fmt.Println(te)
 	ptr1 := reflect.ValueOf(te)
 
