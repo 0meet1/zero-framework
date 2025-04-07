@@ -311,7 +311,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) Fetch(dataId string) (interface{}, 
 	if err != nil {
 		return nil, err
 	}
-	return data.Interface(), nil
+	return data, nil
 }
 
 func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
@@ -364,7 +364,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroX
 				if err != nil {
 					return err
 				}
-				subdatas.Index(i).Set(data)
+				subdatas.Index(i).Set(reflect.ValueOf(data))
 			}
 			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(subdatas)
 		} else {
@@ -372,7 +372,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroX
 			if err != nil {
 				return err
 			}
-			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(data)
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(data))
 		}
 	}
 	return nil

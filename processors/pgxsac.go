@@ -323,7 +323,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) Fetch(dataId string) (interface{
 	if err != nil {
 		return nil, err
 	}
-	return data.Interface(), nil
+	return data, nil
 }
 
 func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.ZeroXsacField, datas interface{}) error {
@@ -376,7 +376,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 				if err != nil {
 					return err
 				}
-				subdatas.Index(i).Set(data)
+				subdatas.Index(i).Set(reflect.ValueOf(data))
 			}
 			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(subdatas)
 		} else {
@@ -384,7 +384,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 			if err != nil {
 				return err
 			}
-			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(data)
+			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(reflect.ValueOf(data))
 		}
 	}
 	return nil

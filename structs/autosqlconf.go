@@ -605,7 +605,7 @@ func XautoLoad(meta reflect.Type, row map[string]any) (any, error) {
 
 	returnValues := data.MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(row)})
 	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
-		return data, returnValues[0].Interface().(error)
+		return nil, returnValues[0].Interface().(error)
 	}
 	return data.Interface(), nil
 }
