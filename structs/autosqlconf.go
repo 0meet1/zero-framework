@@ -502,6 +502,7 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 		if fieldtype.String() == reflect.Pointer.String() {
 			fieldtype = fieldtype.Elem()
 		}
+		fmt.Println(fieldtype.String())
 		if fieldtype.String() == "structs.Time" {
 			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
 		} else if fieldtype.String() == "time.Time" {
