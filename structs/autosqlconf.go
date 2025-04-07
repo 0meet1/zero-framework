@@ -499,13 +499,13 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 	_, ok := row[autoParser.ColumnName]
 	if ok {
 		fieldtype := field.Type
-		if fieldtype.String() == reflect.Pointer.String() {
+		if fieldtype.Kind() == reflect.Pointer {
 			fieldtype = fieldtype.Elem()
 		}
-		fmt.Println(fieldtype.String())
-		if fieldtype.String() == "structs.Time" {
+
+		if fieldtype.String() == reflect.TypeOf(Time{}).String() {
 			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
-		} else if fieldtype.String() == "time.Time" {
+		} else if fieldtype.String() == reflect.TypeOf(time.Time{}).String() {
 			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
 		} else {
 			contents := ParseStringField(row, autoParser.ColumnName)
