@@ -266,17 +266,18 @@ func (processor *ZeroXsacMysqlProcessor) Create0Struct(tableSchema string, table
 	}
 
 	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
-	if err != nil {
-		return err
-	}
-
-	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
-	if err != nil {
-		return err
-	}
-
-	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
 	return err
+	// if err != nil {
+	// 	return err
+	// }
+
+	// _, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
+	// if err != nil {
+	// 	return err
+	// }
+
+	// _, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
+	// return err
 }
 
 func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, tableName string) error {
@@ -292,17 +293,19 @@ func (processor *ZeroXsacMysqlProcessor) Create0FlagStruct(tableSchema string, t
 	}
 
 	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_uuid` BEFORE INSERT ON `%s` FOR EACH ROW BEGIN IF new.id = '-' THEN SET new.id = (SELECT uuid()); END IF; END", tableName, tableName))
-	if err != nil {
-		return err
-	}
-
-	_, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
-	if err != nil {
-		return err
-	}
-
-	_, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
 	return err
+
+	// if err != nil {
+	// 	return err
+	// }
+
+	// _, err = processor.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS `%s_update`", tableName))
+	// if err != nil {
+	// 	return err
+	// }
+
+	// _, err = processor.Exec(fmt.Sprintf("CREATE TRIGGER `%s_update` BEFORE UPDATE ON `%s` FOR EACH ROW BEGIN SET new.update_time = (SELECT now()); END", tableName, tableName))
+	// return err
 }
 
 func (processor *ZeroXsacMysqlProcessor) DMLY0SPart(tableSchema string, tableName string) error {

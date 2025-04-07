@@ -60,9 +60,7 @@ func copyMap(src map[string]interface{}) map[string]interface{} {
 }
 
 func shared() map[string]interface{} {
-	_once.Do(func() {
-		_wMap = make(map[string]interface{})
-	})
+	_once.Do(func() { _wMap = make(map[string]interface{}) })
 	return _wMap
 }
 
