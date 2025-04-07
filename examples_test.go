@@ -238,16 +238,18 @@ func TestRTChild(t *testing.T) {
 	}
 	fmt.Println(reflect.New(reflect.TypeOf(&TesTChild{})).Interface())
 	fmt.Println(te)
-	ptr1 := reflect.ValueOf(te)
-
-	for i := 0; i < ptr1.Elem().NumField(); i++ {
-		fmt.Println("111")
-	}
+	// ptr1 := reflect.ValueOf(te)
+	ftype := reflect.TypeOf(TesTChild{})
+	ptr1 := reflect.New(ftype)
+	fmt.Println(ptr1.Interface())
+	// for i := 0; i < ptr1.Elem().NumField(); i++ {
+	// 	fmt.Println("111")
+	// }
 
 	fmt.Println(ptr1.Kind())
 	fmt.Println(ptr1.Kind() == reflect.Pointer)
 
-	Terc1rf := ptr1.Elem().FieldByName("Terc1")
+	Terc1rf := reflect.ValueOf(ptr1.Interface()).Elem().FieldByName("Terc1")
 	fmt.Println(Terc1rf.Addr())
 	fmt.Println(Terc1rf.String())
 	Terc1rf.SetString("1231")
@@ -256,15 +258,21 @@ func TestRTChild(t *testing.T) {
 	// fmt.Println(Terc3rf.Addr())
 	// Terc3rf.SetInt(33)
 
-	Terc4rf := ptr1.Elem().FieldByName("Terc4")
+	Terc4rf := reflect.ValueOf(ptr1.Interface()).Elem().FieldByName("Terc4")
 	fmt.Println(Terc4rf.Addr())
 	Terc4rf.SetFloat(33.3333)
 
-	TercCC33rf := ptr1.Elem().FieldByName("TercCC3")
+	ptr2 := reflect.ValueOf(ptr1.Interface())
+	TercCC33rf := ptr2.Elem().FieldByName("TercCC3")
 	fmt.Println(TercCC33rf.Addr())
 	TercCC33rf.SetString("1231xxxx")
 
-	fmt.Println(te)
+	fmt.Println(ptr1.Interface())
+	fmt.Println(ptr2.Interface())
+	fmt.Println(reflect.ValueOf(ptr1.Interface()).Interface())
+
+	jsonbytes, _ := json.Marshal(reflect.ValueOf(ptr1.Interface()).Interface())
+	fmt.Println(string(jsonbytes))
 
 	fmt.Println(reflect.ValueOf(nil))
 }

@@ -587,7 +587,7 @@ type ZeroXsacAutoParserKeeper interface {
 	FindAutoParser(string) ([]ZeroXsacAutoParser, bool)
 }
 
-func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
+func XautoLoad(meta reflect.Type, row map[string]any) (any, error) {
 	data := reflect.New(meta)
 	atParserKeeper := global.Value(XSAC_AUTO_PARSER_KEEPER)
 	if atParserKeeper != nil {
@@ -596,10 +596,10 @@ func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
 			for _, parser := range parsers {
 				err := parser.Parse(row, data.Interface())
 				if err != nil {
-					return data, err
+					return nil, err
 				}
 			}
-			return data, nil
+			return data.Interface(), nil
 		}
 	}
 
@@ -607,5 +607,5 @@ func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
 	if len(returnValues) > 0 && returnValues[0].Interface() != nil {
 		return data, returnValues[0].Interface().(error)
 	}
-	return data, nil
+	return data.Interface(), nil
 }
