@@ -495,17 +495,21 @@ func (autoParser *xZeroXsacAutoParser) stringValue(row map[string]any, data refl
 	return nil
 }
 
-func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect.Value, fieldtype reflect.StructField) error {
+func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect.Value, field reflect.StructField) error {
 	_, ok := row[autoParser.ColumnName]
 	if ok {
-		if fieldtype.Type.String() == "structs.Time" {
+		fieldtype := field.Type
+		if fieldtype.String() == reflect.Pointer.String() {
+			fieldtype = fieldtype.Elem()
+		}
+		if fieldtype.String() == "structs.Time" {
 			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
-		} else if fieldtype.Type.String() == "time.Time" {
+		} else if fieldtype.String() == "time.Time" {
 			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
 		} else {
 			contents := ParseStringField(row, autoParser.ColumnName)
 
-			newstruct := reflect.New(fieldtype.Type).Interface()
+			newstruct := reflect.New(fieldtype).Interface()
 			err := json.Unmarshal([]byte(contents), newstruct)
 			if err != nil {
 				return err
@@ -522,12 +526,12 @@ func (autoParser *xZeroXsacAutoParser) Parse(row map[string]any, data any) error
 		return fmt.Errorf(" data need ptr type ")
 	}
 
-	elem, ok := reflect.TypeOf(data).Elem().FieldByName(autoParser.FieldName)
+	field, ok := reflect.TypeOf(data).Elem().FieldByName(autoParser.FieldName)
 	if !ok {
 		return fmt.Errorf(" field `%s` not found ", autoParser.FieldName)
 	}
 
-	switch elem.Type.String() {
+	switch field.Type.String() {
 	case reflect.Int.String():
 		fallthrough
 	case reflect.Int8.String():
@@ -558,7 +562,7 @@ func (autoParser *xZeroXsacAutoParser) Parse(row map[string]any, data any) error
 	case reflect.String.String():
 		return autoParser.stringValue(row, datarf)
 	default:
-		return autoParser.ptrValue(row, datarf, elem)
+		return autoParser.ptrValue(row, datarf, field)
 	}
 }
 
