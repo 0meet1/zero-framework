@@ -504,16 +504,18 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 		}
 
 		if fieldtype.String() == reflect.TypeOf(Time{}).String() {
+			tm := Time(row[autoParser.ColumnName].(time.Time))
 			if field.Type.Kind() == reflect.Pointer {
-				data.Elem().FieldByName(autoParser.FieldName).Elem().Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(&tm))
 			} else {
-				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(tm))
 			}
 		} else if fieldtype.String() == reflect.TypeOf(time.Time{}).String() {
+			tm := row[autoParser.ColumnName].(time.Time)
 			if field.Type.Kind() == reflect.Pointer {
-				data.Elem().FieldByName(autoParser.FieldName).Elem().Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(&tm))
 			} else {
-				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(tm))
 			}
 		} else {
 			contents := ParseStringField(row, autoParser.ColumnName)
@@ -523,7 +525,11 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 			if err != nil {
 				return err
 			}
-			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct).Elem())
+			if field.Type.Kind() == reflect.Pointer {
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct))
+			} else {
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct).Elem())
+			}
 		}
 	}
 	return nil
