@@ -591,16 +591,15 @@ func XautoLoad(meta reflect.Type, row map[string]any) (reflect.Value, error) {
 	data := reflect.New(meta)
 	atParserKeeper := global.Value(XSAC_AUTO_PARSER_KEEPER)
 	if atParserKeeper != nil {
-		dataptr := data.Interface()
-		parsers, ok := atParserKeeper.(ZeroXsacAutoParserKeeper).FindAutoParser(dataptr.(ZeroXsacDeclares).XsacTableName())
+		parsers, ok := atParserKeeper.(ZeroXsacAutoParserKeeper).FindAutoParser(data.Interface().(ZeroXsacDeclares).XsacTableName())
 		if ok {
 			for _, parser := range parsers {
-				err := parser.Parse(row, dataptr)
+				err := parser.Parse(row, data.Interface())
 				if err != nil {
-					return reflect.ValueOf(dataptr), err
+					return data, err
 				}
 			}
-			return reflect.ValueOf(dataptr), nil
+			return data, nil
 		}
 	}
 
