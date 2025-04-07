@@ -495,22 +495,22 @@ func (autoParser *xZeroXsacAutoParser) stringValue(row map[string]any, data refl
 	return nil
 }
 
-func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect.Value, elem reflect.Value) error {
+func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect.Value, fieldtype reflect.StructField) error {
 	_, ok := row[autoParser.ColumnName]
 	if ok {
-		if elem.Type().String() == "structs.Time" {
-			elem.Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
-		} else if data.Type().String() == "time.Time" {
-			elem.Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+		if fieldtype.Type.String() == "structs.Time" {
+			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+		} else if fieldtype.Type.String() == "time.Time" {
+			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
 		} else {
 			contents := ParseStringField(row, autoParser.ColumnName)
 
-			newstruct := reflect.New(elem.Type()).Interface()
+			newstruct := reflect.New(fieldtype.Type).Interface()
 			err := json.Unmarshal([]byte(contents), newstruct)
 			if err != nil {
 				return err
 			}
-			elem.Set(reflect.ValueOf(newstruct).Elem())
+			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct).Elem())
 		}
 	}
 	return nil
@@ -522,12 +522,12 @@ func (autoParser *xZeroXsacAutoParser) Parse(row map[string]any, data any) error
 		return fmt.Errorf(" data need ptr type ")
 	}
 
-	elem := datarf.Elem().FieldByName(autoParser.FieldName)
-	if elem.Kind() == reflect.Pointer {
-		elem = elem.Elem()
+	elem, ok := reflect.TypeOf(data).Elem().FieldByName(autoParser.FieldName)
+	if !ok {
+		return fmt.Errorf(" field `%s` not found ", autoParser.FieldName)
 	}
 
-	switch elem.Type().String() {
+	switch elem.Type.String() {
 	case reflect.Int.String():
 		fallthrough
 	case reflect.Int8.String():

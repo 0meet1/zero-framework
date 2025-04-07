@@ -265,4 +265,6 @@ func TestRTChild(t *testing.T) {
 	TercCC33rf.SetString("1231xxxx")
 
 	fmt.Println(te)
+
+	fmt.Println(reflect.ValueOf(nil))
 }
