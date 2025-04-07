@@ -504,9 +504,17 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 		}
 
 		if fieldtype.String() == reflect.TypeOf(Time{}).String() {
-			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+			if field.Type.Kind() == reflect.Pointer {
+				data.Elem().FieldByName(autoParser.FieldName).Elem().Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+			} else {
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(Time(row[autoParser.ColumnName].(time.Time))))
+			}
 		} else if fieldtype.String() == reflect.TypeOf(time.Time{}).String() {
-			data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+			if field.Type.Kind() == reflect.Pointer {
+				data.Elem().FieldByName(autoParser.FieldName).Elem().Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+			} else {
+				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(row[autoParser.ColumnName].(time.Time)))
+			}
 		} else {
 			contents := ParseStringField(row, autoParser.ColumnName)
 
