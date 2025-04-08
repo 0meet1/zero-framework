@@ -229,8 +229,6 @@ type TesTChild struct {
 	TercCC3 string
 }
 
-/////// 测试父级获取 field
-
 func TestRTChild(t *testing.T) {
 	te := &TesTChild{
 		TesT: TesT{
