@@ -1,6 +1,8 @@
 package server
 
 import (
+	"container/list"
+	"container/ring"
 	"fmt"
 	"net"
 	"sync"
@@ -15,6 +17,7 @@ type ZeroServ interface {
 	OnConnect(ZeroConnect) error
 	OnDisconnect(ZeroConnect) error
 	OnAuthorized(ZeroConnect) error
+	OnHeartbeat(ZeroConnect) error
 	UseConnect(string) (ZeroConnect, error)
 }
 
@@ -42,6 +45,11 @@ type ZeroConnect interface {
 	Close() error
 	Write([]byte) error
 
+	Node() *list.Element
+	Clock() *ring.Ring
+	FlushNode(*list.Element)
+	FlushClock(*ring.Ring)
+
 	Authorized(authMessage ...byte) bool
 	OnMessage(datas []byte) error
 
@@ -64,6 +72,9 @@ type ZeroSocketConnect struct {
 	active  bool
 	zserv   ZeroServ
 	checker ZeroDataChecker
+
+	node  *list.Element
+	clock *ring.Ring
 }
 
 func (zSock *ZeroSocketConnect) This() interface{} {
@@ -78,6 +89,18 @@ func (zSock *ZeroSocketConnect) AcceptTime() int64 {
 }
 func (zSock *ZeroSocketConnect) HeartbeatTime() int64 {
 	return zSock.heartbeatTime
+}
+func (zSock *ZeroSocketConnect) Node() *list.Element {
+	return zSock.node
+}
+func (zSock *ZeroSocketConnect) Clock() *ring.Ring {
+	return zSock.clock
+}
+func (zSock *ZeroSocketConnect) FlushNode(node *list.Element) {
+	zSock.node = node
+}
+func (zSock *ZeroSocketConnect) FlushClock(clock *ring.Ring) {
+	zSock.clock = clock
 }
 
 func (zSock *ZeroSocketConnect) Accept(zserv ZeroServ, connect net.Conn) error {
@@ -140,11 +163,11 @@ func (zSock *ZeroSocketConnect) Heartbeat() {
 	zSock.heartbeatMutex.Lock()
 	zSock.heartbeatTime = time.Now().Unix()
 	zSock.heartbeatMutex.Unlock()
+	zSock.zserv.OnHeartbeat(zSock)
 	global.Logger().Info(fmt.Sprintf("sock connect %s on heartbeat", zSock.This().(ZeroConnect).RegisterId()))
 }
 
 func (zSock *ZeroSocketConnect) HeartbeatCheck(heartbeatSeconds int64) bool {
-
 	if time.Now().Unix()-zSock.heartbeatTime > heartbeatSeconds {
 		global.Logger().Info(fmt.Sprintf("sock connect %s exceeding heartbeat time, acceptTime %s ,heartbeatTime %s ,now %s ,heartbeat interval %ds",
 			zSock.This().(ZeroConnect).RegisterId(),
@@ -192,34 +215,27 @@ type ZeroSocketServer struct {
 	heartbeatCheckInterval int64
 	bufferSize             int
 
-	accepts  map[string]ZeroConnect
-	connects map[string]ZeroConnect
-
-	acceptMutex  sync.RWMutex
+	connects     map[string]ZeroConnect
 	connectMutex sync.RWMutex
 
-	heartbeatTimer *time.Timer
-
 	ConnectBuilder ZeroConnectBuilder
+
+	acceptClock    *ring.Ring
+	heartbeatClock *ring.Ring
 }
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
-	sockServer.acceptMutex.Lock()
-	sockServer.accepts[conn.This().(ZeroConnect).RegisterId()] = conn.This().(ZeroConnect)
-	sockServer.acceptMutex.Unlock()
+	clock := sockServer.acceptClock.Prev()
+	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
+	conn.FlushClock(clock)
+	conn.FlushNode(node)
 	return nil
 }
 
 func (sockServer *ZeroSocketServer) OnDisconnect(conn ZeroConnect) error {
-	sockServer.acceptMutex.Lock()
-	_, ok := sockServer.accepts[conn.This().(ZeroConnect).RegisterId()]
-	if ok {
-		delete(sockServer.accepts, conn.This().(ZeroConnect).RegisterId())
-	}
-	sockServer.acceptMutex.Unlock()
-
+	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	sockServer.connectMutex.Lock()
-	_, ok = sockServer.connects[conn.This().(ZeroConnect).RegisterId()]
+	_, ok := sockServer.connects[conn.This().(ZeroConnect).RegisterId()]
 	if ok {
 		delete(sockServer.connects, conn.This().(ZeroConnect).RegisterId())
 	}
@@ -229,17 +245,26 @@ func (sockServer *ZeroSocketServer) OnDisconnect(conn ZeroConnect) error {
 }
 
 func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
-	sockServer.acceptMutex.Lock()
-	_acceptConnect, ok := sockServer.accepts[conn.This().(ZeroConnect).RegisterId()]
-	if ok {
-		delete(sockServer.accepts, _acceptConnect.RegisterId())
-	}
-	sockServer.acceptMutex.Unlock()
+
+	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
+	clock := sockServer.heartbeatClock.Prev()
+	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
+	conn.FlushClock(clock)
+	conn.FlushNode(node)
 
 	sockServer.connectMutex.Lock()
 	sockServer.connects[conn.This().(ZeroConnect).RegisterId()] = conn.This().(ZeroConnect)
 	sockServer.connectMutex.Unlock()
 
+	return nil
+}
+
+func (sockServer *ZeroSocketServer) OnHeartbeat(conn ZeroConnect) error {
+	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
+	clock := sockServer.heartbeatClock.Prev()
+	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
+	conn.FlushClock(clock)
+	conn.FlushNode(node)
 	return nil
 }
 
@@ -253,29 +278,60 @@ func (sockServer *ZeroSocketServer) UseConnect(registerId string) (ZeroConnect, 
 	return nil, fmt.Errorf("connect %s not found", registerId)
 }
 
-func (sockServer *ZeroSocketServer) initHeartbeatTimer() {
-	sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
-	for {
-		<-sockServer.heartbeatTimer.C
-		global.Logger().Info("sock heartbeat check starting")
-		removes := make([]ZeroConnect, 0)
-		sockServer.connectMutex.RLock()
-		for _, connect := range sockServer.connects {
-			if !connect.HeartbeatCheck(sockServer.heartbeatSeconds) {
-				removes = append(removes, connect)
-			}
+func (sockServer *ZeroSocketServer) acceptTimeoutConnect(nodes *structs.ZeroLinked) {
+	_nodes := nodes.Front()
+	for _nodes != nil {
+		conn := _nodes.Value.(ZeroConnect)
+		global.Logger().Info(fmt.Sprintf("sock server connect auth time out -> %s", conn.This().(ZeroConnect).RegisterId()))
+		err := conn.This().(ZeroConnect).Close()
+		if err != nil {
+			global.Logger().Error(fmt.Sprintf("sock connect auth %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
 		}
-		sockServer.connectMutex.RUnlock()
+		_nodes = _nodes.Next()
+	}
+}
 
-		for _, conn := range removes {
-			global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.This().(ZeroConnect).RegisterId()))
-			err := conn.This().(ZeroConnect).Close()
-			if err != nil {
-				global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
-			}
+func (sockServer *ZeroSocketServer) runAcceptLoop() {
+	const DEFAULT_ACCEPT_CHECK = 10
+	sockServer.acceptClock = ring.New(DEFAULT_ACCEPT_CHECK)
+	for i := 0; i < DEFAULT_ACCEPT_CHECK; i++ {
+		sockServer.acceptClock.Value = structs.NewLinked()
+		sockServer.acceptClock = sockServer.acceptClock.Next()
+	}
+	for {
+		<-time.After(time.Duration(1) * time.Second)
+		v := sockServer.acceptClock.Value.(*structs.ZeroLinked)
+		go sockServer.acceptTimeoutConnect(v)
+		sockServer.acceptClock.Value = structs.NewLinked()
+		sockServer.acceptClock = sockServer.acceptClock.Next()
+	}
+}
+
+func (sockServer *ZeroSocketServer) cleanTimeoutConnect(nodes *structs.ZeroLinked) {
+	_nodes := nodes.Front()
+	for _nodes != nil {
+		conn := _nodes.Value.(ZeroConnect)
+		global.Logger().Info(fmt.Sprintf("sock connect %s heartbeat timeout", conn.This().(ZeroConnect).RegisterId()))
+		err := conn.This().(ZeroConnect).Close()
+		if err != nil {
+			global.Logger().Error(fmt.Sprintf("sock connect check %s closing error : %s", conn.This().(ZeroConnect).RegisterId(), err.Error()))
 		}
-		global.Logger().Info("sock heartbeat check finished")
-		sockServer.heartbeatTimer = time.NewTimer(time.Second * time.Duration(sockServer.heartbeatCheckInterval))
+		_nodes = _nodes.Next()
+	}
+}
+
+func (sockServer *ZeroSocketServer) runHeartbeatLoop() {
+	sockServer.heartbeatClock = ring.New(int(sockServer.heartbeatCheckInterval))
+	for i := 0; i < int(sockServer.heartbeatCheckInterval); i++ {
+		sockServer.heartbeatClock.Value = structs.NewLinked()
+		sockServer.heartbeatClock = sockServer.heartbeatClock.Next()
+	}
+	for {
+		<-time.After(time.Duration(1) * time.Second)
+		v := sockServer.heartbeatClock.Value.(*structs.ZeroLinked)
+		go sockServer.cleanTimeoutConnect(v)
+		sockServer.heartbeatClock.Value = structs.NewLinked()
+		sockServer.heartbeatClock = sockServer.heartbeatClock.Next()
 	}
 }
 
@@ -284,18 +340,6 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 	connect.Accept(sockServer, conn)
 
 	global.Logger().Info(fmt.Sprintf("sock server accept connect -> %s", connect.This().(ZeroConnect).RegisterId()))
-
-	time.AfterFunc(time.Duration(sockServer.authWaitSeconds)*time.Second, func() {
-		sockServer.connectMutex.RLock()
-		_, ok := sockServer.connects[connect.This().(ZeroConnect).RegisterId()]
-		sockServer.connectMutex.RUnlock()
-		if !ok {
-			connect.Close()
-			global.Logger().Info(fmt.Sprintf("sock server connect auth time out -> %s", connect.This().(ZeroConnect).RegisterId()))
-		} else {
-			global.Logger().Info(fmt.Sprintf("sock server connect auth checked -> %s", connect.This().(ZeroConnect).RegisterId()))
-		}
-	})
 
 	defer func() {
 		connect.Close()
@@ -329,7 +373,8 @@ func (sockServer *ZeroSocketServer) RunServer() {
 	if sockServer.ConnectBuilder == nil {
 		sockServer.ConnectBuilder = &xDefaultConnectBuilder{}
 	}
-	go sockServer.initHeartbeatTimer()
+	go sockServer.runAcceptLoop()
+	go sockServer.runHeartbeatLoop()
 }
 
 type ZeroClientListener interface {

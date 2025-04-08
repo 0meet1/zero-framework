@@ -1,6 +1,8 @@
 package zeroframework_test
 
 import (
+	"container/list"
+	"container/ring"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -275,4 +277,37 @@ func TestRTChild(t *testing.T) {
 	fmt.Println(string(jsonbytes))
 
 	fmt.Println(reflect.ValueOf(nil))
+}
+
+func TestRing(t *testing.T) {
+
+	list.New()
+
+	R_LEN := 10
+	r := ring.New(10)
+	for i := 0; i < R_LEN; i++ {
+		r.Value = 1 + i
+		r = r.Next()
+	}
+
+	exitch := make(chan int)
+
+	go func() {
+		for {
+			fmt.Println("*******")
+			fmt.Println(r.Prev().Value)
+			fmt.Println(r.Value)
+			r = r.Next()
+			<-time.After(time.Duration(1) * time.Second)
+		}
+	}()
+
+	select {
+	case <-exitch:
+		fmt.Println(" stoped ")
+	case <-time.After(time.Duration(60) * time.Second):
+		fmt.Println(" timeout ")
+	}
+
+	// l := list.New()
 }

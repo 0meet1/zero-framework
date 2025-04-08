@@ -19,7 +19,6 @@ type IPCServer struct {
 func NewIPCServer(ipcsock string, authWaitSeconds int64, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *IPCServer {
 	return &IPCServer{
 		ZeroSocketServer: ZeroSocketServer{
-			accepts:                make(map[string]ZeroConnect),
 			connects:               make(map[string]ZeroConnect),
 			authWaitSeconds:        authWaitSeconds,
 			heartbeatSeconds:       heartbeatSeconds,

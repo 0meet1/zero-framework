@@ -17,7 +17,6 @@ type TCPServer struct {
 func NewTCPServer(address string, authWaitSeconds int64, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *TCPServer {
 	return &TCPServer{
 		ZeroSocketServer: ZeroSocketServer{
-			accepts:                make(map[string]ZeroConnect),
 			connects:               make(map[string]ZeroConnect),
 			authWaitSeconds:        authWaitSeconds,
 			heartbeatSeconds:       heartbeatSeconds,
