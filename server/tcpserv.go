@@ -14,14 +14,13 @@ type TCPServer struct {
 	tcpServer net.Listener
 }
 
-func NewTCPServer(address string, authWaitSeconds int64, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *TCPServer {
+func NewTCPServer(address string, authWaitSeconds int64, heartbeatSeconds int64, bufferSize int) *TCPServer {
 	return &TCPServer{
 		ZeroSocketServer: ZeroSocketServer{
-			connects:               make(map[string]ZeroConnect),
-			authWaitSeconds:        authWaitSeconds,
-			heartbeatSeconds:       heartbeatSeconds,
-			heartbeatCheckInterval: heartbeatCheckInterval,
-			bufferSize:             bufferSize,
+			connects:         make(map[string]ZeroConnect),
+			authWaitSeconds:  authWaitSeconds,
+			heartbeatSeconds: heartbeatSeconds,
+			bufferSize:       bufferSize,
 		},
 		address: address,
 	}

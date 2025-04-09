@@ -118,7 +118,7 @@ func (v1conn *xZeroV1Connect) RegisterId() string {
 
 func (v1conn *xZeroV1Connect) execMessage(message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
 	if v1conn.responseChan != nil {
-		return nil, errors.New(fmt.Sprintf("zerov1 connect %s is busying", v1conn.RemoteAddr()))
+		return nil, fmt.Errorf("zerov1 connect %s is busying", v1conn.RemoteAddr())
 	}
 	err := v1conn.Write(message.Bytes())
 	if err != nil {
@@ -201,7 +201,7 @@ type xZeroV1ServKeeper struct {
 func (keeper *xZeroV1ServKeeper) ExecMessage(registerId string, message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
 	conn, err := keeper.UseConnect(registerId)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("use connect `%s` error: %s", registerId, err.Error()))
+		return nil, fmt.Errorf("use connect `%s` error: %s", registerId, err.Error())
 	}
 	return conn.(*xZeroV1Connect).execMessage(message, withSecond)
 }
@@ -209,7 +209,7 @@ func (keeper *xZeroV1ServKeeper) ExecMessage(registerId string, message *ZeroV1M
 func (keeper *xZeroV1ServKeeper) PushMessage(registerId string, message *ZeroV1Message) error {
 	conn, err := keeper.UseConnect(registerId)
 	if err != nil {
-		return errors.New(fmt.Sprintf("use connect `%s` error: %s", registerId, err.Error()))
+		return fmt.Errorf("use connect `%s` error: %s", registerId, err.Error())
 	}
 	return conn.(*xZeroV1Connect).pushMessage(message)
 }
@@ -219,13 +219,12 @@ func (keeper *xZeroV1ServKeeper) RunServer() {
 	keeper.TCPServer.RunServer()
 }
 
-func RunZeroV1Server(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroV1MessageOperator) {
+func RunZeroV1Server(addr string, heartbeatTime int, operator ZeroV1MessageOperator) {
 	zerov1serv := &xZeroV1ServKeeper{
 		TCPServer: *server.NewTCPServer(
 			addr,
 			xDEFAULT_AUTH_WAIT,
 			int64(heartbeatTime),
-			int64(heartbeatCheckInterval),
 			xDEFAULT_BUFFER_SIZE,
 		),
 		operator: operator,

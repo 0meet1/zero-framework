@@ -16,14 +16,13 @@ type IPCServer struct {
 	ipcServer *net.UnixListener
 }
 
-func NewIPCServer(ipcsock string, authWaitSeconds int64, heartbeatSeconds int64, heartbeatCheckInterval int64, bufferSize int) *IPCServer {
+func NewIPCServer(ipcsock string, authWaitSeconds int64, heartbeatSeconds int64, bufferSize int) *IPCServer {
 	return &IPCServer{
 		ZeroSocketServer: ZeroSocketServer{
-			connects:               make(map[string]ZeroConnect),
-			authWaitSeconds:        authWaitSeconds,
-			heartbeatSeconds:       heartbeatSeconds,
-			heartbeatCheckInterval: heartbeatCheckInterval,
-			bufferSize:             bufferSize,
+			connects:         make(map[string]ZeroConnect),
+			authWaitSeconds:  authWaitSeconds,
+			heartbeatSeconds: heartbeatSeconds,
+			bufferSize:       bufferSize,
 		},
 		ipcsock: ipcsock,
 	}

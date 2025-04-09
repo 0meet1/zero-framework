@@ -13,6 +13,8 @@ import (
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+
+	x0errors "github.com/pkg/errors"
 )
 
 type LogFormatter struct{}
@@ -100,16 +102,36 @@ func (logger *ZeroLogger) Debug(message string) {
 	sysLogger.Debug(message)
 }
 
+func (logger *ZeroLogger) Debugf(format string, p ...string) {
+	sysLogger.Debug(fmt.Sprintf(format, p))
+}
+
 func (logger *ZeroLogger) Info(message string) {
 	sysLogger.Info(message)
+}
+
+func (logger *ZeroLogger) Infof(format string, p ...string) {
+	sysLogger.Info(fmt.Sprintf(format, p))
 }
 
 func (logger *ZeroLogger) Warn(message string) {
 	sysLogger.Warn(message)
 }
 
+func (logger *ZeroLogger) Warnf(format string, p ...string) {
+	sysLogger.Warn(fmt.Sprintf(format, p))
+}
+
 func (logger *ZeroLogger) Error(message string) {
-	sysLogger.Error(fmt.Sprintf("\n%s\n%s", message, logger.CallerInfosMaxLine(64, 3)))
+	sysLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(x0errors.New(message))))
+}
+
+func (logger *ZeroLogger) ErrorS(err error) {
+	sysLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(err)))
+}
+
+func (logger *ZeroLogger) Errorf(format string, p ...string) {
+	logger.Error(fmt.Sprintf(format, p))
 }
 
 func (logger *ZeroLogger) Fatal(message string) {

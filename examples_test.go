@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	x0errors "github.com/pkg/errors"
+
 	"github.com/0meet1/zero-framework/structs"
 )
 
@@ -308,4 +310,10 @@ func TestRing(t *testing.T) {
 	}
 
 	// l := list.New()
+}
+
+func TestError(t *testing.T) {
+	err := x0errors.WithStack(x0errors.New(" error 1"))
+	es := fmt.Sprintf("%+v\n", err)
+	fmt.Println(es)
 }

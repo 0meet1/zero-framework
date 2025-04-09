@@ -210,10 +210,9 @@ func (xDefault *xDefaultConnectBuilder) NewConnect() ZeroConnect {
 }
 
 type ZeroSocketServer struct {
-	authWaitSeconds        int64
-	heartbeatSeconds       int64
-	heartbeatCheckInterval int64
-	bufferSize             int
+	authWaitSeconds  int64
+	heartbeatSeconds int64
+	bufferSize       int
 
 	connects     map[string]ZeroConnect
 	connectMutex sync.RWMutex
@@ -321,8 +320,8 @@ func (sockServer *ZeroSocketServer) cleanTimeoutConnect(nodes *structs.ZeroLinke
 }
 
 func (sockServer *ZeroSocketServer) runHeartbeatLoop() {
-	sockServer.heartbeatClock = ring.New(int(sockServer.heartbeatCheckInterval))
-	for i := 0; i < int(sockServer.heartbeatCheckInterval); i++ {
+	sockServer.heartbeatClock = ring.New(int(sockServer.heartbeatSeconds))
+	for i := 0; i < int(sockServer.heartbeatSeconds); i++ {
 		sockServer.heartbeatClock.Value = structs.NewLinked()
 		sockServer.heartbeatClock = sockServer.heartbeatClock.Next()
 	}
