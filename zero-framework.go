@@ -194,6 +194,7 @@ type ZeroXsacPostgresAutoProcessor = processors.ZeroXsacPostgresAutoProcessor
 type ZeroXsacMysqlAutoProcessor = processors.ZeroXsacMysqlAutoProcessor
 
 func XautoProcessor(declare ZeroXsacXhttpDeclares) processors.ZeroXsacAutoProcessor {
+	declare.ThisDef(declare)
 	_ds := declare.XsacDataSource()
 	if _ds == "" {
 		_ds = DATABASE_POSTGRES

@@ -45,6 +45,9 @@ type ZeroXsacTrigger interface {
 }
 
 type ZeroXsacDeclares interface {
+	This() interface{}
+	ThisDef(interface{})
+
 	XsacPrimaryType() string
 	XsacDataSource() string
 	XsacDbName() string
