@@ -11,6 +11,7 @@ import (
 	"github.com/0meet1/zero-framework/consul"
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/errdef"
+	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/mfgrc"
 	"github.com/0meet1/zero-framework/ossminiv2"
 	"github.com/0meet1/zero-framework/processors"
@@ -191,6 +192,18 @@ type ZeroXsacTrigger = structs.ZeroXsacTrigger
 type ZeroXsacAutoProcessor = processors.ZeroXsacAutoProcessor
 type ZeroXsacPostgresAutoProcessor = processors.ZeroXsacPostgresAutoProcessor
 type ZeroXsacMysqlAutoProcessor = processors.ZeroXsacMysqlAutoProcessor
+
+func XautoProcessor(declare ZeroXsacXhttpDeclares) processors.ZeroXsacAutoProcessor {
+	_ds := declare.XsacDataSource()
+	if _ds == "" {
+		_ds = DATABASE_POSTGRES
+	}
+	processor := declare.XhttpAutoProc()
+	processor.AddFields(declare.(structs.ZeroXsacFields).XsacFields())
+	transaction := global.Value(_ds).(DataSource).Transaction()
+	processor.Build(transaction)
+	return processor
+}
 
 const (
 	XSAC_DML_ADD       = autohttpconf.XSAC_DML_ADD

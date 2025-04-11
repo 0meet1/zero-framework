@@ -16,6 +16,10 @@ func (processor *ZeroCoreProcessor) Build(transaction *sql.Tx) {
 	processor.prepares = make(map[string]*sql.Stmt)
 }
 
+func (processor *ZeroCoreProcessor) Transaction() *sql.Tx {
+	return processor.transaction
+}
+
 func (processor *ZeroCoreProcessor) Exec(execsql string) (sql.Result, error) {
 	return processor.transaction.Exec(execsql)
 }

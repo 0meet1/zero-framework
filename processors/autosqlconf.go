@@ -17,9 +17,10 @@ const (
 )
 
 type ZeroXsacAutoProcessor interface {
-	Build(transaction *sql.Tx)
+	Build(*sql.Tx)
+	Transaction() *sql.Tx
 
-	AddFields(fields []*structs.ZeroXsacField)
+	AddFields([]*structs.ZeroXsacField)
 	AddTriggers(...structs.ZeroXsacTrigger)
 
 	Insert(...interface{}) error
