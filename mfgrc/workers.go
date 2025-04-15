@@ -24,15 +24,11 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux.open(keeper)
 	flux.UniqueId = mono.XuniqueCode()
 	err := flux.Push(mono, keeper)
-	fmt.Println("-----------------4")
 	if err != nil {
-		fmt.Println("-----------------5")
 		return err
 	}
-	fmt.Println("-----------------6")
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
-	fmt.Println("-----------------7")
 	return nil
 }
 
