@@ -20,13 +20,18 @@ type ZeroMfgrcFlux struct {
 }
 
 func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
+	fmt.Println("-----------------1")
 	flux := &ZeroMfgrcFlux{}
 	flux.open(keeper)
+	fmt.Println("-----------------2")
 	flux.UniqueId = mono.XuniqueCode()
 	err := flux.Push(mono, keeper)
+	fmt.Println("-----------------4")
 	if err != nil {
+		fmt.Println("-----------------5")
 		return err
 	}
+	fmt.Println("-----------------6")
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
 	fmt.Println("-----------------1")
@@ -224,7 +229,6 @@ func (worker *ZeroMfgrcWorker) Start() {
 
 	global.Logger().Info(fmt.Sprintf("[%s] ready and waiting ...", worker.workName))
 	for xQueue := range worker.keeper.mfgrcChan {
-		fmt.Println("-----------------1222222")
 		worker.statusMutex.Lock()
 		xstatus := worker.status
 		worker.statusMutex.Unlock()
