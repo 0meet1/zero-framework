@@ -125,11 +125,7 @@ func (act *ZeroMfgrcMonoActuator) Exec(mono MfgrcMono) chan error {
 	act.mono.EventListener(act)
 	err := act.Keeper.AddMono(act.mono)
 	if err != nil {
-		go func() {
-			time.After(time.Millisecond * time.Duration(100))
-			act.errchan <- err
-			act.errchan = nil
-		}()
+		go func() { act.errchan <- err }()
 	}
 	return act.errchan
 }

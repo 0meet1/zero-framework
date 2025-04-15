@@ -29,6 +29,7 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	}
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
+	fmt.Println("-----------------1")
 	return nil
 }
 
@@ -221,8 +222,9 @@ func (worker *ZeroMfgrcWorker) Start() {
 	worker.status = xWORKER_STATUS_RUNNING
 	worker.statusMutex.Unlock()
 
-	global.Logger().Info(fmt.Sprintf("[%s] ready waiting ...", worker.workName))
+	global.Logger().Info(fmt.Sprintf("[%s] ready and waiting ...", worker.workName))
 	for xQueue := range worker.keeper.mfgrcChan {
+		fmt.Println("-----------------1222222")
 		worker.statusMutex.Lock()
 		xstatus := worker.status
 		worker.statusMutex.Unlock()
@@ -238,7 +240,6 @@ func (worker *ZeroMfgrcWorker) Start() {
 
 		global.Logger().Info(fmt.Sprintf("[%s] flux `%s` complete", worker.workName, xQueue.UniqueId))
 		worker.executing = ""
-
 	}
 	worker.keeper.closeWorker(worker)
 	global.Logger().Info(fmt.Sprintf("[%s] warning! worker is shutdown now", worker.workName))
