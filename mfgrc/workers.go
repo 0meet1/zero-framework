@@ -46,22 +46,21 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	}
 
 	flux.monoMap[mono.XmonoId()] = mono
-	fmt.Println("-----------------41")
 	err := mono.Pending(flux)
-	fmt.Println("-----------------51")
 	if err != nil {
 		delete(flux.monoMap, mono.XmonoId())
 		fmt.Println("-----------------61")
 		mono.Failed(err)
 		return err
 	}
-
+	fmt.Println("-----------------41")
 	flux.monoMutex.Lock()
+	fmt.Println("-----------------412")
 	if flux.monos != nil {
 		go func() { flux.monos <- mono }()
 	}
 	flux.monoMutex.Unlock()
-
+	fmt.Println("-----------------51")
 	return nil
 }
 
