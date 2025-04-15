@@ -34,9 +34,8 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 
 func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
-
 	_, ok := flux.monoMap[mono.XmonoId()]
+	flux.monoMutex.Unlock()
 	if ok {
 		return fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
 	}
@@ -49,18 +48,15 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	err := mono.Pending(flux)
 	if err != nil {
 		delete(flux.monoMap, mono.XmonoId())
-		fmt.Println("-----------------61")
 		mono.Failed(err)
 		return err
 	}
-	fmt.Println("-----------------41")
+
 	flux.monoMutex.Lock()
-	fmt.Println("-----------------412")
 	if flux.monos != nil {
 		go func() { flux.monos <- mono }()
 	}
 	flux.monoMutex.Unlock()
-	fmt.Println("-----------------51")
 	return nil
 }
 
