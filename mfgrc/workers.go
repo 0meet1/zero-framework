@@ -20,10 +20,8 @@ type ZeroMfgrcFlux struct {
 }
 
 func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
-	fmt.Println("-----------------1")
 	flux := &ZeroMfgrcFlux{}
 	flux.open(keeper)
-	fmt.Println("-----------------2")
 	flux.UniqueId = mono.XuniqueCode()
 	err := flux.Push(mono, keeper)
 	fmt.Println("-----------------4")
@@ -34,7 +32,7 @@ func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	fmt.Println("-----------------6")
 	keeper.mfgrcMap[flux.UniqueId] = flux
 	go func() { keeper.mfgrcChan <- flux }()
-	fmt.Println("-----------------1")
+	fmt.Println("-----------------7")
 	return nil
 }
 
@@ -52,9 +50,12 @@ func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
 	}
 
 	flux.monoMap[mono.XmonoId()] = mono
+	fmt.Println("-----------------41")
 	err := mono.Pending(flux)
+	fmt.Println("-----------------51")
 	if err != nil {
 		delete(flux.monoMap, mono.XmonoId())
+		fmt.Println("-----------------61")
 		mono.Failed(err)
 		return err
 	}
