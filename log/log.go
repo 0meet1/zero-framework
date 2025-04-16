@@ -102,24 +102,24 @@ func (logger *ZeroLogger) Debug(message string) {
 	sysLogger.Debug(message)
 }
 
-func (logger *ZeroLogger) Debugf(format string, p ...string) {
-	sysLogger.Debug(fmt.Sprintf(format, p))
+func (logger *ZeroLogger) Debugf(format string, p ...any) {
+	sysLogger.Debug(fmt.Sprintf(format, p...))
 }
 
 func (logger *ZeroLogger) Info(message string) {
 	sysLogger.Info(message)
 }
 
-func (logger *ZeroLogger) Infof(format string, p ...string) {
-	sysLogger.Info(fmt.Sprintf(format, p))
+func (logger *ZeroLogger) Infof(format string, p ...any) {
+	sysLogger.Info(fmt.Sprintf(format, p...))
 }
 
 func (logger *ZeroLogger) Warn(message string) {
 	sysLogger.Warn(message)
 }
 
-func (logger *ZeroLogger) Warnf(format string, p ...string) {
-	sysLogger.Warn(fmt.Sprintf(format, p))
+func (logger *ZeroLogger) Warnf(format string, p ...any) {
+	sysLogger.Warn(fmt.Sprintf(format, p...))
 }
 
 func (logger *ZeroLogger) Error(message string) {
@@ -130,8 +130,8 @@ func (logger *ZeroLogger) ErrorS(err error) {
 	sysLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(err)))
 }
 
-func (logger *ZeroLogger) Errorf(format string, p ...string) {
-	logger.Error(fmt.Sprintf(format, p))
+func (logger *ZeroLogger) Errorf(format string, p ...any) {
+	logger.Error(fmt.Sprintf(format, p...))
 }
 
 func (logger *ZeroLogger) Fatal(message string) {
