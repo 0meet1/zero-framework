@@ -229,64 +229,20 @@ type ZeroXsacXhttpStructs = autohttpconf.ZeroXsacXhttpStructs
 type ZeroXsacCustomPartChecker = autohttpconf.ZeroXsacCustomPartChecker
 type ZeroXsacXhttpApi = autohttpconf.ZeroXsacXhttpApi
 
-const XahttpOpt_T = 1
-const XahttpOpt_F = 0
-
-func XahttpOpt(i, u, r, f, s int) byte {
-	return byte(i&1<<3 + u&1<<2 + r&1<<1 + f&1 + s&1<<4)
-}
-
-func XahttpOptNoU() byte {
-	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_T, XahttpOpt_T, XahttpOpt_F)
-}
-
-func XahttpOptNoR() byte {
-	return XahttpOpt(XahttpOpt_T, XahttpOpt_T, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
-}
-
-func XahttpOptNoUR() byte {
-	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
-}
-
-func XahttpOptIO() byte {
-	return XahttpOpt(XahttpOpt_T, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F)
-}
-
-func XahttpOptFO() byte {
-	return XahttpOpt(XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T, XahttpOpt_F)
-}
-
-func XahttpOptSO() byte {
-	return XahttpOpt(XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_F, XahttpOpt_T)
-}
-
-func XahttpOptAll() byte {
-	return XahttpOpt(XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T, XahttpOpt_T)
-}
-
-func XsacPhysically() byte {
-	return 0b10000000
-}
-
-func XsacTombstone() byte {
-	return 0
-}
-
-func XsacTombstoneAndHistory() byte {
-	return 0b00000001
-}
-
-func XsacTombstoneAndForce() byte {
-	return 0b00000011
-}
-
-func XsacTombstoneAndRestore() byte {
-	return 0b00000101
-}
-
-func XsacTombstoneWhole() byte {
-	return 0b00000111
-}
+var XahttpOpt = structs.XahttpOpt
+var XahttpOptNoS = structs.XahttpOptNoS
+var XahttpOptNoU = structs.XahttpOptNoU
+var XahttpOptNoR = structs.XahttpOptNoR
+var XahttpOptNoUR = structs.XahttpOptNoUR
+var XahttpOptIO = structs.XahttpOptIO
+var XahttpOptFO = structs.XahttpOptFO
+var XahttpOptAll = structs.XahttpOptAll
+var XsacPhysically = structs.XsacPhysically
+var XsacTombstone = structs.XsacTombstone
+var XsacTombstoneAndHistory = structs.XsacTombstoneAndHistory
+var XsacTombstoneAndForce = structs.XsacTombstoneAndForce
+var XsacTombstoneAndRestore = structs.XsacTombstoneAndRestore
+var XsacTombstoneWhole = structs.XsacTombstoneWhole
 
 type ZeroSignature = signatures.ZeroSignature
 type OssminiV2Keeper = ossminiv2.OssminiV2Keeper
