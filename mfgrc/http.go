@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/0meet1/zero-framework/server"
@@ -11,6 +12,10 @@ import (
 )
 
 var XmonoComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcKeeper, mono MfgrcMono) error {
+	if strings.TrimSpace(mono.XuniqueCode()) == "" {
+		return errors.New(" `uniqueCode` is empty ")
+	}
+
 	if len(xRequest.Querys) != 1 {
 		return errors.New(" no support multiple tasks or task is empty ")
 	}
@@ -84,6 +89,9 @@ var XmonoPerformed = func(
 }
 
 var XgroupComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcGroupKeeper, group MfgrcGroup) error {
+	if strings.TrimSpace(group.XuniqueCode()) == "" {
+		return errors.New(" `uniqueCode` is empty ")
+	}
 	if len(xRequest.Querys) != 1 {
 		return errors.New(" no support multiple tasks or task is empty ")
 	}
