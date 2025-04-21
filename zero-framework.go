@@ -142,6 +142,8 @@ type ZeroMfgrcMonoQueueActuator = mfgrc.ZeroMfgrcMonoQueueActuator
 
 var XmonoComplete = mfgrc.XmonoComplete
 var XmonoPerformed = mfgrc.XmonoPerformed
+var XgroupComplete = mfgrc.XgroupComplete
+var XgroupPerformed = mfgrc.XgroupPerformed
 
 const (
 	DSC_LOCK_TRUNK = consul.DSC_LOCK_TRUNK
