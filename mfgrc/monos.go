@@ -26,6 +26,7 @@ type ZeroMfgrcMono struct {
 	MonoID     string `json:"monoID,omitempty"`
 	UniqueCode string `json:"uniqueCode,omitempty"`
 	Option     string `json:"option,omitempty"`
+	Operator   string `json:"operator,omitempty"`
 
 	Progress int `json:"progress,omitempty"`
 
@@ -47,6 +48,7 @@ func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
 	mono.MonoID = structs.ParseStringField(rowmap, "mono_id")
 	mono.UniqueCode = structs.ParseStringField(rowmap, "unique_code")
 	mono.Option = structs.ParseStringField(rowmap, "option")
+	mono.Operator = structs.ParseStringField(rowmap, "operator")
 	mono.Progress = structs.ParseIntField(rowmap, "progress")
 	mono.status = structs.ParseStringField(rowmap, "status")
 	mono.maxExecuteTimes = structs.ParseIntField(rowmap, "max_execute_times")

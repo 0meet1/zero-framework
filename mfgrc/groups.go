@@ -27,6 +27,7 @@ type ZeroMfgrcGroup struct {
 
 	UniqueCode string `json:"uniqueCode,omitempty"`
 	Option     string `json:"option,omitempty"`
+	Operator   string `json:"operator,omitempty"`
 
 	Monos []MfgrcMono `json:"monos,omitempty"`
 
@@ -42,6 +43,7 @@ func (group *ZeroMfgrcGroup) LoadRowData(rowmap map[string]interface{}) {
 
 	group.UniqueCode = structs.ParseStringField(rowmap, "unique_code")
 	group.Option = structs.ParseStringField(rowmap, "option")
+	group.Operator = structs.ParseStringField(rowmap, "operator")
 	group.status = structs.ParseStringField(rowmap, "status")
 
 	reason, ok := group.Features["reason"]
@@ -63,6 +65,9 @@ func (group *ZeroMfgrcGroup) Xoption() string {
 }
 
 func (group *ZeroMfgrcGroup) Xmonos() []MfgrcMono {
+	if group.Monos == nil {
+		group.Monos = make([]MfgrcMono, 0)
+	}
 	return group.Monos
 }
 
