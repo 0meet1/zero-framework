@@ -12,10 +12,6 @@ import (
 )
 
 var XmonoComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcKeeper, mono MfgrcMono) error {
-	if strings.TrimSpace(mono.XuniqueCode()) == "" {
-		return errors.New(" `uniqueCode` is empty ")
-	}
-
 	if len(xRequest.Querys) != 1 {
 		return errors.New(" no support multiple tasks or task is empty ")
 	}
@@ -28,6 +24,9 @@ var XmonoComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcKeeper,
 	err = json.Unmarshal(bytes, mono)
 	if err != nil {
 		return err
+	}
+	if strings.TrimSpace(mono.XuniqueCode()) == "" {
+		return errors.New(" `uniqueCode` is empty ")
 	}
 	err = keeper.Check(mono)
 	if err != nil {
@@ -89,9 +88,6 @@ var XmonoPerformed = func(
 }
 
 var XgroupComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcGroupKeeper, group MfgrcGroup) error {
-	if strings.TrimSpace(group.XuniqueCode()) == "" {
-		return errors.New(" `uniqueCode` is empty ")
-	}
 	if len(xRequest.Querys) != 1 {
 		return errors.New(" no support multiple tasks or task is empty ")
 	}
@@ -102,6 +98,10 @@ var XgroupComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcGroupK
 	err = json.Unmarshal(bytes, group)
 	if err != nil {
 		return err
+	}
+
+	if strings.TrimSpace(group.XuniqueCode()) == "" {
+		return errors.New(" `uniqueCode` is empty ")
 	}
 
 	err = keeper.Check(group)
