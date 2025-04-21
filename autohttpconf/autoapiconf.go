@@ -31,7 +31,7 @@ func (*ZeroXsacXhttpApi) XhttpCustomPartChecker() ZeroXsacCustomPartChecker  { p
 func (*ZeroXsacXhttpApi) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger            { panic("not support") }
 func (*ZeroXsacXhttpApi) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger        { panic("not support") }
 func (*ZeroXsacXhttpApi) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger      { panic("not support") }
-func (*ZeroXsacXhttpApi) XsacAutoParser() []structs.ZeroXsacAutoParser       { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacAutoParser() []structs.ZeroXsacAutoParser       { return nil }
 func (*ZeroXsacXhttpApi) XsacDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }

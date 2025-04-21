@@ -185,6 +185,10 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
 		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
 
+		if declares.XsacTableName() == "" || declares.XsacAutoParser() == nil {
+			continue
+		}
+
 		_, ok := keeper.autoParsers[declares.XsacTableName()]
 		if ok {
 			panic(fmt.Errorf(" duplicate defined table `%s` ", declares.XsacTableName()))
