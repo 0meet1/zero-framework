@@ -9,33 +9,33 @@ type ZeroXsacXhttpApi struct {
 	structs.ZeroMeta
 }
 
-func (_ *ZeroXsacXhttpApi) XsacPrimaryType() string                            { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacDataSource() string                             { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacDbName() string                                 { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacTableName() string                              { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacDeleteOpt() byte                                { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacPartition() string                              { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacCustomPartTrigger() string                      { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacTriggers() []structs.ZeroXsacTrigger            { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacApiName() string                                { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacApiFields() [][]string                          { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacApiEnums() []string                             { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XsacApis(...string) []string                        { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpPath() string                                  { return "" }
-func (_ *ZeroXsacXhttpApi) XhttpAutoProc() processors.ZeroXsacAutoProcessor    { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpQueryOperation() processors.ZeroQueryOperation { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpOpt() byte                                     { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpCheckTable() string                            { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpSearchIndex() string                           { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpCustomPartChecker() ZeroXsacCustomPartChecker  { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger            { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger        { panic("not support") }
-func (_ *ZeroXsacXhttpApi) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger      { panic("not support") }
-
-func (_ *ZeroXsacXhttpApi) XsacDeclares(...string) structs.ZeroXsacEntrySet {
+func (*ZeroXsacXhttpApi) XsacPrimaryType() string                            { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacDataSource() string                             { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacDbName() string                                 { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacTableName() string                              { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacDeleteOpt() byte                                { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacPartition() string                              { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacCustomPartTrigger() string                      { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacTriggers() []structs.ZeroXsacTrigger            { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacApiName() string                                { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacApiFields() [][]string                          { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacApiEnums() []string                             { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacApis(...string) []string                        { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpPath() string                                  { return "" }
+func (*ZeroXsacXhttpApi) XhttpAutoProc() processors.ZeroXsacAutoProcessor    { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpQueryOperation() processors.ZeroQueryOperation { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpOpt() byte                                     { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpCheckTable() string                            { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpSearchIndex() string                           { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpCustomPartChecker() ZeroXsacCustomPartChecker  { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpDMLTrigger() ZeroXsacHttpDMLTrigger            { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpFetchTrigger() ZeroXsacHttpFetchTrigger        { panic("not support") }
+func (*ZeroXsacXhttpApi) XhttpSearchTrigger() ZeroXsacHttpSearchTrigger      { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacAutoParser() []structs.ZeroXsacAutoParser       { panic("not support") }
+func (*ZeroXsacXhttpApi) XsacDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }
-func (_ *ZeroXsacXhttpApi) XsacRefDeclares(...string) structs.ZeroXsacEntrySet {
+func (*ZeroXsacXhttpApi) XsacRefDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }
-func (_ *ZeroXsacXhttpApi) XsacApiExports(...string) []string { return make([]string, 0) }
+func (*ZeroXsacXhttpApi) XsacApiExports(...string) []string { return make([]string, 0) }
