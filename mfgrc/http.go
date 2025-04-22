@@ -108,7 +108,7 @@ var XgroupComplete = func(xRequest *structs.ZeroRequest, keeper *ZeroMfgrcGroupK
 	if err != nil {
 		return err
 	}
-	group.ThisDef(&group)
+	group.ThisDef(group)
 	group.Xmonos()
 	return nil
 }
