@@ -1,6 +1,8 @@
 package autohttpconf
 
 import (
+	"github.com/0meet1/zero-framework/database"
+	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/processors"
 	"github.com/0meet1/zero-framework/structs"
 )
@@ -39,3 +41,16 @@ func (*ZeroXsacXhttpApi) XsacRefDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }
 func (*ZeroXsacXhttpApi) XsacApiExports(...string) []string { return make([]string, 0) }
+
+var XautoProcessor = func(declare ZeroXsacXhttpDeclares) processors.ZeroXsacAutoProcessor {
+	declare.ThisDef(declare)
+	_ds := declare.XsacDataSource()
+	if _ds == "" {
+		_ds = database.DATABASE_POSTGRES
+	}
+	processor := declare.XhttpAutoProc()
+	processor.AddFields(declare.(structs.ZeroXsacFields).XsacFields())
+	transaction := global.Value(_ds).(database.DataSource).Transaction()
+	processor.Build(transaction)
+	return processor
+}
