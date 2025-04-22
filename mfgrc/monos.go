@@ -291,22 +291,22 @@ func (mono *ZeroMfgrcMono) MaxExecuteTimes() int {
 }
 
 func (mono *ZeroMfgrcMono) Export() (map[string]interface{}, error) {
-	mjson, err := json.Marshal(mono.This().(MfgrcMono))
+	jsonbytes, err := json.Marshal(mono.This())
 	if err != nil {
 		return nil, err
 	}
-	var jsonMap map[string]interface{}
-	err = json.Unmarshal([]byte(mjson), &jsonMap)
+	jsonmap := make(map[string]interface{})
+	err = json.Unmarshal(jsonbytes, &jsonmap)
 	if err != nil {
 		return nil, err
 	}
 
-	jsonMap["status"] = mono.status
-	jsonMap["reason"] = mono.reason
-	jsonMap["maxExecuteTimes"] = mono.maxExecuteTimes
-	jsonMap["executeTimes"] = mono.executeTimes
+	jsonmap["status"] = mono.status
+	jsonmap["reason"] = mono.reason
+	jsonmap["maxExecuteTimes"] = mono.maxExecuteTimes
+	jsonmap["executeTimes"] = mono.executeTimes
 
-	return jsonMap, nil
+	return jsonmap, nil
 }
 
 func (mono *ZeroMfgrcMono) String() (string, error) {

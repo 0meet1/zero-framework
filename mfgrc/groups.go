@@ -196,20 +196,19 @@ func (group *ZeroMfgrcGroup) Delete() error {
 }
 
 func (group *ZeroMfgrcGroup) Export() (map[string]interface{}, error) {
-
-	jsonbytes, err := json.Marshal(group.This().(MfgrcGroup))
+	jsonbytes, err := json.Marshal(group.This())
 	if err != nil {
 		return nil, err
 	}
 
-	var jsonMap map[string]interface{}
-	err = json.Unmarshal(jsonbytes, &jsonMap)
+	var jsonmap map[string]interface{}
+	err = json.Unmarshal(jsonbytes, &jsonmap)
 	if err != nil {
 		return nil, err
 	}
 
-	jsonMap["uniqueCode"] = group.UniqueCode
-	jsonMap["option"] = group.Option
+	jsonmap["uniqueCode"] = group.UniqueCode
+	jsonmap["option"] = group.Option
 
 	if group.Monos != nil {
 		monos := make([]map[string]interface{}, len(group.Monos))
@@ -219,13 +218,13 @@ func (group *ZeroMfgrcGroup) Export() (map[string]interface{}, error) {
 				return nil, err
 			}
 		}
-		jsonMap["monos"] = monos
+		jsonmap["monos"] = monos
 	}
 
-	jsonMap["status"] = group.status
-	jsonMap["reason"] = group.reason
+	jsonmap["status"] = group.status
+	jsonmap["reason"] = group.reason
 
-	return jsonMap, nil
+	return jsonmap, nil
 }
 
 type ZeroMfgrcGroupWorker struct {
