@@ -17,26 +17,7 @@ import (
 	"github.com/0meet1/zero-framework/structs"
 )
 
-var (
-	prefix string
-)
-
-func mkuri(args ...string) string {
-	uri := ""
-	for _, arg := range args {
-		if len(strings.TrimSpace(arg)) > 0 {
-			uri = path.Join(uri, arg)
-		}
-	}
-
-	if strings.HasSuffix(args[len(args)-1], "/") {
-		return fmt.Sprintf("/%s/", uri)
-	} else {
-		return fmt.Sprintf("/%s", uri)
-	}
-}
-
-func XhttpResponseMaps(writer http.ResponseWriter, code int, message string, datas []map[string]interface{}, expands map[string]interface{}) {
+var XhttpResponseMaps = func(writer http.ResponseWriter, code int, message string, datas []map[string]interface{}, expands map[string]interface{}) {
 	response := make(map[string]interface{})
 	response["code"] = code
 	response["message"] = message
@@ -53,7 +34,7 @@ func XhttpResponseMaps(writer http.ResponseWriter, code int, message string, dat
 	writer.Write(bytes)
 }
 
-func XhttpResponseDatas(writer http.ResponseWriter, code int, message string, datas []interface{}, expands map[string]interface{}) {
+var XhttpResponseDatas = func(writer http.ResponseWriter, code int, message string, datas []interface{}, expands map[string]interface{}) {
 	bytes, err := json.Marshal(structs.ZeroResponse{
 		Code:    code,
 		Message: message,
@@ -69,11 +50,11 @@ func XhttpResponseDatas(writer http.ResponseWriter, code int, message string, da
 	writer.Write(bytes)
 }
 
-func XhttpResponseMessages(writer http.ResponseWriter, code int, message string) {
+var XhttpResponseMessages = func(writer http.ResponseWriter, code int, message string) {
 	XhttpResponseDatas(writer, code, message, nil, nil)
 }
 
-func XhttpZeroRequest(req *http.Request) (*structs.ZeroRequest, error) {
+var XhttpZeroRequest = func(req *http.Request) (*structs.ZeroRequest, error) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		return nil, err
@@ -87,7 +68,7 @@ func XhttpZeroRequest(req *http.Request) (*structs.ZeroRequest, error) {
 	return &request, nil
 }
 
-func XhttpZeroQuery(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error) {
+var XhttpZeroQuery = func(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error) {
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
 	}
@@ -106,7 +87,7 @@ func XhttpZeroQuery(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error
 	return &query, nil
 }
 
-func XhttpMysqlQueryOperation(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+var XhttpMysqlQueryOperation = func(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
 	xQuery, err := XhttpZeroQuery(xRequest)
 	if err != nil {
 		return nil, nil, err
@@ -115,7 +96,7 @@ func XhttpMysqlQueryOperation(xRequest *structs.ZeroRequest, tableName string) (
 	return processors.NewZeroMysqlQueryOperation(xQuery, tableName), xQuery, nil
 }
 
-func XhttpPostgresQueryOperation(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+var XhttpPostgresQueryOperation = func(xRequest *structs.ZeroRequest, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
 	xQuery, err := XhttpZeroQuery(xRequest)
 	if err != nil {
 		return nil, nil, err
@@ -124,7 +105,7 @@ func XhttpPostgresQueryOperation(xRequest *structs.ZeroRequest, tableName string
 	return processors.NewZeroPostgresQueryOperation(xQuery, tableName), xQuery, nil
 }
 
-func XhttpCompleteQueryOperation(xRequest *structs.ZeroRequest, xProcessor processors.ZeroQueryOperation, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+var XhttpCompleteQueryOperation = func(xRequest *structs.ZeroRequest, xProcessor processors.ZeroQueryOperation, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
 	xQuery, err := XhttpZeroQuery(xRequest)
 	if err != nil {
 		return nil, nil, err
@@ -137,7 +118,7 @@ func XhttpCompleteQueryOperation(xRequest *structs.ZeroRequest, xProcessor proce
 
 const XHTTP_QUERY_OPTIONS_ALL = "all"
 
-func XhttpQueryOptions(xRequest *structs.ZeroRequest) []string {
+var XhttpQueryOptions = func(xRequest *structs.ZeroRequest) []string {
 	xoptions := make([]string, 0)
 	if xRequest.Expands == nil {
 		return xoptions
@@ -154,7 +135,7 @@ func XhttpQueryOptions(xRequest *structs.ZeroRequest) []string {
 	return xoptions
 }
 
-func XhttpContainsOptions(xRequest *structs.ZeroRequest, option string) bool {
+var XhttpContainsOptions = func(xRequest *structs.ZeroRequest, option string) bool {
 	if _, ok := xRequest.Expands["options"]; ok {
 		return strings.Contains(xRequest.Expands["options"].(string), option) ||
 			strings.Contains(xRequest.Expands["options"].(string), XHTTP_QUERY_OPTIONS_ALL)
@@ -162,7 +143,7 @@ func XhttpContainsOptions(xRequest *structs.ZeroRequest, option string) bool {
 	return false
 }
 
-func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
+var XhttpEQuery = func(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
 	}
@@ -180,7 +161,7 @@ func XhttpEQuery(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) 
 	return &query, nil
 }
 
-func XhttpEQueryRequest(xRequest *structs.ZeroRequest, indexName string) (*database.EQueryRequest, *database.EQuerySearch, error) {
+var XhttpEQueryRequest = func(xRequest *structs.ZeroRequest, indexName string) (*database.EQueryRequest, *database.EQuerySearch, error) {
 	xEQuery, err := XhttpEQuery(xRequest)
 	if err != nil {
 		return nil, nil, err
@@ -193,7 +174,7 @@ func XhttpEQueryRequest(xRequest *structs.ZeroRequest, indexName string) (*datab
 	return eRequest, xEQuery, nil
 }
 
-func XhttpURIParams(req *http.Request, xPattern string) map[string]string {
+var XhttpURIParams = func(req *http.Request, xPattern string) map[string]string {
 	uriparams := make(map[string]string)
 	xAfter := xPattern[:strings.Index(xPattern, ":")]
 	if strings.Index(req.URL.Path, xAfter) > 0 {
@@ -235,7 +216,7 @@ func (xfile *XhttpFromFile) FilesBytes() []byte {
 	return xfile.filesbytes
 }
 
-func XhttpFromFileRequest(req *http.Request, maxmem int64) ([]*XhttpFromFile, error) {
+var XhttpFromFileRequest = func(req *http.Request, maxmem int64) ([]*XhttpFromFile, error) {
 	err := req.ParseMultipartForm(maxmem)
 	if err != nil {
 		return nil, err
@@ -262,7 +243,7 @@ func XhttpFromFileRequest(req *http.Request, maxmem int64) ([]*XhttpFromFile, er
 	return formfiles, nil
 }
 
-func XhttpKeyValueRequest(req *http.Request) map[string]string {
+var XhttpKeyValueRequest = func(req *http.Request) map[string]string {
 	kv := make(map[string]string)
 	if req.URL.Query() != nil {
 		for k := range req.URL.Query() {
@@ -285,27 +266,42 @@ type XhttpExecutor struct {
 	executor     http.Handler
 }
 
+func xhttpuri(args ...string) string {
+	uri := ""
+	for _, arg := range args {
+		if len(strings.TrimSpace(arg)) > 0 {
+			uri = path.Join(uri, arg)
+		}
+	}
+
+	if strings.HasSuffix(args[len(args)-1], "/") {
+		return fmt.Sprintf("/%s/", uri)
+	} else {
+		return fmt.Sprintf("/%s", uri)
+	}
+}
+
 type XhttpInterceptor interface {
 	Registry(*XhttpExecutor) http.Handler
 }
 
-func XhttpFuncHandle(funcx func(http.ResponseWriter, *http.Request), path ...string) *XhttpExecutor {
+var XhttpFuncHandle = func(funcx func(http.ResponseWriter, *http.Request), path ...string) *XhttpExecutor {
 	return &XhttpExecutor{
 		funcmode:     true,
-		path:         mkuri(path...),
+		path:         xhttpuri(path...),
 		executorfunc: funcx,
 	}
 }
 
-func XhttpHandle(handler http.Handler, path ...string) *XhttpExecutor {
+var XhttpHandle = func(handler http.Handler, path ...string) *XhttpExecutor {
 	return &XhttpExecutor{
 		funcmode: false,
-		path:     mkuri(path...),
+		path:     xhttpuri(path...),
 		executor: handler,
 	}
 }
 
-func XhttpPerform(executor *XhttpExecutor, writer http.ResponseWriter, request *http.Request) {
+var XhttpPerform = func(executor *XhttpExecutor, writer http.ResponseWriter, request *http.Request) {
 	if executor.funcmode {
 		executor.executorfunc(writer, request)
 	} else {
@@ -313,8 +309,8 @@ func XhttpPerform(executor *XhttpExecutor, writer http.ResponseWriter, request *
 	}
 }
 
-func RunHttpServer(handlers ...*XhttpExecutor) {
-	prefix = path.Join("/", global.StringValue("zero.httpserver.prefix"))
+var RunHttpServer = func(handlers ...*XhttpExecutor) {
+	prefix := path.Join("/", global.StringValue("zero.httpserver.prefix"))
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
 		if handler.funcmode {
@@ -339,8 +335,8 @@ func RunHttpServer(handlers ...*XhttpExecutor) {
 	server.ListenAndServe()
 }
 
-func RunInterceptor(interceptor XhttpInterceptor, handlers ...*XhttpExecutor) {
-	prefix = path.Join("/", global.StringValue("zero.httpserver.prefix"))
+var RunInterceptor = func(interceptor XhttpInterceptor, handlers ...*XhttpExecutor) {
+	prefix := path.Join("/", global.StringValue("zero.httpserver.prefix"))
 	server := http.Server{Addr: fmt.Sprintf("%s:%d", global.StringValue("zero.httpserver.hostname"), global.IntValue("zero.httpserver.port"))}
 	for _, handler := range handlers {
 		if strings.HasSuffix(handler.path, "/") {

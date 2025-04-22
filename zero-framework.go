@@ -50,8 +50,32 @@ type RocketmqKeeper = rocketmq.RocketmqKeeper
 type MQNotifyMessage = rocketmq.MQNotifyMessage
 type MQMessageObserver = rocketmq.MQMessageObserver
 
+var XhttpResponseMaps = server.XhttpResponseMaps
+var XhttpResponseDatas = server.XhttpResponseDatas
+var XhttpResponseMessages = server.XhttpResponseMessages
+var XhttpZeroRequest = server.XhttpZeroRequest
+var XhttpZeroQuery = server.XhttpZeroQuery
+var XhttpMysqlQueryOperation = server.XhttpMysqlQueryOperation
+var XhttpPostgresQueryOperation = server.XhttpPostgresQueryOperation
+var XhttpCompleteQueryOperation = server.XhttpCompleteQueryOperation
+var XhttpQueryOptions = server.XhttpQueryOptions
+var XhttpContainsOptions = server.XhttpContainsOptions
+var XhttpEQuery = server.XhttpEQuery
+var XhttpEQueryRequest = server.XhttpEQueryRequest
+var XhttpURIParams = server.XhttpURIParams
+var XhttpFromFileRequest = server.XhttpFromFileRequest
+var XhttpKeyValueRequest = server.XhttpKeyValueRequest
+var XhttpFuncHandle = server.XhttpFuncHandle
+var XhttpHandle = server.XhttpHandle
+var XhttpPerform = server.XhttpPerform
+
 type XhttpFromFile = server.XhttpFromFile
 type XhttpExecutor = server.XhttpExecutor
+
+type XhttpInterceptor = server.XhttpInterceptor
+
+var RunHttpServer = server.RunHttpServer
+var RunInterceptor = server.RunInterceptor
 
 type ZeroServ = server.ZeroServ
 type ZeroDataChecker = server.ZeroDataChecker
