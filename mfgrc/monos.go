@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/errdef"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/structs"
@@ -21,7 +22,7 @@ const (
 )
 
 type ZeroMfgrcMono struct {
-	structs.ZeroCoreStructs
+	autohttpconf.ZeroXsacXhttpStructs
 
 	MonoID     string `json:"monoID,omitempty"`
 	UniqueCode string `json:"uniqueCode,omitempty"`
@@ -40,6 +41,13 @@ type ZeroMfgrcMono struct {
 
 	keeper   *ZeroMfgrcKeeper
 	fromFlux *ZeroMfgrcFlux
+}
+
+func (*ZeroMfgrcMono) XhttpPath() string     { return "Xdenied" }
+func (*ZeroMfgrcMono) XsacApiName() string   { return "mfgrc任务模型" }
+func (*ZeroMfgrcMono) XsacPartition() string { return structs.XSAC_PARTITION_MONTH }
+func (*ZeroMfgrcMono) XhttpOpt() byte {
+	return structs.XahttpOpt(structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F)
 }
 
 func (mono *ZeroMfgrcMono) LoadRowData(rowmap map[string]interface{}) {
@@ -76,6 +84,10 @@ func (mono *ZeroMfgrcMono) Xoption() string {
 
 func (mono *ZeroMfgrcMono) Xprogress() int {
 	return mono.Progress
+}
+
+func (mono *ZeroMfgrcMono) Xoperator() string {
+	return mono.Operator
 }
 
 func (mono *ZeroMfgrcMono) State() string {

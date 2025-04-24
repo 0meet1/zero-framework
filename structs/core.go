@@ -234,6 +234,10 @@ func (e *ZeroCoreStructs) XsacRefDeclares(args ...string) ZeroXsacEntrySet {
 	return entries
 }
 
+func (e *ZeroCoreStructs) XsacAdjunctDeclares(...string) ZeroXsacEntrySet {
+	return make(ZeroXsacEntrySet, 0)
+}
+
 func (e *ZeroCoreStructs) findXopFields(xrType reflect.Type, ignore bool) ZeroXsacFieldSet {
 	fields := make([]*ZeroXsacField, 0)
 	for i := 0; i < xrType.NumField(); i++ {

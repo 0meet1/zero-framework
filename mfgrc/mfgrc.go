@@ -26,11 +26,14 @@ type MfgrcMono interface {
 	XuniqueCode() string
 	Xoption() string
 	Xprogress() int
+	Xoperator() string
 
 	State() string
 
+	Ready(*ZeroMfgrcKeeper, ...ZeroMfgrcMonoStore) error
 	Pending(*ZeroMfgrcFlux) error
 	Revoke() error
+	Delete() error
 	Timeout() error
 	Executing() error
 	Retrying(error) error
@@ -52,7 +55,9 @@ type MfgrcGroup interface {
 	XgroupId() string
 	XuniqueCode() string
 	Xoption() string
+	Xoperator() string
 	Xmonos() []MfgrcMono
+	XLinkTable() string
 
 	State() string
 	AddWorker(*ZeroMfgrcGroupWorker)

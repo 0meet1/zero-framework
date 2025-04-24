@@ -55,6 +55,7 @@ type ZeroXsacDeclares interface {
 	XsacDeleteOpt() byte
 	XsacDeclares(...string) ZeroXsacEntrySet
 	XsacRefDeclares(...string) ZeroXsacEntrySet
+	XsacAdjunctDeclares(...string) ZeroXsacEntrySet
 	XsacPartition() string
 	XsacCustomPartTrigger() string
 	XsacTriggers() []ZeroXsacTrigger

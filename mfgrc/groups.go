@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/errdef"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/structs"
@@ -21,13 +22,13 @@ const (
 )
 
 type ZeroMfgrcGroup struct {
-	structs.ZeroCoreStructs
+	autohttpconf.ZeroXsacXhttpStructs
 
 	worker *ZeroMfgrcGroupWorker
 
-	UniqueCode string `json:"uniqueCode,omitempty"`
-	Option     string `json:"option,omitempty"`
-	Operator   string `json:"operator,omitempty"`
+	UniqueCode string `json:"uniqueCode,omitempty" xhttpopt:"XX" xsacprop:"NO,VARCHAR(64),NULL" xsackey:"key" xapi:"唯一标识,String"`
+	Option     string `json:"option,omitempty" xhttpopt:"XX" xsacprop:"NO,VARCHAR(64),NULL" xsackey:"key" xapi:"操作类型,String"`
+	Operator   string `json:"operator,omitempty" xhttpopt:"XX" xsacprop:"NO,VARCHAR(32),NULL" xsackey:"key" xapi:"操作人,String"`
 
 	Monos []MfgrcMono `json:"monos,omitempty"`
 
@@ -36,6 +37,16 @@ type ZeroMfgrcGroup struct {
 
 	xStore    ZeroMfgrcGroupStore
 	xListener ZeroMfgrcGroupEventListener
+}
+
+func (*ZeroMfgrcGroup) XhttpPath() string     { return "Xdenied" }
+func (*ZeroMfgrcGroup) XsacApiName() string   { return "mfgrc组任务模型" }
+func (*ZeroMfgrcGroup) XsacPartition() string { return structs.XSAC_PARTITION_MONTH }
+func (*ZeroMfgrcGroup) XhttpOpt() byte {
+	return structs.XahttpOpt(structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F, structs.XahttpOpt_F)
+}
+func (*ZeroMfgrcGroup) XsacAdjunctDeclares(args ...string) structs.ZeroXsacEntrySet {
+	return make(structs.ZeroXsacEntrySet, 0)
 }
 
 func (group *ZeroMfgrcGroup) LoadRowData(rowmap map[string]interface{}) {
@@ -64,12 +75,18 @@ func (group *ZeroMfgrcGroup) Xoption() string {
 	return group.Option
 }
 
+func (group *ZeroMfgrcGroup) Xoperator() string {
+	return group.Operator
+}
+
 func (group *ZeroMfgrcGroup) Xmonos() []MfgrcMono {
 	if group.Monos == nil {
 		group.Monos = make([]MfgrcMono, 0)
 	}
 	return group.Monos
 }
+
+func (group *ZeroMfgrcGroup) XLinkTable() string { return "" }
 
 func (group *ZeroMfgrcGroup) State() string {
 	return group.status

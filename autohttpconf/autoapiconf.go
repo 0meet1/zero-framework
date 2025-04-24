@@ -40,6 +40,9 @@ func (*ZeroXsacXhttpApi) XsacDeclares(...string) structs.ZeroXsacEntrySet {
 func (*ZeroXsacXhttpApi) XsacRefDeclares(...string) structs.ZeroXsacEntrySet {
 	return make(structs.ZeroXsacEntrySet, 0)
 }
+func (*ZeroXsacXhttpApi) XsacAdjunctDeclares(...string) structs.ZeroXsacEntrySet {
+	return make(structs.ZeroXsacEntrySet, 0)
+}
 func (*ZeroXsacXhttpApi) XsacApiExports(...string) []string { return make([]string, 0) }
 
 var XautoProcessor = func(declare ZeroXsacXhttpDeclares) processors.ZeroXsacAutoProcessor {
