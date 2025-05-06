@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	x0errors "github.com/pkg/errors"
-
 	"github.com/0meet1/zero-framework/structs"
 )
 
@@ -313,7 +311,23 @@ func TestRing(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	err := x0errors.WithStack(x0errors.New(" error 1"))
-	es := fmt.Sprintf("%+v\n", err)
-	fmt.Println(es)
+	// err := x0errors.WithStack(x0errors.New(" error 1"))
+	// es := fmt.Sprintf("%+v\n", err)
+	// fmt.Println(es)
+
+	jsonbytes, err := json.Marshal(nil)
+	if err != nil {
+		panic(err)
+	}
+	jsonmap := make(map[string]interface{})
+	err = json.Unmarshal(jsonbytes, &jsonmap)
+	if err != nil {
+		panic(err)
+	}
+
+	jsonmap["status"] = ""
+	jsonmap["reason"] = ""
+	jsonmap["maxExecuteTimes"] = ""
+	jsonmap["executeTimes"] = ""
+	fmt.Println(jsonmap)
 }

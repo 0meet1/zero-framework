@@ -230,6 +230,9 @@ func (group *ZeroMfgrcGroup) Export() (map[string]interface{}, error) {
 	if group.Monos != nil {
 		monos := make([]map[string]interface{}, len(group.Monos))
 		for i, mono := range group.Monos {
+			if mono.This() == nil {
+				mono.ThisDef(mono)
+			}
 			monos[i], err = mono.Export()
 			if err != nil {
 				return nil, err
