@@ -152,17 +152,17 @@ type MfgrcXhttpExecutor struct {
 	GroupType   reflect.Type
 	GroupStore  ZeroMfgrcGroupStore
 
-	OnGroupReady   func(map[string]any)
-	OnGroupSuccess func() any
-	OnGroupFailed  func(map[string]any) string
+	OnGroupReady   func(MfgrcGroup, map[string]any)
+	OnGroupSuccess func(MfgrcGroup) any
+	OnGroupFailed  func(MfgrcGroup, map[string]any) string
 
 	MonoKeeper string
 	MonoType   reflect.Type
 	MonoStore  ZeroMfgrcMonoStore
 
-	OnMonoReady   func(map[string]any)
-	OnMonoSuccess func() any
-	OnMonoFailed  func(map[string]any) string
+	OnMonoReady   func(MfgrcMono, map[string]any)
+	OnMonoSuccess func(MfgrcMono) any
+	OnMonoFailed  func(MfgrcMono, map[string]any) string
 
 	GenNmonoId func(MfgrcMono) error
 
@@ -227,13 +227,13 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXmonoPerformed(
 	xRequest *structs.ZeroRequest,
 	keeper *ZeroMfgrcKeeper,
 	mono MfgrcMono,
-	onReady func(map[string]any),
-	onSuccess func() any,
-	onFailed func(map[string]any) string) {
+	onReady func(MfgrcMono, map[string]any),
+	onSuccess func(MfgrcMono) any,
+	onFailed func(MfgrcMono, map[string]any) string) {
 
 	expands := make(map[string]interface{})
 	if onReady != nil {
-		onReady(expands)
+		onReady(mono, expands)
 	} else {
 		expands["monoId"] = mono.XmonoId()
 	}
@@ -246,7 +246,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXmonoPerformed(
 			if err != nil {
 				expands["state"] = "error"
 				if onFailed != nil {
-					_err := onFailed(expands)
+					_err := onFailed(mono, expands)
 					if _err != "" {
 						err = errors.New(_err)
 					}
@@ -256,7 +256,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXmonoPerformed(
 			} else {
 				expands["state"] = "success"
 				if onSuccess != nil {
-					result := onSuccess()
+					result := onSuccess(mono)
 					if result != nil {
 						expands["result"] = result
 					}
@@ -334,13 +334,13 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 	xRequest *structs.ZeroRequest,
 	keeper *ZeroMfgrcGroupKeeper,
 	group MfgrcGroup,
-	onReady func(map[string]any),
-	onSuccess func() any,
-	onFailed func(map[string]any) string) {
+	onReady func(MfgrcGroup, map[string]any),
+	onSuccess func(MfgrcGroup) any,
+	onFailed func(MfgrcGroup, map[string]any) string) {
 
 	expands := make(map[string]interface{})
 	if onReady != nil {
-		onReady(expands)
+		onReady(group, expands)
 	} else {
 		expands["groupId"] = group.XgroupId()
 	}
@@ -353,7 +353,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 			if err != nil {
 				expands["state"] = "error"
 				if onFailed != nil {
-					_err := onFailed(expands)
+					_err := onFailed(group, expands)
 					if _err != "" {
 						err = errors.New(_err)
 					}
@@ -363,7 +363,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 			} else {
 				expands["state"] = "success"
 				if onSuccess != nil {
-					result := onSuccess()
+					result := onSuccess(group)
 					if result != nil {
 						expands["result"] = result
 					}
@@ -730,11 +730,18 @@ func (xhttpExecutor *MfgrcXhttpExecutor) Exports() []*server.XhttpExecutor {
 			prefix = fmt.Sprintf("%s/", prefix)
 		}
 	}
-	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.groupc, fmt.Sprintf("%sworker/group", prefix)))
-	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.monoc, fmt.Sprintf("%sworker/push", prefix)))
-	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.revoke, fmt.Sprintf("%sworker/revoke", prefix)))
+
+	if xhttpExecutor.GroupType != nil {
+		executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.groupc, fmt.Sprintf("%sworker/group", prefix)))
+		executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.grouphistory, fmt.Sprintf("%shistory/group", prefix)))
+	}
+
+	if xhttpExecutor.MonoType != nil {
+		executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.monoc, fmt.Sprintf("%sworker/push", prefix)))
+		executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.monohistory, fmt.Sprintf("%shistory/mono", prefix)))
+		executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.revoke, fmt.Sprintf("%sworker/revoke", prefix)))
+	}
+
 	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.state, fmt.Sprintf("%sworker/state", prefix)))
-	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.monohistory, fmt.Sprintf("%shistory/mono", prefix)))
-	executors = append(executors, server.XhttpFuncHandle(xhttpExecutor.grouphistory, fmt.Sprintf("%shistory/group", prefix)))
 	return executors
 }
