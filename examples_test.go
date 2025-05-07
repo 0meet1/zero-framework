@@ -315,19 +315,22 @@ func TestError(t *testing.T) {
 	// es := fmt.Sprintf("%+v\n", err)
 	// fmt.Println(es)
 
-	jsonbytes, err := json.Marshal(nil)
-	if err != nil {
-		panic(err)
-	}
-	jsonmap := make(map[string]interface{})
-	err = json.Unmarshal(jsonbytes, &jsonmap)
-	if err != nil {
-		panic(err)
-	}
+	// jsonbytes, err := json.Marshal(nil)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// jsonmap := make(map[string]interface{})
+	// err = json.Unmarshal(jsonbytes, &jsonmap)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	jsonmap["status"] = ""
-	jsonmap["reason"] = ""
-	jsonmap["maxExecuteTimes"] = ""
-	jsonmap["executeTimes"] = ""
-	fmt.Println(jsonmap)
+	// jsonmap["status"] = ""
+	// jsonmap["reason"] = ""
+	// jsonmap["maxExecuteTimes"] = ""
+	// jsonmap["executeTimes"] = ""
+	// fmt.Println(jsonmap)
+
+	ret := reflect.New(reflect.TypeOf(&structs.ZeroCoreStructs{}).Elem()).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(make(map[string]any))})
+	fmt.Println(ret)
 }
