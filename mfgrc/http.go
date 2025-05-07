@@ -98,6 +98,7 @@ func (processor *MfgrcXhttpProcessor) fetchGroupMonos(groupID string) ([]MfgrcMo
 		if err != nil {
 			panic(err)
 		}
+		data.(MfgrcMono).ThisDef(data)
 		monos[i] = data.(MfgrcMono)
 	}
 	return monos, nil
