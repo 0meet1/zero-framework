@@ -589,16 +589,16 @@ func (xhttpExecutor *MfgrcXhttpExecutor) state(writer http.ResponseWriter, _ *ht
 
 func (xhttpExecutor *MfgrcXhttpExecutor) checkzone(xRequest *structs.ZeroRequest) (string, string) {
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
-		panic("missing necessary parameter `query[0]`")
+		panic(errors.New("missing necessary parameter `query[0]`"))
 	}
 
 	if xRequest.Expands == nil {
-		panic("missing necessary parameter `expands.zone`")
+		panic(errors.New("missing necessary parameter `expands.zone`"))
 	}
 
 	zone, ok := xRequest.Expands["zone"]
 	if !ok {
-		panic("missing necessary parameter `expands.zone`")
+		panic(errors.New("missing necessary parameter `expands.zone`"))
 	}
 
 	date, err := time.Parse("2006-01-02", zone.(string))

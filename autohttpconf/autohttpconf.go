@@ -3,6 +3,7 @@ package autohttpconf
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"path"
@@ -737,12 +738,12 @@ func (xhttp *ZeroXsacXhttp) checkpart(xRequest *structs.ZeroRequest, xOperation 
 		}
 	} else if xhttp.instance.XsacPartition() != structs.XSAC_PARTITION_NONE {
 		if xRequest.Expands == nil {
-			panic("missing necessary parameter `expands.zone`")
+			panic(errors.New("missing necessary parameter `expands.zone`"))
 		}
 
 		zone, ok := xRequest.Expands["zone"]
 		if !ok {
-			panic("missing necessary parameter `expands.zone`")
+			panic(errors.New("missing necessary parameter `expands.zone`"))
 		}
 
 		date, err := time.Parse("2006-01-02", zone.(string))
@@ -820,7 +821,7 @@ func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Requ
 	}
 
 	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
-		panic("missing necessary parameter `query options -> $.querys[0]`")
+		panic(errors.New("missing necessary parameter `query options -> $.querys[0]`"))
 	}
 
 	xOperation, _, err := server.XhttpCompleteQueryOperation(xRequest, xhttp.instance.XhttpQueryOperation(), xhttp.XcheckTable())

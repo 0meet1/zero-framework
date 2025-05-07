@@ -26,7 +26,7 @@ const ZERO_FRAMEWORK_BANNER = `
 	███████ ███████ ██   ██  ██████      ██      ██   ██ ██   ██ ██      ██ ███████  ███ ███   ██████  ██   ██ ██   ██
 
 
-	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.19.2.RELEASE )  **/
+	 /**  :: Zero Framewrok For Golang ::  **********   **********   **********   **********  ( v1.19.3.RELEASE )  **/
 
 `
 
@@ -74,7 +74,7 @@ func synchronize() {
 
 func Key(key string, value interface{}) {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	if _, ok := shared()[key]; ok {
@@ -89,7 +89,7 @@ func Key(key string, value interface{}) {
 
 func Pop(key string) {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	_wLock.Lock()
@@ -100,7 +100,7 @@ func Pop(key string) {
 
 func Value(key string) interface{} {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	_rwLock.RLock()
@@ -110,7 +110,7 @@ func Value(key string) interface{} {
 
 func Contains(key string) bool {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	_rwLock.RLock()
@@ -121,7 +121,7 @@ func Contains(key string) bool {
 
 func RunServer() {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	sig := make(chan os.Signal, 2)
@@ -140,7 +140,7 @@ func RunServer() {
 
 func ListenEvents(name string, observer ZeroGlobalEventsObserver) {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	_oLock.Lock()
@@ -150,7 +150,7 @@ func ListenEvents(name string, observer ZeroGlobalEventsObserver) {
 
 func LeaveEventsObserver(name string) {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 
 	_oLock.Lock()
@@ -194,7 +194,7 @@ func systemAbsPath() string {
 
 func AppName() string {
 	if _observers == nil {
-		panic("global context not initialized")
+		panic(errors.New("global context not initialized"))
 	}
 	return _appName
 }

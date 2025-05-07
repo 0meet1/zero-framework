@@ -2,6 +2,7 @@ package structs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -53,14 +54,14 @@ type ZeroCoreStructs struct {
 func (e *ZeroCoreStructs) XsacPrimaryType() string         { return "UUID" }
 func (e *ZeroCoreStructs) XsacDataSource() string          { return "" }
 func (e *ZeroCoreStructs) XsacDbName() string              { return "" }
-func (e *ZeroCoreStructs) XsacTableName() string           { panic("not implemented") }
+func (e *ZeroCoreStructs) XsacTableName() string           { panic(errors.New("not implemented")) }
 func (e *ZeroCoreStructs) XsacDeleteOpt() byte             { return 0b10000000 }
 func (e *ZeroCoreStructs) XsacPartition() string           { return XSAC_PARTITION_NONE }
 func (e *ZeroCoreStructs) XsacCustomPartTrigger() string   { return "" }
 func (e *ZeroCoreStructs) XsacTriggers() []ZeroXsacTrigger { return nil }
 func (e *ZeroCoreStructs) XsacApiName() string             { return "" }
 func (e *ZeroCoreStructs) XsacApiEnums() []string          { return nil }
-func (e *ZeroCoreStructs) XsacApis(...string) []string     { panic("not implemented") }
+func (e *ZeroCoreStructs) XsacApis(...string) []string     { panic(errors.New("not implemented")) }
 
 func (e *ZeroCoreStructs) XsacApiFields() [][]string {
 	rows := make([]string, 0)
