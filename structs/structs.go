@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -220,4 +221,12 @@ func NumberToChinese(num int) string {
 		chineseNum = fmt.Sprintf("%s%s", nchar, chineseNum)
 	}
 	return chineseNum
+}
+
+var DocOnSuccess = func() string {
+	respmap := make(map[string]interface{})
+	respmap["code"] = 200
+	respmap["message"] = "success"
+	respbytes, _ := json.MarshalIndent(respmap, "", "\t")
+	return string(respbytes)
 }

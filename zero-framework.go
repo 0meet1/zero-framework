@@ -258,6 +258,8 @@ var Xfwrite = structs.Xfwrite
 var Xfread = structs.Xfread
 var Xfmove = structs.Xfmove
 
+var DocOnSuccess = structs.DocOnSuccess
+
 type ZeroExceptionDef = errdef.ZeroExceptionDef
 
 const (
