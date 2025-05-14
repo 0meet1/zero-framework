@@ -304,15 +304,27 @@ func (e *ZeroCoreStructs) LoadRowData(rowmap map[string]interface{}) {
 }
 
 func (e *ZeroCoreStructs) String() string {
-	mjson, _ := json.Marshal(e)
-	return string(mjson)
+	if e.This() != nil {
+		mjson, _ := json.Marshal(e.This())
+		return string(mjson)
+	} else {
+		mjson, _ := json.Marshal(e)
+		return string(mjson)
+	}
 }
 
 func (e *ZeroCoreStructs) Map() map[string]interface{} {
-	mjson, _ := json.Marshal(e)
-	var jsonMap map[string]interface{}
-	_ = json.Unmarshal([]byte(mjson), &jsonMap)
-	return jsonMap
+	if e.This() != nil {
+		mjson, _ := json.Marshal(e.This())
+		var jsonMap map[string]interface{}
+		_ = json.Unmarshal([]byte(mjson), &jsonMap)
+		return jsonMap
+	} else {
+		mjson, _ := json.Marshal(e)
+		var jsonMap map[string]interface{}
+		_ = json.Unmarshal([]byte(mjson), &jsonMap)
+		return jsonMap
+	}
 }
 
 func ParseStringField(rowmap map[string]interface{}, fieldName string) string {
