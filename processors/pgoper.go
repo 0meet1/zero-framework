@@ -62,7 +62,15 @@ func (opera *ZeroPostgresQueryOperation) jsonColumnName(name string) string {
 	if fpidx <= 0 {
 		return name
 	}
-	return fmt.Sprintf(`"%s" #> '{%s}'`, exHumpToLine(name[:fpidx]), strings.ReplaceAll(name[fpidx+1:], ".", ","))
+	return fmt.Sprintf(`"%s" #> '{%s}'`, exHumpToLine(name[:fpidx]), strings.ReplaceAll(name[fpidx+2:], ".", ","))
+}
+
+func (opera *ZeroPostgresQueryOperation) jsonLikeColumnName(name string) string {
+	fpidx := strings.Index(name, ".")
+	if fpidx <= 0 {
+		return name
+	}
+	return fmt.Sprintf(`("%s" #> '{%s}')::TEXT`, exHumpToLine(name[:fpidx]), strings.ReplaceAll(name[fpidx+2:], ".", ","))
 }
 
 func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroCondition) (string, error) {
@@ -80,7 +88,11 @@ func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroConditi
 				return fmt.Sprintf(`("%s" %s '%s')`, strings.ReplaceAll(condition.Column, "@", ""), symbol, condition.Value), nil
 			} else {
 				if strings.Index(condition.Column, ".") > 1 {
-					return fmt.Sprintf(`(%s %s '%s')`, opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
+					if condition.Symbol == SYMBOL_LIKE {
+						return fmt.Sprintf(`(%s %s '%s')`, opera.jsonLikeColumnName(condition.Column), symbol, condition.Value), nil
+					} else {
+						return fmt.Sprintf(`(%s %s '%s')`, opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
+					}
 				} else {
 					return fmt.Sprintf(`("%s" %s '%s')`, exHumpToLine(condition.Column), symbol, condition.Value), nil
 				}
