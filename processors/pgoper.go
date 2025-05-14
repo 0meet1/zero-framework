@@ -62,7 +62,7 @@ func (opera *ZeroPostgresQueryOperation) jsonColumnName(name string) string {
 	if fpidx <= 0 {
 		return name
 	}
-	return fmt.Sprintf(`%s #> '{%s}'`, exHumpToLine(name[:fpidx]), strings.ReplaceAll(name[fpidx+1:], ".", ","))
+	return fmt.Sprintf(`"%s" #> '{%s}'`, exHumpToLine(name[:fpidx]), strings.ReplaceAll(name[fpidx+1:], ".", ","))
 }
 
 func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroCondition) (string, error) {
@@ -80,7 +80,7 @@ func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroConditi
 				return fmt.Sprintf(`("%s" %s '%s')`, strings.ReplaceAll(condition.Column, "@", ""), symbol, condition.Value), nil
 			} else {
 				if strings.Index(condition.Column, ".") > 1 {
-					return fmt.Sprintf(`("%s" %s '%s')`, opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
+					return fmt.Sprintf(`(%s %s '%s')`, opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
 				} else {
 					return fmt.Sprintf(`("%s" %s '%s')`, exHumpToLine(condition.Column), symbol, condition.Value), nil
 				}
