@@ -331,6 +331,14 @@ func TestError(t *testing.T) {
 	// jsonmap["executeTimes"] = ""
 	// fmt.Println(jsonmap)
 
-	ret := reflect.New(reflect.TypeOf(&structs.ZeroCoreStructs{}).Elem()).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(make(map[string]any))})
-	fmt.Println(ret)
+	// ret := reflect.New(reflect.TypeOf(&structs.ZeroCoreStructs{}).Elem()).MethodByName("LoadRowData").Call([]reflect.Value{reflect.ValueOf(make(map[string]any))})
+	// fmt.Println(ret)
+
+	// name := "features.deviceName"
+	// fpidx := strings.Index(name, ".")
+	// if fpidx <= 0 {
+	// 	fmt.Println(name)
+	// }
+	// fmt.Println(fmt.Sprintf(`"%s" #> '{%s}'`, name[:fpidx], strings.ReplaceAll(name[fpidx+1:], ".", ",")))
+
 }
