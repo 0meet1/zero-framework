@@ -3,7 +3,6 @@ package processors
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -89,14 +88,6 @@ func ExLineToHump(name string) string {
 		}
 	}
 	return buf.String()
-}
-
-func parseJSONColumnName(name string) string {
-	fpidx := strings.Index(name, ".")
-	if fpidx <= 0 {
-		return name
-	}
-	return fmt.Sprintf(`%s ->> "$.%s"`, exHumpToLine(name[:fpidx]), name[fpidx+1:])
 }
 
 type ZeroCondition struct {
