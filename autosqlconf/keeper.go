@@ -22,6 +22,7 @@ type ZeroXsacAutoParserKeeper interface {
 type ZeroXsacKeeper struct {
 	proctype   reflect.Type
 	types      []reflect.Type
+	autoLoads  []reflect.Type
 	dataSource string
 
 	entries   []*structs.ZeroXsacEntry
@@ -36,6 +37,7 @@ func NewKeeper(proctype reflect.Type, types ...reflect.Type) *ZeroXsacKeeper {
 	keeper := &ZeroXsacKeeper{
 		proctype:    structs.FindMetaType(proctype),
 		types:       make([]reflect.Type, 0),
+		autoLoads:   make([]reflect.Type, 0),
 		entries:     make([]*structs.ZeroXsacEntry, 0),
 		httpconfs:   make([]*autohttpconf.ZeroXsacXhttp, 0),
 		autoParsers: make(map[string][]structs.ZeroXsacAutoParser),
@@ -52,6 +54,13 @@ func (keeper *ZeroXsacKeeper) DataSource(dataSource string) *ZeroXsacKeeper {
 func (keeper *ZeroXsacKeeper) AddTypes(types ...reflect.Type) *ZeroXsacKeeper {
 	for _, t := range types {
 		keeper.types = append(keeper.types, structs.FindMetaType(t))
+	}
+	return keeper
+}
+
+func (keeper *ZeroXsacKeeper) AddAutoLoad(types ...reflect.Type) *ZeroXsacKeeper {
+	for _, t := range types {
+		keeper.autoLoads = append(keeper.autoLoads, structs.FindMetaType(t))
 	}
 	return keeper
 }
@@ -186,16 +195,18 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
 		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
 
-		if declares.XsacTableName() == "" || declares.XsacAutoParser() == nil {
+		if declares.XsacTableName() == "" {
 			continue
 		}
 
-		_, ok := keeper.autoParsers[declares.XsacTableName()]
-		if ok {
-			panic(fmt.Errorf(" duplicate defined table `%s` ", declares.XsacTableName()))
-		}
+		if declares.XsacAutoParser() != nil {
+			_, ok := keeper.autoParsers[declares.XsacTableName()]
+			if ok {
+				panic(fmt.Errorf(" duplicate defined table `%s` ", declares.XsacTableName()))
+			}
 
-		keeper.autoParsers[declares.XsacTableName()] = declares.XsacAutoParser()
+			keeper.autoParsers[declares.XsacTableName()] = declares.XsacAutoParser()
+		}
 
 		keeper.entries = append(keeper.entries, declares.XsacDeclares(xsacProcessor.DbName())...)
 		refDeclares = append(refDeclares, declares.XsacRefDeclares(xsacProcessor.DbName())...)
@@ -208,6 +219,23 @@ func (keeper *ZeroXsacKeeper) pretreat() {
 	}
 	keeper.entries = append(keeper.entries, refDeclares...)
 	keeper.entries = append(keeper.entries, adjunctDeclares...)
+
+	for _, t := range keeper.autoLoads {
+		declares := reflect.New(t).Interface().(structs.ZeroXsacDeclares)
+		reflect.ValueOf(declares).MethodByName("ThisDef").Call([]reflect.Value{reflect.ValueOf(declares)})
+
+		if declares.XsacTableName() == "" {
+			continue
+		}
+
+		if declares.XsacAutoParser() != nil {
+			_, ok := keeper.autoParsers[declares.XsacTableName()]
+			if ok {
+				panic(fmt.Errorf(" duplicate defined table `%s` ", declares.XsacTableName()))
+			}
+			keeper.autoParsers[declares.XsacTableName()] = declares.XsacAutoParser()
+		}
+	}
 }
 
 func (keeper *ZeroXsacKeeper) mergeAutoParser(parsers map[string][]structs.ZeroXsacAutoParser) {
