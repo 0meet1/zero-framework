@@ -41,5 +41,5 @@ func (notify *MQNotifyMessage) JSONString() ([]byte, error) {
 }
 
 func (notify *MQNotifyMessage) WithJSONString(jsonbytes []byte) error {
-	return json.Unmarshal(jsonbytes, &notify)
+	return json.Unmarshal(jsonbytes, notify)
 }

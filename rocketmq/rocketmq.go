@@ -147,7 +147,11 @@ func ShutdownNotifyConsumer() {
 func onMessage(_ context.Context, messages ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 	for _, message := range messages {
 		notify := MQNotifyMessage{}
-		notify.WithJSONString(message.Body)
+		err := notify.WithJSONString(message.Body)
+		if err != nil {
+			global.Logger().Error(fmt.Sprintf(" message observer parse error %s", err.Error()))
+			return consumer.ConsumeSuccess, nil
+		}
 		switch notify.MessageType {
 		case MESSAGE_TYPE_TEST:
 			global.Logger().Info(fmt.Sprintf(" topic : %s test success", message.Topic))
