@@ -45,11 +45,20 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
-	tm, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), time.Local)
-	if err != nil {
-		return err
+	if strings.HasSuffix(string(data), "Z") {
+		tm, err := time.ParseInLocation(`"`+"2006-01-02T15:04:05Z"+`"`, string(data), time.Local)
+		if err != nil {
+			return err
+		}
+		*t = Time(tm)
+	} else {
+		tm, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), time.Local)
+		if err != nil {
+			return err
+		}
+		*t = Time(tm)
 	}
-	*t = Time(tm)
+
 	return nil
 }
 
