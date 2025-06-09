@@ -69,7 +69,7 @@ var XhttpZeroRequest = func(req *http.Request) (*structs.ZeroRequest, error) {
 }
 
 var XhttpZeroQuery = func(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error) {
-	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+	if len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
 	}
 
