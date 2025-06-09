@@ -111,6 +111,7 @@ type MqttParamsPayload = server.MqttParamsPayload
 type MqttTopic = server.MqttTopic
 
 type MqttMessageListener = server.MqttMessageListener
+type MqttConnectBuilder = server.MqttConnectBuilder
 type MqttConnect = server.MqttConnect
 type MqttServer = server.MqttServer
 

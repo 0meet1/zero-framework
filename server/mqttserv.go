@@ -18,9 +18,9 @@ type MqttMessageListener interface {
 	Publish(ZeroConnect, *MqttMessage) error
 }
 
-type xMqttConnectBuilder struct{}
+type MqttConnectBuilder struct{}
 
-func (xDefault *xMqttConnectBuilder) NewConnect() ZeroConnect {
+func (xDefault *MqttConnectBuilder) NewConnect() ZeroConnect {
 	mqttconn := &MqttConnect{
 		topcis: make(map[string]byte),
 	}
@@ -287,7 +287,7 @@ func NewMqttServer(address string, authWaitSeconds int64, heartbeatSeconds int64
 
 func (mqttserv *MqttServer) RunServer() {
 	if mqttserv.ConnectBuilder == nil {
-		mqttserv.ConnectBuilder = &xMqttConnectBuilder{}
+		mqttserv.ConnectBuilder = &MqttConnectBuilder{}
 	}
 	global.Key(CORE_MQTT_SERVER, mqttserv)
 	mqttserv.TCPServer.RunServer()
