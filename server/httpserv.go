@@ -144,7 +144,7 @@ var XhttpContainsOptions = func(xRequest *structs.ZeroRequest, option string) bo
 }
 
 var XhttpEQuery = func(xRequest *structs.ZeroRequest) (*database.EQuerySearch, error) {
-	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+	if len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
 	}
 
