@@ -121,19 +121,19 @@ func (fixedHeader *MqttFixedHeader) MessageTypeString() string {
 }
 
 func (fixedHeader *MqttFixedHeader) B3() byte {
-	return fixedHeader.header << 4 & 0xff >> 7 & 0xff
+	return fixedHeader.header << 4 & 0xFF >> 7 & 0xFF
 }
 
 func (fixedHeader *MqttFixedHeader) B2() byte {
-	return fixedHeader.header << 5 & 0xff >> 7 & 0xff
+	return fixedHeader.header << 5 & 0xFF >> 7 & 0xFF
 }
 
 func (fixedHeader *MqttFixedHeader) B1() byte {
-	return fixedHeader.header << 6 & 0xff >> 7 & 0xff
+	return fixedHeader.header << 6 & 0xFF >> 7 & 0xFF
 }
 
 func (fixedHeader *MqttFixedHeader) B0() byte {
-	return fixedHeader.header << 7 & 0xff >> 7 & 0xff
+	return fixedHeader.header << 7 & 0xFF >> 7 & 0xFF
 }
 
 func (fixedHeader *MqttFixedHeader) LessLength() int {
@@ -185,23 +185,7 @@ type MqttMessage struct {
 	fixedHeader    *MqttFixedHeader
 	variableHeader MqttCoreVariableHeader
 	payload        MqttCorePayload
-
-	// caches []byte
 }
-
-// func (message *MqttMessage) makeCache(header *MqttFixedHeader, datas []byte) {
-// 	message.caches = make([]byte, 0)
-// 	message.fixedHeader = header
-// 	message.caches = append(message.caches, datas...)
-// }
-
-// func (message *MqttMessage) cache(datas []byte) bool {
-// 	message.caches = append(message.caches, datas...)
-// 	if len(message.caches)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
-// 		return false
-// 	}
-// 	return true
-// }
 
 func (message *MqttMessage) build(data []byte) error {
 	defer func() {
