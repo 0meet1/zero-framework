@@ -56,7 +56,7 @@ func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte
 		return xLengthBytes
 	}
 
-	global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
+	// global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
 	if checker.cachebytes != nil {
 		checker.cachebytes = append(checker.cachebytes, data...)
 	} else if len(data) >= 5 {
@@ -126,7 +126,7 @@ func (mqttconn *MqttConnect) Close() error {
 }
 
 func (mqttconn *MqttConnect) Write(datas []byte) error {
-	global.Logger().Debugf("mqttconn %s send %s", mqttconn.RegisterId(), structs.BytesString(datas...))
+	// global.Logger().Debugf("mqttconn %s send %s", mqttconn.RegisterId(), structs.BytesString(datas...))
 	return mqttconn.ZeroSocketConnect.Write(datas)
 }
 
