@@ -66,7 +66,7 @@ func (opera *ZeroPostgresQueryOperation) jsonColumnName(name string) string {
 }
 
 func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroCondition) (string, error) {
-	if condition.Relation == nil || len(condition.Relation) <= 0 {
+	if len(condition.Relation) <= 0 {
 
 		if strings.HasPrefix(condition.Column, "@!") {
 			return fmt.Sprintf(`("%s" %s)`, strings.ReplaceAll(condition.Column, "@!", ""), condition.Value), nil
@@ -111,7 +111,7 @@ func (opera *ZeroPostgresQueryOperation) makeColumns() {
 		columnsPrefix = "a."
 	}
 
-	if opera.query.Columns == nil || len(opera.query.Columns) <= 0 {
+	if len(opera.query.Columns) <= 0 {
 		opera.columns = fmt.Sprintf(" %s* ", columnsPrefix)
 	} else {
 		columns := make([]string, len(opera.query.Columns))
@@ -136,7 +136,7 @@ func (opera *ZeroPostgresQueryOperation) makeConditions() error {
 }
 
 func (opera *ZeroPostgresQueryOperation) makeOrderby() {
-	if opera.query.Orderby == nil || len(opera.query.Orderby) <= 0 {
+	if len(opera.query.Orderby) <= 0 {
 		opera.orderby = ""
 	} else {
 		orders := make([]string, len(opera.query.Orderby))

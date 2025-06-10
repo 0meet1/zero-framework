@@ -77,7 +77,7 @@ func (fixedHeader *MqttFixedHeader) build(header byte, length []byte) {
 }
 
 func (fixedHeader *MqttFixedHeader) make(messageType byte, messageTypeExt byte, length int) {
-	fixedHeader.header = (messageType<<4 + messageTypeExt) & 0xff
+	fixedHeader.header = (messageType<<4)&0xF0 + (messageTypeExt & 0x0F)
 	fixedHeader.length = fixedHeader.varLTB(length)
 }
 
