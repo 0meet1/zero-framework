@@ -22,7 +22,7 @@ type ZeroServ interface {
 }
 
 type ZeroDataChecker interface {
-	CheckPackageData(data []byte) []byte
+	CheckPackageData(string, []byte) []byte
 }
 
 type ZeroConnectBuilder interface {
@@ -198,7 +198,7 @@ func (zSock *ZeroSocketConnect) AddChecker(checker ZeroDataChecker) {
 
 func (zSock *ZeroSocketConnect) CheckPackageData(data []byte) []byte {
 	if zSock.checker != nil {
-		return zSock.checker.CheckPackageData(data)
+		return zSock.checker.CheckPackageData(zSock.RegisterId(), data)
 	}
 	return data
 }

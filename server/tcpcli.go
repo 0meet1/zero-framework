@@ -99,7 +99,7 @@ func (client *TCPClient) Heartbeat() {
 
 func (client *TCPClient) CheckPackageData(data []byte) []byte {
 	if client.checker != nil {
-		return client.checker.CheckPackageData(data)
+		return client.checker.CheckPackageData(client.RemoteAddr(), data)
 	}
 	return data
 }

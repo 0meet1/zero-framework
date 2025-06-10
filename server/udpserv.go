@@ -37,7 +37,7 @@ func (udpserv *UDPServer) Write(datas []byte, addr *net.UDPAddr) error {
 
 func (udpserv *UDPServer) checkPackageData(data []byte) []byte {
 	if udpserv.checker != nil {
-		return udpserv.checker.CheckPackageData(data)
+		return udpserv.checker.CheckPackageData(fmt.Sprintf(":%d", udpserv.port), data)
 	}
 	return data
 }

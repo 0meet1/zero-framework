@@ -32,7 +32,7 @@ type xZeroV1DataChecker struct {
 	cachebytesMutex sync.Mutex
 }
 
-func (checker *xZeroV1DataChecker) CheckPackageData(data []byte) []byte {
+func (checker *xZeroV1DataChecker) CheckPackageData(registerId string, data []byte) []byte {
 	checker.cachebytesMutex.Lock()
 	defer func() {
 		checker.cachebytesMutex.Unlock()

@@ -34,17 +34,17 @@ type xMqttDataChecker struct {
 	cachebytesMutex sync.Mutex
 }
 
-func (checker *xMqttDataChecker) CheckPackageData(data []byte) []byte {
+func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte) []byte {
 	checker.cachebytesMutex.Lock()
 	defer func() {
 		checker.cachebytesMutex.Unlock()
 		err := recover()
 		if err != nil {
-			global.Logger().Errorf("mqttserv on check package data err : %s", err.(error).Error())
+			global.Logger().Errorf("mqttconn %s on check package err : %s", registerId, err.(error).Error())
 		}
 	}()
 
-	global.Logger().Debugf("%s", structs.BytesString(data...))
+	global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
 
 	if len(data) < 12 {
 		if checker.cachebytes != nil {
@@ -90,13 +90,13 @@ func (checker *xMqttDataChecker) CheckPackageData(data []byte) []byte {
 			mqttMessage := &MqttMessage{}
 			err := mqttMessage.build(bts)
 			if err != nil {
-				global.Logger().Debug(err.Error())
+				global.Logger().ErrorS(err)
 			} else {
 				return bts
 			}
 		} else {
 			if nLen > fixedHeader.LessLength() {
-				global.Logger().Debug(fmt.Sprintf("mqttserv checked failed %s", structs.BytesString(checker.cachebytes...)))
+				global.Logger().ErrorS(fmt.Errorf("mqttconn %s checked failed %s", registerId, structs.BytesString(checker.cachebytes...)))
 				checker.cachebytes = nil
 			}
 		}
@@ -146,6 +146,11 @@ func (mqttconn *MqttConnect) Close() error {
 	mqttserv.topicsMapMutex.Unlock()
 
 	return err
+}
+
+func (mqttconn *MqttConnect) Write(datas []byte) error {
+	global.Logger().Debugf("mqttconn %s send %s", mqttconn.RegisterId(), structs.BytesString(datas...))
+	return mqttconn.ZeroSocketConnect.Write(datas)
 }
 
 func (mqttconn *MqttConnect) UpdateSerialNnumber(serialNnumber uint16) {
