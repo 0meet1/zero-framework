@@ -140,6 +140,10 @@ func (fixedHeader *MqttFixedHeader) LessLength() int {
 	return fixedHeader.BTvarL(fixedHeader.length)
 }
 
+func (fixedHeader *MqttFixedHeader) Length() []byte {
+	return fixedHeader.length
+}
+
 const (
 	MQTT_HEADER      = "MQTT"
 	MQTT_LEVEL_3_1_1 = 0x04
@@ -185,6 +189,12 @@ type MqttMessage struct {
 	fixedHeader    *MqttFixedHeader
 	variableHeader MqttCoreVariableHeader
 	payload        MqttCorePayload
+}
+
+func ParseMqttMessage(data []byte) (*MqttMessage, error) {
+	m := &MqttMessage{}
+	err := m.build(data)
+	return m, err
 }
 
 func (message *MqttMessage) build(data []byte) error {

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/0meet1/zero-framework/server"
 	"github.com/0meet1/zero-framework/structs"
 )
 
@@ -341,4 +342,23 @@ func TestError(t *testing.T) {
 	// }
 	// fmt.Println(fmt.Sprintf(`"%s" #> '{%s}'`, name[:fpidx], strings.ReplaceAll(name[fpidx+1:], ".", ",")))
 
+	b2 := []byte{
+		0x82, 0x1A, 0x00, 0x01, 0x00, 0x15, 0x6D, 0x71,
+		0x74, 0x74, 0x2F, 0x66, 0x61, 0x63, 0x65, 0x2F,
+		0x57, 0x41, 0x32, 0x32, 0x34, 0x34, 0x33, 0x31,
+		0x33, 0x31, 0x32, 0x01,
+	}
+
+	mqttMessage, err := server.ParseMqttMessage(b2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(mqttMessage.FixedHeader().MessageType())
+
+	fixedHeaderLen := len(mqttMessage.FixedHeader().Length()) + 1
+	fmt.Println(fixedHeaderLen)
+	fmt.Println(structs.BytesString([]byte(server.MQTT_HEADER)...))
+	if reflect.DeepEqual(b2[fixedHeaderLen+2:fixedHeaderLen+6], []byte(server.MQTT_HEADER)) {
+		fmt.Println("----111----")
+	}
 }

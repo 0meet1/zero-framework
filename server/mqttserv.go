@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"net"
-	"reflect"
 	"sync"
 
 	"github.com/0meet1/zero-framework/global"
@@ -31,6 +30,7 @@ func (xDefault *MqttConnectBuilder) NewConnect() ZeroConnect {
 
 type xMqttDataChecker struct {
 	cachebytes      []byte
+	fixedheader     *MqttFixedHeader
 	cachebytesMutex sync.Mutex
 }
 
@@ -44,61 +44,38 @@ func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte
 		}
 	}()
 
-	global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
-
-	if len(data) < 12 {
-		if checker.cachebytes != nil {
-			checker.cachebytes = append(checker.cachebytes, data...)
-		}
-	} else {
-		lengthBytes := make([]byte, 0)
+	expectedLength := func(_d []byte) []byte {
+		xLengthBytes := make([]byte, 0)
 		for i := 1; i < 5; i++ {
-			lengthBytes = append(lengthBytes, data[i])
+			xLengthBytes = append(xLengthBytes, _d[i])
 			flag := data[i] >> 7 & 0b00000001
 			if flag == 0b0 {
 				break
 			}
 		}
-
-		fixedHeader := &MqttFixedHeader{}
-		fixedHeader.build(data[0], lengthBytes)
-		fixedHeaderLen := len(fixedHeader.length) + 1
-		if reflect.DeepEqual(data[fixedHeaderLen+2:fixedHeaderLen+6], []byte(MQTT_HEADER)) {
-			checker.cachebytes = make([]byte, 0)
-			checker.cachebytes = append(checker.cachebytes, data...)
-		} else if checker.cachebytes != nil {
-			checker.cachebytes = append(checker.cachebytes, data...)
-		}
+		return xLengthBytes
 	}
 
-	if len(checker.cachebytes) > 4 {
-		lengthBytes := make([]byte, 0)
-		for i := 1; i < 5; i++ {
-			lengthBytes = append(lengthBytes, checker.cachebytes[i])
-			flag := checker.cachebytes[i] >> 7 & 0b00000001
-			if flag == 0b0 {
-				break
-			}
-		}
-		fixedHeader := &MqttFixedHeader{}
-		fixedHeader.build(checker.cachebytes[0], lengthBytes)
-		nLen := len(checker.cachebytes) - len(fixedHeader.length) - 1
-		if nLen == fixedHeader.LessLength() {
-			bts := make([]byte, len(checker.cachebytes))
-			copy(bts, checker.cachebytes)
+	global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
+	if checker.cachebytes != nil {
+		checker.cachebytes = append(checker.cachebytes, data...)
+	} else if len(data) >= 5 {
+		checker.fixedheader = &MqttFixedHeader{}
+		checker.fixedheader.build(data[0], expectedLength(data))
+		checker.cachebytes = make([]byte, 0)
+		checker.cachebytes = append(checker.cachebytes, data...)
+	}
+
+	nLen := len(checker.cachebytes) - len(checker.fixedheader.length) - 1
+	if nLen == checker.fixedheader.LessLength() {
+		bts := make([]byte, len(checker.cachebytes))
+		copy(bts, checker.cachebytes)
+		checker.cachebytes = nil
+		return bts
+	} else {
+		if nLen > checker.fixedheader.LessLength() {
+			global.Logger().ErrorS(fmt.Errorf("mqttconn %s checked failed %s", registerId, structs.BytesString(checker.cachebytes...)))
 			checker.cachebytes = nil
-			mqttMessage := &MqttMessage{}
-			err := mqttMessage.build(bts)
-			if err != nil {
-				global.Logger().ErrorS(err)
-			} else {
-				return bts
-			}
-		} else {
-			if nLen > fixedHeader.LessLength() {
-				global.Logger().ErrorS(fmt.Errorf("mqttconn %s checked failed %s", registerId, structs.BytesString(checker.cachebytes...)))
-				checker.cachebytes = nil
-			}
 		}
 	}
 	return nil
