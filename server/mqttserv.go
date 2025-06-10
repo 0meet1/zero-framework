@@ -40,9 +40,11 @@ func (checker *xMqttDataChecker) CheckPackageData(data []byte) []byte {
 		checker.cachebytesMutex.Unlock()
 		err := recover()
 		if err != nil {
-			global.Logger().Errorf("tcpserv on check package data err : %s", err.(error).Error())
+			global.Logger().Errorf("mqttserv on check package data err : %s", err.(error).Error())
 		}
 	}()
+
+	global.Logger().Debugf("%s", structs.BytesString(data...))
 
 	if len(data) < 12 {
 		if checker.cachebytes != nil {
@@ -94,7 +96,7 @@ func (checker *xMqttDataChecker) CheckPackageData(data []byte) []byte {
 			}
 		} else {
 			if nLen > fixedHeader.LessLength() {
-				global.Logger().Debug(fmt.Sprintf("tcpserv checked failed %s", structs.BytesString(checker.cachebytes...)))
+				global.Logger().Debug(fmt.Sprintf("mqttserv checked failed %s", structs.BytesString(checker.cachebytes...)))
 				checker.cachebytes = nil
 			}
 		}
