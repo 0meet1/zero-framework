@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -156,25 +155,25 @@ func (v1msg *ZeroV1Message) Check() error {
 	bodys = append(bodys, v1msg.end...)
 
 	if !reflect.DeepEqual(xZERO_MESSAGE_HEAD, v1msg.head) {
-		return errors.New(fmt.Sprintf("\n### err message head %s ### message datas \n%s", structs.BytesString(v1msg.head...), structs.BytesString(bodys...)))
+		return fmt.Errorf("\n### err message head %s ### message datas \n%s", structs.BytesString(v1msg.head...), structs.BytesString(bodys...))
 	}
 
 	if !reflect.DeepEqual(xZERO_MESSAGE_END, v1msg.end) {
-		return errors.New(fmt.Sprintf("\n### err message end %s ### message datas \n%s", structs.BytesString(v1msg.end...), structs.BytesString(bodys...)))
+		return fmt.Errorf("\n### err message end %s ### message datas \n%s", structs.BytesString(v1msg.end...), structs.BytesString(bodys...))
 	}
 
 	if v1msg.dataLength == nil || v1msg.DataLength() != len(bodys) {
-		return errors.New(fmt.Sprintf("\n### err message data length %d reality %d ### message datas \n%s",
+		return fmt.Errorf("\n### err message data length %d reality %d ### message datas \n%s",
 			v1msg.DataLength(),
 			len(bodys),
-			structs.BytesString(bodys...)))
+			structs.BytesString(bodys...))
 	}
 
 	if v1msg.bodyLength == nil || v1msg.BodyLength() != len(v1msg.messageBody) {
-		return errors.New(fmt.Sprintf("\n### err message body length %d reality %d ### message datas \n%s",
+		return fmt.Errorf("\n### err message body length %d reality %d ### message datas \n%s",
 			v1msg.BodyLength(),
 			len(v1msg.messageBody),
-			structs.BytesString(v1msg.messageBody...)))
+			structs.BytesString(v1msg.messageBody...))
 	}
 
 	crc16code := structs.NewCRC16Table(structs.CRC16_AUG_CCITT).Complete(bodys)
@@ -182,7 +181,7 @@ func (v1msg *ZeroV1Message) Check() error {
 	binary.BigEndian.PutUint16(crc16bin, crc16code)
 
 	if !reflect.DeepEqual(crc16bin, v1msg.checkSum) {
-		return errors.New(fmt.Sprintf("\n### err message verify %s ### message datas \n%s", structs.BytesString(v1msg.checkSum...), structs.BytesString(bodys...)))
+		return fmt.Errorf("\n### err message verify %s ### message datas \n%s", structs.BytesString(v1msg.checkSum...), structs.BytesString(bodys...))
 	}
 
 	return nil

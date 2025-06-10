@@ -55,8 +55,8 @@ type xZeroV1Client struct {
 
 	operator ZeroV1MessageOperator
 
-	request      *ZeroV1Message
-	response     *ZeroV1Message
+	request *ZeroV1Message
+	// response     *ZeroV1Message
 	requestMutex sync.Mutex
 	responseChan chan *ZeroV1Message
 
@@ -76,7 +76,7 @@ func (client *xZeroV1Client) Active() bool {
 
 func (client *xZeroV1Client) ExecMessage(message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
 	if client.responseChan != nil {
-		return nil, errors.New(fmt.Sprintf("0protocol/1.0 client connect %s is busying", client.RemoteAddr()))
+		return nil, fmt.Errorf("0protocol/1.0 client connect %s is busying", client.RemoteAddr())
 	}
 	err := client.Write(message.Bytes())
 	if err != nil {
