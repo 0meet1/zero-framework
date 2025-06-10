@@ -1,6 +1,6 @@
 module github.com/0meet1/zero-framework
 
-go 1.20
+go 1.23.1
 
 require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.2

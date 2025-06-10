@@ -198,7 +198,7 @@ func (zSock *ZeroSocketConnect) AddChecker(checker ZeroDataChecker) {
 
 func (zSock *ZeroSocketConnect) CheckPackageData(data []byte) []byte {
 	if zSock.checker != nil {
-		return zSock.checker.CheckPackageData(zSock.RegisterId(), data)
+		return zSock.checker.CheckPackageData(zSock.This().(ZeroConnect).RegisterId(), data)
 	}
 	return data
 }
