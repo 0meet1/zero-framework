@@ -125,11 +125,6 @@ func (mqttconn *MqttConnect) Close() error {
 	return err
 }
 
-func (mqttconn *MqttConnect) Write(datas []byte) error {
-	// global.Logger().Debugf("mqttconn %s send %s", mqttconn.RegisterId(), structs.BytesString(datas...))
-	return mqttconn.ZeroSocketConnect.Write(datas)
-}
-
 func (mqttconn *MqttConnect) UpdateSerialNnumber(serialNnumber uint16) {
 	mqttconn.serialNnumberMutex.Lock()
 	if mqttconn.messageSerialNnumber < serialNnumber || serialNnumber < 10 {
