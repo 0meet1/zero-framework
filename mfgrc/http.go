@@ -589,7 +589,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) state(writer http.ResponseWriter, _ *ht
 }
 
 func (xhttpExecutor *MfgrcXhttpExecutor) checkzone(xRequest *structs.ZeroRequest) (string, string) {
-	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+	if len(xRequest.Querys) <= 0 {
 		panic(errors.New("missing necessary parameter `query[0]`"))
 	}
 

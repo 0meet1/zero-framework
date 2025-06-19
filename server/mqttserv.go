@@ -91,6 +91,14 @@ type MqttConnect struct {
 	xListener MqttMessageListener
 }
 
+func NewMqttConnect() MqttConnect {
+	return MqttConnect{topcis: make(map[string]byte)}
+}
+
+func NewMqttConnectPtr() *MqttConnect {
+	return &MqttConnect{topcis: make(map[string]byte)}
+}
+
 func (mqttconn *MqttConnect) AddListener(xListener MqttMessageListener) {
 	mqttconn.xListener = xListener
 }
