@@ -71,7 +71,7 @@ func (fixedHeader *MqttFixedHeader) BTvarL(bytes []byte) int {
 	return lessLength
 }
 
-func (fixedHeader *MqttFixedHeader) build(header byte, length []byte) {
+func (fixedHeader *MqttFixedHeader) With(header byte, length []byte) {
 	fixedHeader.header = header
 	fixedHeader.length = length
 }
@@ -222,7 +222,7 @@ func (message *MqttMessage) build(data []byte) error {
 	}
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.build(data[0], lengthBytes)
+	message.fixedHeader.With(data[0], lengthBytes)
 
 	if len(data)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
 		return fmt.Errorf("message less length inconsistent real %d record %d", len(data), message.fixedHeader.LessLength())
