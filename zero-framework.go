@@ -115,6 +115,8 @@ type MqttConnectBuilder = server.MqttConnectBuilder
 type MqttConnect = server.MqttConnect
 type MqttServer = server.MqttServer
 
+var DefaultMqttChecker = server.DefaultMqttChecker
+
 const ZEROV1SERV_KEEPER = protocol.ZEROV1SERV_KEEPER
 const ZEROV1SERV_CLIENT = protocol.ZEROV1SERV_CLIENT
 

@@ -81,6 +81,10 @@ func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte
 	return nil
 }
 
+var DefaultMqttChecker = func() *xMqttDataChecker {
+	return &xMqttDataChecker{}
+}
+
 type MqttConnect struct {
 	ZeroSocketConnect
 
