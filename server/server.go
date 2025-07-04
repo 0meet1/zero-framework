@@ -22,7 +22,7 @@ type ZeroServ interface {
 }
 
 type ZeroDataChecker interface {
-	CheckPackageData(string, []byte) []byte
+	CheckPackageData(string, []byte) [][]byte
 }
 
 type ZeroConnectBuilder interface {
@@ -54,7 +54,7 @@ type ZeroConnect interface {
 	OnMessage(datas []byte) error
 
 	AddChecker(ZeroDataChecker)
-	CheckPackageData(data []byte) []byte
+	CheckPackageData(data []byte) [][]byte
 }
 
 type ZeroSocketConnect struct {
@@ -196,11 +196,11 @@ func (zSock *ZeroSocketConnect) AddChecker(checker ZeroDataChecker) {
 	zSock.checker = checker
 }
 
-func (zSock *ZeroSocketConnect) CheckPackageData(data []byte) []byte {
+func (zSock *ZeroSocketConnect) CheckPackageData(data []byte) [][]byte {
 	if zSock.checker != nil {
 		return zSock.checker.CheckPackageData(zSock.This().(ZeroConnect).RegisterId(), data)
 	}
-	return data
+	return [][]byte{data}
 }
 
 type xDefaultConnectBuilder struct{}
@@ -359,10 +359,12 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 
 		data := dataBuf[:dataLen]
 		messageDatas := connect.CheckPackageData(data)
-		if messageDatas != nil {
-			err = connect.OnMessage(messageDatas)
-			if err != nil {
-				global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.This().(ZeroConnect).RegisterId(), err.Error()))
+		if len(messageDatas) > 0 {
+			for _, messageData := range messageDatas {
+				err = connect.OnMessage(messageData)
+				if err != nil {
+					global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.This().(ZeroConnect).RegisterId(), err.Error()))
+				}
 			}
 		}
 	}
@@ -395,7 +397,7 @@ type ZeroClientConnect interface {
 	OnMessage([]byte) error
 
 	AddChecker(ZeroDataChecker)
-	CheckPackageData([]byte) []byte
+	CheckPackageData([]byte) [][]byte
 
 	AddListener(ZeroClientListener)
 }

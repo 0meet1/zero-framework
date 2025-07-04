@@ -97,11 +97,11 @@ func (client *TCPClient) Heartbeat() {
 	global.Logger().Info(fmt.Sprintf("tcp client connect %s on heartbeat", client.connect.RemoteAddr()))
 }
 
-func (client *TCPClient) CheckPackageData(data []byte) []byte {
+func (client *TCPClient) CheckPackageData(data []byte) [][]byte {
 	if client.checker != nil {
 		return client.checker.CheckPackageData(client.RemoteAddr(), data)
 	}
-	return data
+	return [][]byte{data}
 }
 
 func (client *TCPClient) AddListener(xListener ZeroClientListener) {
@@ -150,10 +150,12 @@ func (client *TCPClient) receive() {
 
 		data := dataBuf[:dataLen]
 		messageDatas := client.CheckPackageData(data)
-		if messageDatas != nil {
-			err = client.This().(ZeroClientConnect).OnMessage(messageDatas)
-			if err != nil {
-				global.Logger().Error(fmt.Sprintf("tcp client connect %s on message error %s", client.connect.RemoteAddr().String(), err.Error()))
+		if len(messageDatas) > 0 {
+			for _, messageData := range messageDatas {
+				err = client.This().(ZeroClientConnect).OnMessage(messageData)
+				if err != nil {
+					global.Logger().Error(fmt.Sprintf("tcp client connect %s on message error %s", client.connect.RemoteAddr().String(), err.Error()))
+				}
 			}
 		}
 	}

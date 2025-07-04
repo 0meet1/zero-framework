@@ -35,11 +35,11 @@ func (udpserv *UDPServer) Write(datas []byte, addr *net.UDPAddr) error {
 	return err
 }
 
-func (udpserv *UDPServer) checkPackageData(data []byte) []byte {
+func (udpserv *UDPServer) checkPackageData(data []byte) [][]byte {
 	if udpserv.checker != nil {
 		return udpserv.checker.CheckPackageData(fmt.Sprintf(":%d", udpserv.port), data)
 	}
-	return data
+	return [][]byte{data}
 }
 
 func (udpserv *UDPServer) read() {
@@ -57,10 +57,12 @@ func (udpserv *UDPServer) read() {
 		if udpserv.processer != nil {
 			data := dataBuf[:dataLen]
 			messageDatas := udpserv.checkPackageData(data)
-			if messageDatas != nil {
-				err = udpserv.processer.OnMessage(messageDatas)
-				if err != nil {
-					global.Logger().Error(fmt.Sprintf("udp:%d on message error %s", udpserv.port, err.Error()))
+			if len(messageDatas) > 0 {
+				for _, messageData := range messageDatas {
+					err = udpserv.processer.OnMessage(messageData)
+					if err != nil {
+						global.Logger().Error(fmt.Sprintf("udp:%d on message error %s", udpserv.port, err.Error()))
+					}
 				}
 			}
 		}

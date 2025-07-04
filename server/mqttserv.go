@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/0meet1/zero-framework/global"
-	"github.com/0meet1/zero-framework/structs"
 )
 
 const (
@@ -34,7 +33,55 @@ type xMqttDataChecker struct {
 	cachebytesMutex sync.Mutex
 }
 
-func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte) []byte {
+func (checker *xMqttDataChecker) expectedLength(data []byte) []byte {
+	xLengthBytes := make([]byte, 0)
+	end := 5
+	if len(data) < end {
+		end = len(data)
+	}
+	for i := 1; i < end; i++ {
+		xLengthBytes = append(xLengthBytes, data[i])
+		flag := data[i] >> 7 & 0b00000001
+		if flag == 0b0 {
+			return xLengthBytes
+		}
+	}
+	return nil
+}
+
+func (checker *xMqttDataChecker) unpacking(registerId string, historys ...[]byte) [][]byte {
+	comps := make([][]byte, 0)
+	comps = append(comps, historys...)
+	comps = append(comps, checker.cachebytes[:checker.fixedheader.LessLength()+2])
+
+	checker.fixedheader = nil
+	checker.cachebytes = checker.cachebytes[checker.fixedheader.LessLength()+2:]
+	expectedLength := checker.expectedLength(checker.cachebytes)
+	if expectedLength != nil {
+		checker.fixedheader = &MqttFixedHeader{}
+		checker.fixedheader.build(checker.cachebytes[0], expectedLength)
+		checker.cachebytes = make([]byte, 0)
+	}
+
+	if checker.fixedheader != nil {
+		nLen := len(checker.cachebytes) - len(checker.fixedheader.length) - 1
+		if nLen == checker.fixedheader.LessLength() {
+			bts := make([]byte, len(checker.cachebytes))
+			copy(bts, checker.cachebytes)
+			checker.cachebytes = nil
+			checker.fixedheader = nil
+			comps = append(comps, bts)
+			return comps
+		} else {
+			if nLen > checker.fixedheader.LessLength() {
+				return checker.unpacking(registerId, comps...)
+			}
+		}
+	}
+	return comps
+}
+
+func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte) [][]byte {
 	checker.cachebytesMutex.Lock()
 	defer func() {
 		checker.cachebytesMutex.Unlock()
@@ -43,39 +90,30 @@ func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte
 			global.Logger().Errorf("mqttconn %s on check package err : %s", registerId, err.(error).Error())
 		}
 	}()
-
-	expectedLength := func(_d []byte) []byte {
-		xLengthBytes := make([]byte, 0)
-		for i := 1; i < 5; i++ {
-			xLengthBytes = append(xLengthBytes, _d[i])
-			flag := data[i] >> 7 & 0b00000001
-			if flag == 0b0 {
-				break
-			}
-		}
-		return xLengthBytes
-	}
-
 	// global.Logger().Debugf("mqttconn %s on check %s", registerId, structs.BytesString(data...))
-	if checker.cachebytes != nil {
-		checker.cachebytes = append(checker.cachebytes, data...)
-	} else if len(data) >= 5 {
-		checker.fixedheader = &MqttFixedHeader{}
-		checker.fixedheader.build(data[0], expectedLength(data))
-		checker.cachebytes = make([]byte, 0)
-		checker.cachebytes = append(checker.cachebytes, data...)
-	}
 
-	nLen := len(checker.cachebytes) - len(checker.fixedheader.length) - 1
-	if nLen == checker.fixedheader.LessLength() {
-		bts := make([]byte, len(checker.cachebytes))
-		copy(bts, checker.cachebytes)
-		checker.cachebytes = nil
-		return bts
-	} else {
-		if nLen > checker.fixedheader.LessLength() {
-			global.Logger().ErrorS(fmt.Errorf("mqttconn %s checked failed %s", registerId, structs.BytesString(checker.cachebytes...)))
+	if checker.cachebytes == nil {
+		checker.cachebytes = make([]byte, 0)
+	}
+	checker.cachebytes = append(checker.cachebytes, data...)
+	expectedLength := checker.expectedLength(checker.cachebytes)
+	if expectedLength != nil {
+		checker.fixedheader = &MqttFixedHeader{}
+		checker.fixedheader.build(checker.cachebytes[0], expectedLength)
+		checker.cachebytes = make([]byte, 0)
+	}
+	if checker.fixedheader != nil {
+		nLen := len(checker.cachebytes) - len(checker.fixedheader.length) - 1
+		if nLen == checker.fixedheader.LessLength() {
+			bts := make([]byte, len(checker.cachebytes))
+			copy(bts, checker.cachebytes)
 			checker.cachebytes = nil
+			checker.fixedheader = nil
+			return [][]byte{bts}
+		} else {
+			if nLen > checker.fixedheader.LessLength() {
+				return checker.unpacking(registerId)
+			}
 		}
 	}
 	return nil
