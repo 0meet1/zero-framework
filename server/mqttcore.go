@@ -157,6 +157,14 @@ func (fixedHeader *MqttFixedHeader) Length() []byte {
 	return fixedHeader.length
 }
 
+func (fixedHeader *MqttFixedHeader) Size() int {
+	return len(fixedHeader.length) + 1
+}
+
+func (fixedHeader *MqttFixedHeader) CompleteLength() int {
+	return fixedHeader.LessLength() + fixedHeader.Size()
+}
+
 const (
 	MQTT_HEADER      = "MQTT"
 	MQTT_LEVEL_3_1_1 = 0x04
@@ -237,11 +245,11 @@ func (message *MqttMessage) build(data []byte) error {
 	message.fixedHeader = &MqttFixedHeader{}
 	message.fixedHeader.With(data[0], lengthBytes)
 
-	if len(data)-len(message.fixedHeader.length)-1 != message.fixedHeader.LessLength() {
+	if len(data) != message.fixedHeader.CompleteLength() {
 		return fmt.Errorf("message less length inconsistent real %d record %d", len(data), message.fixedHeader.LessLength())
 	}
 
-	fixedHeaderLen := len(message.fixedHeader.length) + 1
+	fixedHeaderLen := message.fixedHeader.Size()
 
 	switch message.fixedHeader.MessageType() {
 	case CONNECT:
@@ -402,6 +410,20 @@ func (message *MqttMessage) MakePubackMessage(identifier uint16) {
 	message.fixedHeader.make(PUBACK, FIXED_FLAG_NONE, len(puback.variableHeader)+len(payload.payload))
 }
 
+func (message *MqttMessage) MakePubrecMessage(identifier uint16) {
+
+	pubrec := &MqttIdentifierVariableHeader{}
+	pubrec.make(identifier)
+	message.variableHeader = pubrec
+
+	payload := &MqttPayload{}
+	payload.build(make([]byte, 0))
+	message.payload = payload
+
+	message.fixedHeader = &MqttFixedHeader{}
+	message.fixedHeader.make(PUBREC, FIXED_FLAG_NONE, len(pubrec.variableHeader)+len(payload.payload))
+}
+
 func (message *MqttMessage) MakePubrelMessage(identifier uint16) {
 
 	pubrel := &MqttIdentifierVariableHeader{}
@@ -414,6 +436,20 @@ func (message *MqttMessage) MakePubrelMessage(identifier uint16) {
 
 	message.fixedHeader = &MqttFixedHeader{}
 	message.fixedHeader.make(PUBREL, FIXED_FLAG_NONE, len(pubrel.variableHeader)+len(payload.payload))
+}
+
+func (message *MqttMessage) MakePubcompMessage(identifier uint16) {
+
+	pubcomp := &MqttIdentifierVariableHeader{}
+	pubcomp.make(identifier)
+	message.variableHeader = pubcomp
+
+	payload := &MqttPayload{}
+	payload.build(make([]byte, 0))
+	message.payload = payload
+
+	message.fixedHeader = &MqttFixedHeader{}
+	message.fixedHeader.make(PUBCOMP, FIXED_FLAG_NONE, len(pubcomp.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) MakePublistMessage(topic string, identifier uint16, flag byte, data []byte) {

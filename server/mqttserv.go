@@ -100,15 +100,15 @@ func (checker *xMqttDataChecker) CheckPackageData(registerId string, data []byte
 		checker.fixedheader.With(checker.cachebytes[0], expectedLength)
 	}
 	if checker.fixedheader != nil {
-		nLen := len(checker.cachebytes) - len(checker.fixedheader.length) - 1
-		if nLen == checker.fixedheader.LessLength() {
+		nLen := len(checker.cachebytes)
+		if nLen == checker.fixedheader.CompleteLength() {
 			bts := make([]byte, len(checker.cachebytes))
 			copy(bts, checker.cachebytes)
 			checker.cachebytes = nil
 			checker.fixedheader = nil
 			return [][]byte{bts}
 		} else {
-			if nLen > checker.fixedheader.LessLength() {
+			if nLen > checker.fixedheader.CompleteLength() {
 				return checker.unpacking(registerId)
 			}
 		}
@@ -257,15 +257,29 @@ func (mqttconn *MqttConnect) onPublish(mqttMessage *MqttMessage) error {
 		}
 	}
 
-	mqttconn.UpdateSerialNnumber(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
-	message := &MqttMessage{}
-	message.MakePubackMessage(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
-	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
+	if mqttMessage.FixedHeader().Qos() == Qos1 {
+		mqttconn.UpdateSerialNnumber(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
+		message := &MqttMessage{}
+		message.MakePubackMessage(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
+		return mqttconn.This().(ZeroConnect).Write(message.Bytes())
+	} else if mqttMessage.FixedHeader().Qos() == Qos2 {
+		mqttconn.UpdateSerialNnumber(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
+		message := &MqttMessage{}
+		message.MakePubrecMessage(mqttMessage.VariableHeader().(*MqttPublishVariableHeader).Identifier())
+		return mqttconn.This().(ZeroConnect).Write(message.Bytes())
+	}
+	return nil
 }
 
 func (mqttconn *MqttConnect) onPubrec(mqttMessage *MqttMessage) error {
 	message := &MqttMessage{}
 	message.MakePubrelMessage(mqttMessage.VariableHeader().(*MqttIdentifierVariableHeader).Identifier())
+	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
+}
+
+func (mqttconn *MqttConnect) onPubrel(mqttMessage *MqttMessage) error {
+	message := &MqttMessage{}
+	message.MakePubcompMessage(mqttMessage.VariableHeader().(*MqttIdentifierVariableHeader).Identifier())
 	return mqttconn.This().(ZeroConnect).Write(message.Bytes())
 }
 
@@ -282,6 +296,7 @@ func (mqttconn *MqttConnect) onMqttMessage(mqttMessage *MqttMessage) error {
 	case PUBREC:
 		return mqttconn.onPubrec(mqttMessage)
 	case PUBREL:
+		return mqttconn.onPubrel(mqttMessage)
 	case PUBCOMP:
 	case SUBSCRIBE:
 		return mqttconn.onSubscribe(mqttMessage)
