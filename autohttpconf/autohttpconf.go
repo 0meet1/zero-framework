@@ -820,7 +820,7 @@ func (xhttp *ZeroXsacXhttp) corefetch(writer http.ResponseWriter, req *http.Requ
 		panic(err)
 	}
 
-	if xRequest.Querys == nil || len(xRequest.Querys) <= 0 {
+	if len(xRequest.Querys) <= 0 {
 		panic(errors.New("missing necessary parameter `query options -> $.querys[0]`"))
 	}
 
