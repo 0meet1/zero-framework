@@ -52,8 +52,8 @@ func (checker *xMqttDataChecker) expectedLength(data []byte) []byte {
 func (checker *xMqttDataChecker) unpacking(registerId string, historys ...[]byte) [][]byte {
 	comps := make([][]byte, 0)
 	comps = append(comps, historys...)
-	comps = append(comps, checker.cachebytes[:checker.fixedheader.LessLength()+2])
-	checker.cachebytes = checker.cachebytes[checker.fixedheader.LessLength()+2:]
+	comps = append(comps, checker.cachebytes[:checker.fixedheader.CompleteLength()])
+	checker.cachebytes = checker.cachebytes[checker.fixedheader.CompleteLength():]
 	checker.fixedheader = nil
 	expectedLength := checker.expectedLength(checker.cachebytes)
 	if expectedLength != nil {
