@@ -27,6 +27,15 @@ const (
 	LESS_LENGTH_LIMIT3 = 0x001FFFFF
 	LESS_LENGTH_LIMIT2 = 0x00003FFF
 	LESS_LENGTH_LIMIT1 = 0x0000007F
+
+	Qos0 = 0b00
+	Qos1 = 0b01
+	Qos2 = 0b10
+
+	FIXED_FLAG_NONE  = 0b0000
+	FIXED_FLAG_Qos0s = 0b0000
+	FIXED_FLAG_Qos1s = 0b0010
+	FIXED_FLAG_Qos2s = 0b0100
 )
 
 type MqttFixedHeader struct {
@@ -134,6 +143,10 @@ func (fixedHeader *MqttFixedHeader) B1() byte {
 
 func (fixedHeader *MqttFixedHeader) B0() byte {
 	return fixedHeader.header << 7 & 0xFF >> 7 & 0xFF
+}
+
+func (fixedHeader *MqttFixedHeader) Qos() byte {
+	return fixedHeader.header >> 1 & 0b00000011
 }
 
 func (fixedHeader *MqttFixedHeader) LessLength() int {
@@ -344,7 +357,7 @@ func (message *MqttMessage) MakeConnackMessage() {
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(CONNACK, 0b0000, len(connack.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(CONNACK, FIXED_FLAG_NONE, len(connack.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) MakePingrespMessage() {
@@ -358,7 +371,7 @@ func (message *MqttMessage) MakePingrespMessage() {
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(PINGRESP, 0b0000, len(pingresp.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(PINGRESP, FIXED_FLAG_NONE, len(pingresp.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) MakeSubackMessage(identifier uint16, results []byte) {
@@ -372,7 +385,7 @@ func (message *MqttMessage) MakeSubackMessage(identifier uint16, results []byte)
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(SUBACK, 0b0000, len(suback.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(SUBACK, FIXED_FLAG_NONE, len(suback.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) MakePubackMessage(identifier uint16) {
@@ -386,7 +399,7 @@ func (message *MqttMessage) MakePubackMessage(identifier uint16) {
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(PUBACK, 0b0000, len(puback.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(PUBACK, FIXED_FLAG_NONE, len(puback.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) MakePubrelMessage(identifier uint16) {
@@ -400,10 +413,10 @@ func (message *MqttMessage) MakePubrelMessage(identifier uint16) {
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(PUBREL, 0b0000, len(pubrel.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(PUBREL, FIXED_FLAG_NONE, len(pubrel.variableHeader)+len(payload.payload))
 }
 
-func (message *MqttMessage) MakePublistMessage(topic string, identifier uint16, data []byte) {
+func (message *MqttMessage) MakePublistMessage(topic string, identifier uint16, flag byte, data []byte) {
 
 	publish := &MqttPublishVariableHeader{}
 	publish.make(topic, int(identifier))
@@ -414,7 +427,7 @@ func (message *MqttMessage) MakePublistMessage(topic string, identifier uint16, 
 	message.payload = payload
 
 	message.fixedHeader = &MqttFixedHeader{}
-	message.fixedHeader.make(PUBLISH, 0b0100, len(publish.variableHeader)+len(payload.payload))
+	message.fixedHeader.make(PUBLISH, flag, len(publish.variableHeader)+len(payload.payload))
 }
 
 func (message *MqttMessage) Bytes() []byte {
