@@ -95,6 +95,17 @@ type UDPServer = server.UDPServer
 
 type TCPClient = server.TCPClient
 
+const (
+	Qos0 = server.Qos0
+	Qos1 = server.Qos1
+	Qos2 = server.Qos2
+
+	FIXED_FLAG_NONE  = server.FIXED_FLAG_NONE
+	FIXED_FLAG_Qos0s = server.FIXED_FLAG_Qos0s
+	FIXED_FLAG_Qos1s = server.FIXED_FLAG_Qos1s
+	FIXED_FLAG_Qos2s = server.FIXED_FLAG_Qos2s
+)
+
 type MqttFixedHeader = server.MqttFixedHeader
 type MqttCoreVariableHeader = server.MqttCoreVariableHeader
 type MqttVariableHeader = server.MqttVariableHeader
