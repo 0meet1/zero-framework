@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"runtime"
 	"strings"
 	"time"
 
@@ -15,6 +14,18 @@ import (
 	"github.com/sirupsen/logrus"
 
 	x0errors "github.com/pkg/errors"
+)
+
+const (
+	DEBUG = "DEBUG"
+	INFO  = "INFO"
+	WARN  = "WARN"
+	ERROR = "ERROR"
+	FATAL = "FATAL"
+	PANIC = "PANIC"
+
+	CONSOLE_ENABLE  = "enable"
+	CONSOLE_DISABLE = "disable"
 )
 
 type LogFormatter struct{}
@@ -30,138 +41,147 @@ func (writer *ConsoleWriter) Write(bytes []byte) (int, error) {
 	return len(bytes), nil
 }
 
-const (
-	CONSOLE_ENABLE  = "enable"
-	CONSOLE_DISABLE = "disable"
-)
-
-var (
-	sysLogger *logrus.Logger
-
-	sysLogPath      string
-	sysLogName      string
-	sysRotationTime int
-	sysMaxAge       int
-	sysLvs          []string
-	sysConsole      string
-)
-
-func initLoggerConfig() {
-	sysLogName = cfg.StringValue("zero.log.name")
-	if len(cfg.StringValue("zero.log.path")) > 0 {
-		sysLogPath = cfg.StringValue("zero.log.path")
-	} else {
-		sysLogPath = path.Join(cfg.ServerAbsPath(), "logs")
-	}
-	sysConsole = cfg.StringValue("zero.log.console")
-	sysMaxAge = cfg.IntValue("zero.log.maxAge")
-	sysRotationTime = cfg.IntValue("zero.log.rotationTime")
-	sysLvs = cfg.SliceStringValue("zero.log.level")
-
-}
-
-func makeLogWriter(level string) io.Writer {
-	writer, err := rotatelogs.New(
-		path.Join(sysLogPath, sysLogName+"."+level+".%Y%m%d%H.log"),
-		rotatelogs.WithRotationTime(time.Hour*time.Duration(sysRotationTime)),
-		rotatelogs.WithMaxAge(time.Hour*time.Duration(sysMaxAge)),
-	)
-	if err != nil {
-		panic(err)
-	}
-	return writer
-}
-
-func InitLogger() *ZeroLogger {
-	initLoggerConfig()
-	sysLogger = logrus.New()
-	wMap := lfshook.WriterMap{}
-	for i := 0; i < len(sysLvs); i++ {
-		level, err := logrus.ParseLevel(sysLvs[i])
-		if err != nil {
-			panic(err)
-		}
-		wMap[level] = makeLogWriter(level.String())
-	}
-	(*sysLogger).AddHook(lfshook.NewHook(wMap, new(LogFormatter)))
-	(*sysLogger).SetFormatter(new(LogFormatter))
-	if sysConsole == CONSOLE_ENABLE {
-		(*sysLogger).SetOutput(new(ConsoleWriter))
-	} else {
-		(*sysLogger).SetOutput(makeLogWriter(logrus.TraceLevel.String()))
-	}
-	(*sysLogger).SetLevel(logrus.TraceLevel)
-
-	return &ZeroLogger{}
+var supportLevels = map[string]logrus.Level{
+	DEBUG: logrus.DebugLevel,
+	INFO:  logrus.InfoLevel,
+	WARN:  logrus.WarnLevel,
+	ERROR: logrus.ErrorLevel,
+	FATAL: logrus.FatalLevel,
+	PANIC: logrus.PanicLevel,
 }
 
 type ZeroLogger struct {
+	rootLogger *logrus.Logger
+
+	asLogPath      string
+	asLogName      string
+	asRotationTime int
+	asMaxAge       int
+	asLevels       []string
+	asConsole      string
+
+	supports map[string]logrus.Level
 }
 
-func (logger *ZeroLogger) Debug(message string) {
-	sysLogger.Debug(message)
-}
-
-func (logger *ZeroLogger) Debugf(format string, p ...any) {
-	sysLogger.Debug(fmt.Sprintf(format, p...))
-}
-
-func (logger *ZeroLogger) Info(message string) {
-	sysLogger.Info(message)
-}
-
-func (logger *ZeroLogger) Infof(format string, p ...any) {
-	sysLogger.Info(fmt.Sprintf(format, p...))
-}
-
-func (logger *ZeroLogger) Warn(message string) {
-	sysLogger.Warn(message)
-}
-
-func (logger *ZeroLogger) Warnf(format string, p ...any) {
-	sysLogger.Warn(fmt.Sprintf(format, p...))
-}
-
-func (logger *ZeroLogger) Error(message string) {
-	sysLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(x0errors.New(message))))
-}
-
-func (logger *ZeroLogger) ErrorS(err error) {
-	sysLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(err)))
-}
-
-func (logger *ZeroLogger) Errorf(format string, p ...any) {
-	logger.Error(fmt.Sprintf(format, p...))
-}
-
-func (logger *ZeroLogger) Fatal(message string) {
-	sysLogger.Fatal(message)
-}
-
-func (logger *ZeroLogger) Panic(message string) {
-	sysLogger.Panic(message)
-}
-
-func (logger *ZeroLogger) CallerInfosMaxLine(maxLine int, skip int) string {
-	pc := make([]uintptr, maxLine)
-	n := runtime.Callers(skip, pc)
-	cf := runtime.CallersFrames(pc[:n])
-	infos := ""
-	for {
-		frame, more := cf.Next()
-		if !more {
-			break
-		} else {
-			if len(frame.Func.Name()) > 0 {
-				infos = fmt.Sprintf("%s\t at %s (%s:%d)\n", infos, frame.Func.Name(), frame.File, frame.Line)
-			} else {
-				infos = fmt.Sprintf("%s\t at (%s:%d)\n", infos, frame.File, frame.Line)
-			}
-		}
+func (aLogger *ZeroLogger) readLoggerConfig(prefix string) {
+	aLogger.asLogName = cfg.StringValue(fmt.Sprintf("%s.name", prefix))
+	if len(cfg.StringValue(fmt.Sprintf("%s.path", prefix))) > 0 {
+		aLogger.asLogPath = cfg.StringValue(fmt.Sprintf("%s.path", prefix))
+	} else {
+		aLogger.asLogPath = path.Join(cfg.ServerAbsPath(), "logs")
 	}
-	return infos
+	aLogger.asConsole = cfg.StringValue(fmt.Sprintf("%s.console", prefix))
+	aLogger.asMaxAge = cfg.IntValue(fmt.Sprintf("%s.maxAge", prefix))
+	aLogger.asRotationTime = cfg.IntValue(fmt.Sprintf("%s.rotationTime", prefix))
+	aLogger.asLevels = cfg.SliceStringValue(fmt.Sprintf("%s.level", prefix))
+	aLogger.supports = make(map[string]logrus.Level)
+	for _, enableLv := range aLogger.asLevels {
+		if _, ok := supportLevels[enableLv]; !ok {
+			panic(fmt.Errorf(" no support log level `%s` ", enableLv))
+		}
+		aLogger.supports[enableLv] = supportLevels[enableLv]
+	}
 }
 
-func (logger *ZeroLogger) CallerInfos() string {
-	return logger.CallerInfosMaxLine(64, 3)
+func (aLogger *ZeroLogger) initWriter(moduleName string) (io.Writer, error) {
+	return rotatelogs.New(
+		path.Join(aLogger.asLogPath, aLogger.asLogName+"."+moduleName+".%Y%m%d%H.log"),
+		rotatelogs.WithRotationTime(time.Hour*time.Duration(aLogger.asRotationTime)),
+		rotatelogs.WithMaxAge(time.Hour*time.Duration(aLogger.asMaxAge)),
+	)
+}
+
+func (aLogger *ZeroLogger) initLogger(prefix string) {
+	aLogger.readLoggerConfig(prefix)
+	aLogger.rootLogger = logrus.New()
+	writers := lfshook.WriterMap{}
+	for _, v := range aLogger.supports {
+		_writer, err := aLogger.initWriter(v.String())
+		if err != nil {
+			panic(err)
+		}
+		writers[v] = _writer
+	}
+	aLogger.rootLogger.AddHook(lfshook.NewHook(writers, &LogFormatter{}))
+	aLogger.rootLogger.SetFormatter(&LogFormatter{})
+	if aLogger.asConsole == CONSOLE_ENABLE {
+		aLogger.rootLogger.SetOutput(&ConsoleWriter{})
+	} else {
+		_writer, err := aLogger.initWriter(logrus.TraceLevel.String())
+		if err != nil {
+			panic(err)
+		}
+		aLogger.rootLogger.SetOutput(_writer)
+	}
+	aLogger.rootLogger.SetLevel(logrus.TraceLevel)
+}
+
+func NewLogger(prefix string) *ZeroLogger {
+	nLogger := &ZeroLogger{}
+	nLogger.initLogger(prefix)
+	return nLogger
+}
+
+func (aLogger *ZeroLogger) Debug(message string) {
+	if _, ok := aLogger.supports[DEBUG]; ok {
+		aLogger.rootLogger.Debug(message)
+	}
+}
+
+func (aLogger *ZeroLogger) Debugf(format string, p ...any) {
+	if _, ok := aLogger.supports[DEBUG]; ok {
+		aLogger.rootLogger.Debug(fmt.Sprintf(format, p...))
+	}
+}
+
+func (aLogger *ZeroLogger) Info(message string) {
+	if _, ok := aLogger.supports[INFO]; ok {
+		aLogger.rootLogger.Info(message)
+	}
+}
+
+func (aLogger *ZeroLogger) Infof(format string, p ...any) {
+	if _, ok := aLogger.supports[INFO]; ok {
+		aLogger.rootLogger.Info(fmt.Sprintf(format, p...))
+	}
+}
+
+func (aLogger *ZeroLogger) Warn(message string) {
+	if _, ok := aLogger.supports[WARN]; ok {
+		aLogger.rootLogger.Warn(message)
+	}
+}
+
+func (aLogger *ZeroLogger) Warnf(format string, p ...any) {
+	if _, ok := aLogger.supports[WARN]; ok {
+		aLogger.rootLogger.Warn(fmt.Sprintf(format, p...))
+	}
+}
+
+func (aLogger *ZeroLogger) Error(message string) {
+	if _, ok := aLogger.supports[ERROR]; ok {
+		aLogger.rootLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(x0errors.New(message))))
+	}
+}
+
+func (aLogger *ZeroLogger) ErrorS(err error) {
+	if _, ok := aLogger.supports[ERROR]; ok {
+		aLogger.rootLogger.Error(fmt.Sprintf("%+v", x0errors.WithStack(err)))
+	}
+}
+
+func (aLogger *ZeroLogger) Errorf(format string, p ...any) {
+	aLogger.Error(fmt.Sprintf(format, p...))
+}
+
+func (aLogger *ZeroLogger) Fatal(message string) {
+	if _, ok := aLogger.supports[FATAL]; ok {
+		aLogger.rootLogger.Fatal(message)
+	}
+}
+
+func (aLogger *ZeroLogger) Panic(message string) {
+	if _, ok := aLogger.supports[PANIC]; ok {
+		aLogger.rootLogger.Panic(message)
+	}
 }
