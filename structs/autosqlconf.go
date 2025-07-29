@@ -592,7 +592,7 @@ type ZeroXsacAutoParserKeeper interface {
 }
 
 func XautoLoad(meta reflect.Type, row map[string]any) (any, error) {
-	data := reflect.New(meta)
+	data := reflect.New(XreflectMeta(meta))
 	atParserKeeper := global.Value(XSAC_AUTO_PARSER_KEEPER)
 	if atParserKeeper != nil {
 		parsers, ok := atParserKeeper.(ZeroXsacAutoParserKeeper).FindAutoParser(data.Interface().(ZeroXsacDeclares).XsacTableName())

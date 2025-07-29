@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/server"
 	"github.com/0meet1/zero-framework/structs"
 )
@@ -58,7 +59,7 @@ import (
 // }
 
 func TestConnectOracle(t *testing.T) {
-	// database, err := gorm.Open(ora.Open("kangni/BSZnvPgL@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
+	// database, err := gorm.Open(ora.Open("@158.158.5.57:1521/sapbmsprddb"), &gorm.Config{})
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -96,52 +97,21 @@ func TestConnectOracle(t *testing.T) {
 
 }
 
-func TestXX(t *testing.T) {
-
-	// jsonbytes, err := json.Marshal(1)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(x0meet1st.Md5Bytes(jsonbytes))
-	// var i byte = 1.0
-	v := reflect.ValueOf(structs.Time{})
-	fmt.Println(v.Type().String())
-	fmt.Println(reflect.Float64.String())
-}
-
 type TesT struct {
+	autohttpconf.ZeroXsacXhttpStructs
+
 	Terc1 string
 	Terc2 string
 	Terc3 byte
 	Terc4 float32
 }
 
-func TestRT(t *testing.T) {
-	te := &TesT{
-		Terc1: "xxx1",
-		Terc2: "ccx",
-	}
-
-	fmt.Println(te)
-	ptr1 := reflect.ValueOf(te)
-
-	fmt.Println(ptr1.Kind())
-	fmt.Println(ptr1.Kind() == reflect.Pointer)
-
-	Terc1rf := ptr1.Elem().FieldByName("Terc1")
-	fmt.Println(Terc1rf.Addr())
-	fmt.Println(Terc1rf.String())
-	Terc1rf.SetString("1231")
-
-	Terc3rf := ptr1.Elem().FieldByName("Terc3")
-	fmt.Println(Terc3rf.Addr())
-	Terc3rf.SetInt(33)
-
-	Terc4rf := ptr1.Elem().FieldByName("Terc4")
-	fmt.Println(Terc4rf.Addr())
-	Terc4rf.SetFloat(33.3333)
-
-	fmt.Println(te)
+func TestRT5(t *testing.T) {
+	// te := &TesT{
+	// 	Terc1: "xxx1",
+	// 	Terc2: "ccx",
+	// }
+	fmt.Println(structs.Xalloc(reflect.TypeOf(&TesT{})).(*TesT).This())
 }
 
 func TestRT2(t *testing.T) {

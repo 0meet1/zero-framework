@@ -25,6 +25,9 @@ type ZeroRequest = structs.ZeroRequest
 type ZeroResponse = structs.ZeroResponse
 type ZeroXsacAutoParser = structs.ZeroXsacAutoParser
 
+var XreflectMeta = structs.XreflectMeta
+var Xalloc = structs.Xalloc
+
 type ZeroCoreProcessor = processors.ZeroCoreProcessor
 type ZeroQuery = processors.ZeroQuery
 type ZeroCondition = processors.ZeroCondition
