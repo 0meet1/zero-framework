@@ -12,7 +12,6 @@ import (
 	"syscall"
 
 	cfg "github.com/0meet1/zero-framework/config"
-	"github.com/0meet1/zero-framework/log"
 )
 
 const ZERO_FRAMEWORK_BANNER = `
@@ -204,7 +203,7 @@ func GlobalContext(appName string) {
 		_observers = make(map[string]ZeroGlobalEventsObserver)
 		_appName = appName
 		cfg.NewConfigs(systemAbsPath())
-		Key("zero.system.logger", log.NewLogger("zero.log"))
+		Key("zero.system.logger", NewLogger("zero.log"))
 		Logger().Info(ZERO_FRAMEWORK_BANNER)
 	}
 }
@@ -214,7 +213,7 @@ func RunTest(appName, cfgpath string) {
 		_observers = make(map[string]ZeroGlobalEventsObserver)
 		_appName = appName
 		cfg.NewConfigs(cfgpath)
-		Key("zero.system.logger", log.NewLogger("zero.log"))
+		Key("zero.system.logger", NewLogger("zero.log"))
 	}
 }
 
@@ -258,6 +257,6 @@ func StringMapStringSlice(cfgName string) map[string][]string {
 	return cfg.StringMapStringSlice(cfgName)
 }
 
-func Logger() *log.ZeroLogger {
-	return Value("zero.system.logger").(*log.ZeroLogger)
+func Logger() *ZeroLogger {
+	return Value("zero.system.logger").(*ZeroLogger)
 }
