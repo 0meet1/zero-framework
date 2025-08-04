@@ -96,7 +96,7 @@ func (st *SqliteDataSource) parse(rows *sql.Rows) []map[string]interface{} {
 	return rowsArray
 }
 
-func (st *SqliteDataSource) Transaction(performer func(*sql.Tx) any, onevents ...func(error)) any {
+func (st *SqliteDataSource) SecureTransaction(performer func(*sql.Tx) any, onevents ...func(error)) any {
 	st.mutex.Lock()
 	defer st.mutex.Unlock()
 	transaction, err := st.database.Begin()

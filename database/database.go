@@ -3,11 +3,12 @@ package database
 import (
 	"database/sql"
 
+	"github.com/0meet1/zero-framework/global"
 	"gorm.io/gorm"
 )
 
 type SecureDataSource interface {
-	Transaction(func(*sql.Tx) any, ...func(error)) any
+	SecureTransaction(func(*sql.Tx) any, ...func(error)) any
 }
 
 type DataSource interface {
@@ -40,4 +41,46 @@ func (cp *GormDataSource) Transaction() *sql.Tx {
 		panic(err)
 	}
 	return transaction
+}
+
+func (cp *GormDataSource) SecureTransaction(performer func(*sql.Tx) any, onevents ...func(error)) any {
+	connect, err := cp.database.DB()
+	if err != nil {
+		global.Logger().ErrorS(err)
+		if len(onevents) > 0 {
+			onevents[0](err)
+		}
+		return nil
+	}
+	if err := connect.Ping(); err != nil {
+		global.Logger().ErrorS(err)
+		if len(onevents) > 0 {
+			onevents[0](err)
+		}
+		return nil
+	}
+	transaction, err := connect.Begin()
+	if err != nil {
+		global.Logger().ErrorS(err)
+		if len(onevents) > 0 {
+			onevents[0](err)
+		}
+		return nil
+	}
+	defer func() {
+		err := recover()
+		if err != nil {
+			global.Logger().ErrorS(err.(error))
+			transaction.Rollback()
+			if len(onevents) > 0 {
+				onevents[0](err.(error))
+			}
+		} else {
+			transaction.Commit()
+			if len(onevents) > 0 {
+				onevents[0](nil)
+			}
+		}
+	}()
+	return performer(transaction)
 }
