@@ -9,6 +9,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47
 	github.com/hashicorp/consul/api v1.25.1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/mattn/go-sqlite3 v1.14.30
 	github.com/pkg/errors v0.9.1
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sijms/go-ora/v2 v2.8.19

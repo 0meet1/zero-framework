@@ -6,6 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type SecureDataSource interface {
+	Transaction(func(*sql.Tx) any, ...func(error)) any
+}
+
 type DataSource interface {
 	Connect() *sql.DB
 	Transaction() *sql.Tx
