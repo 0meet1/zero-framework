@@ -56,6 +56,7 @@ var PostgresDatabase = database.PostgresDatabase
 var CustomPostgresDatabase = database.CustomPostgresDatabase
 var SQLiteDatabase = database.SQLiteDatabase
 var CustomSQLiteDatabase = database.CustomSQLiteDatabase
+var NewSQLiteTable = database.NewSQLiteTable
 
 const ROCKETMQ_KEEPER = rocketmq.ROCKETMQ_KEEPER
 
