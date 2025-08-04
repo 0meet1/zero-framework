@@ -46,6 +46,16 @@ type EQueryRequest = database.EQueryRequest
 type EQueryResponse = database.EQueryResponse
 type EQuerySearch = database.EQuerySearch
 type DataSource = database.DataSource
+type SecureDataSource = database.SecureDataSource
+
+var ElasticDatabase = database.ElasticDatabase
+var RedisDatabase = database.RedisDatabase
+var MySQLDatabase = database.MySQLDatabase
+var CustomMySQLDatabase = database.CustomMySQLDatabase
+var PostgresDatabase = database.PostgresDatabase
+var CustomPostgresDatabase = database.CustomPostgresDatabase
+var SQLiteDatabase = database.SQLiteDatabase
+var CustomSQLiteDatabase = database.CustomSQLiteDatabase
 
 const ROCKETMQ_KEEPER = rocketmq.ROCKETMQ_KEEPER
 

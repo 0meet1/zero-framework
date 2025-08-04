@@ -17,7 +17,7 @@ type table struct {
 	DML  []string
 }
 
-func NewSQLiteTable(name, core string, dmls ...string) *table {
+var NewSQLiteTable = func(name, core string, dmls ...string) *table {
 	return &table{
 		Name: name,
 		Core: core,
@@ -129,7 +129,7 @@ const (
 	DATABASE_SQLITE = "zero.database.sqlite3"
 )
 
-func InitSQLiteDatabase(tables ...*table) {
+var SQLiteDatabase = func(tables ...*table) {
 	dbaddr := global.StringValue("zero.sqlite3.dbaddr")
 	if !strings.HasPrefix(dbaddr, "/") {
 		dbaddr = path.Join(global.ServerAbsPath(), dbaddr)
@@ -140,7 +140,7 @@ func InitSQLiteDatabase(tables ...*table) {
 	global.Key(DATABASE_SQLITE, s)
 }
 
-func InitCustomSQLiteDatabase(registerName, prefix string, tables ...*table) {
+var CustomSQLiteDatabase = func(registerName, prefix string, tables ...*table) {
 	dbaddr := global.StringValue(fmt.Sprintf("zero.%s.dbaddr", prefix))
 	if !strings.HasPrefix(dbaddr, "/") {
 		dbaddr = path.Join(global.ServerAbsPath(), dbaddr)

@@ -47,7 +47,7 @@ func (cp *xOracleConnectsKeeper) Transaction() *sql.Tx {
 	return transaction
 }
 
-func InitOracleDatabase() {
+var OracleDatabase = func() {
 
 	err := os.Setenv("NLS_LANG", "AMERICAN_AMERICA.AL32UTF8")
 	if err != nil {
@@ -63,7 +63,7 @@ func InitOracleDatabase() {
 	global.Key(DATABASE_ORACLE, dataSource)
 }
 
-func InitCustomOracleDatabase(registerName, hostname string, hostport int, servOsid, dbname, password string) {
+var CustomOracleDatabase = func(registerName, hostname string, hostport int, servOsid, dbname, password string) {
 
 	err := os.Setenv("NLS_LANG", "AMERICAN_AMERICA.AL32UTF8")
 	if err != nil {

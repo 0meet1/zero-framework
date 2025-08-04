@@ -18,8 +18,7 @@ type RedisKeyspaceExpiredObserver interface {
 	OnMessage(*redis.Message) error
 }
 
-func InitRedisDatabase(observers ...RedisKeyspaceExpiredObserver) {
-
+var RedisDatabase = func(observers ...RedisKeyspaceExpiredObserver) {
 	if len(global.StringValue("zero.redis.sentinel")) > 0 {
 		if len(global.StringValue("zero.redis.password")) > 0 {
 			failoverClient := redis.NewFailoverClient(&redis.FailoverOptions{

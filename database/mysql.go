@@ -14,7 +14,7 @@ const (
 	DATABASE_MYSQL = "zero.database.mysql"
 )
 
-func InitMYSQLDatabase() {
+var MySQLDatabase = func() {
 	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true",
 		global.StringValue("zero.mysql.username"),
 		global.StringValue("zero.mysql.password"),
@@ -56,7 +56,7 @@ func InitMYSQLDatabase() {
 	global.Key(DATABASE_MYSQL, dataSource)
 }
 
-func InitCustomMysqlDatabase(registerName, prefix string) {
+var CustomMySQLDatabase = func(registerName, prefix string) {
 
 	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true",
 		global.StringValue(fmt.Sprintf("%s.username", prefix)),

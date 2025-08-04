@@ -18,7 +18,7 @@ var (
 	// auth       string
 )
 
-func InitElasticDatabase() {
+var ElasticDatabase = func() {
 	serverAddr = global.StringValue("zero.elastic.serverAddr")
 	// user = global.StringValue("zero.elastic.user")
 	// auth = global.StringValue("zero.elastic.auth")

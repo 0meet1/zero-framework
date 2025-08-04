@@ -14,7 +14,7 @@ const (
 	DATABASE_POSTGRES = "zero.database.postgres"
 )
 
-func InitPostgresDatabase() {
+var PostgresDatabase = func() {
 	dbURI := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s TimeZone=Asia/Shanghai",
 		global.StringValue("zero.postgres.hostname"),
 		global.IntValue("zero.postgres.hostport"),
@@ -53,7 +53,7 @@ func InitPostgresDatabase() {
 	global.Key(DATABASE_POSTGRES, dataSource)
 }
 
-func InitCustomPostgresDatabase(registerName, prefix string) {
+var CustomPostgresDatabase = func(registerName, prefix string) {
 
 	dbURI := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s TimeZone=Asia/Shanghai",
 		global.StringValue(fmt.Sprintf("%s.hostname", prefix)),
