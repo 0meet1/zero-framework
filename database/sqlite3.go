@@ -3,11 +3,13 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"sync"
 
 	"github.com/0meet1/zero-framework/global"
+	"github.com/0meet1/zero-framework/structs"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -134,6 +136,14 @@ var SQLiteDatabase = func(tables ...*table) {
 	if !strings.HasPrefix(dbaddr, "/") {
 		dbaddr = path.Join(global.ServerAbsPath(), dbaddr)
 	}
+
+	if !structs.Xfexists(path.Dir(dbaddr)) {
+		err := os.MkdirAll(path.Dir(dbaddr), 0777)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	s := &SqliteDataSource{}
 	s.open(dbaddr, tables...)
 	global.Logger().Infof("sqlite open success with %s", dbaddr)
@@ -145,6 +155,14 @@ var CustomSQLiteDatabase = func(registerName, prefix string, tables ...*table) {
 	if !strings.HasPrefix(dbaddr, "/") {
 		dbaddr = path.Join(global.ServerAbsPath(), dbaddr)
 	}
+
+	if !structs.Xfexists(path.Dir(dbaddr)) {
+		err := os.MkdirAll(path.Dir(dbaddr), 0777)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	s := &SqliteDataSource{}
 	s.open(dbaddr, tables...)
 	global.Logger().Infof("sqlite open success with %s", dbaddr)
