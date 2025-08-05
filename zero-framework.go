@@ -40,6 +40,7 @@ type ZeroMysqlQueryOperation = processors.ZeroMysqlQueryOperation
 const DATABASE_MYSQL = database.DATABASE_MYSQL
 const DATABASE_POSTGRES = database.DATABASE_POSTGRES
 const DATABASE_REDIS = database.DATABASE_REDIS
+const DATABASE_SQLITE = database.DATABASE_SQLITE
 
 type RedisKeeper = database.RedisKeeper
 type EQueryRequest = database.EQueryRequest
