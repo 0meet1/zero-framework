@@ -5,7 +5,6 @@ import (
 	"container/ring"
 	"encoding/json"
 	"fmt"
-	"path"
 	"reflect"
 	"testing"
 	"time"
@@ -100,7 +99,7 @@ func TestConnectOracle(t *testing.T) {
 
 func TestPRTX(t *testing.T) {
 
-	fmt.Println(path.Join("/user/locasd/123", "ccc/ddd/ee.db"))
+	// fmt.Println(path.Join("/user/locasd/123", "ccc/ddd/ee.db"))
 }
 
 type TesT struct {

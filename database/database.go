@@ -44,6 +44,15 @@ func (cp *GormDataSource) Transaction() *sql.Tx {
 }
 
 func (cp *GormDataSource) SecureTransaction(performer func(*sql.Tx) any, onevents ...func(error)) any {
+	defer func() {
+		err := recover()
+		if err != nil {
+			global.Logger().ErrorS(err.(error))
+			if len(onevents) > 0 {
+				onevents[0](err.(error))
+			}
+		}
+	}()
 	connect, err := cp.database.DB()
 	if err != nil {
 		global.Logger().ErrorS(err)
