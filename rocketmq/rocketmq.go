@@ -71,7 +71,7 @@ func InitRocketMQ(newObservers ...MQMessageObserver) {
 	for _, obs := range newObservers {
 		_, ok := observers[obs.Name()]
 		if ok {
-			panic(fmt.Sprintf("mqobserver '%s' is already exists", obs.Name()))
+			panic(fmt.Errorf("mqobserver '%s' is already exists", obs.Name()))
 		}
 		observers[obs.Name()] = obs
 	}

@@ -240,7 +240,7 @@ func (opera *ZeroMysqlQueryOperation) Exec() ([]map[string]interface{}, map[stri
 		panic(err)
 	}
 	if !rows.Next() {
-		panic(fmt.Sprintf("query -> %s result error", queryCountSQL))
+		panic(fmt.Errorf("query -> %s result error", queryCountSQL))
 	}
 	var total int64
 	err = rows.Scan(&total)

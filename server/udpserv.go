@@ -76,7 +76,7 @@ func (udpserv *UDPServer) RunServer() {
 	})
 	udpserv.udpconn = udpconn
 	if err != nil {
-		panic(fmt.Sprintf("udp Listen port: %d failed, reason :%s", udpserv.port, err.Error()))
+		panic(fmt.Errorf("udp Listen port: %d failed, reason :%s", udpserv.port, err.Error()))
 	}
 	go udpserv.read()
 }

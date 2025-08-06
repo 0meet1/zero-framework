@@ -77,7 +77,7 @@ func Key(key string, value interface{}) {
 	}
 
 	if _, ok := shared()[key]; ok {
-		panic(fmt.Sprintf("key `%s` already exists", key))
+		panic(fmt.Errorf("key `%s` already exists", key))
 	}
 
 	_wLock.Lock()
