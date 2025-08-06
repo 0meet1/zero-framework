@@ -27,6 +27,10 @@ type ZeroXsacAutoParser = structs.ZeroXsacAutoParser
 
 var XreflectMeta = structs.XreflectMeta
 var Xalloc = structs.Xalloc
+var Md5 = structs.Md5
+var Md5Bytes = structs.Md5Bytes
+var HmacSha256 = structs.HmacSha256
+var GenerateSUID = structs.GenerateSUID
 
 type ZeroCoreProcessor = processors.ZeroCoreProcessor
 type ZeroQuery = processors.ZeroQuery
