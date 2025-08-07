@@ -149,13 +149,14 @@ type MqttServer = server.MqttServer
 
 var DefaultMqttChecker = server.DefaultMqttChecker
 
-const ZEROV1SERV_KEEPER = protocol.ZEROV1SERV_KEEPER
-const ZEROV1SERV_CLIENT = protocol.ZEROV1SERV_CLIENT
+const ZEROKMSG_SERVER = protocol.ZEROKMSG_SERVER
+const ZEROKMSG_CLIENT = protocol.ZEROKMSG_CLIENT
 
-type ZeroV1ServKeeper = protocol.ZeroV1ServKeeper
-type ZeroV1MessageOperator = protocol.ZeroV1MessageOperator
+type ZeroKMessageServer = protocol.ZeroKMessageServer
+type ZeroKMessageClient = protocol.ZeroKMessageClient
+type ZeroKMessageOperator = protocol.ZeroKMessageOperator
 
-type ZeroV1Message = protocol.ZeroV1Message
+type ZeroKMessage = protocol.ZeroKMessage
 
 const WORKER_MONO_STATUS_READY = mfgrc.WORKER_MONO_STATUS_READY
 const WORKER_MONO_STATUS_PENDING = mfgrc.WORKER_MONO_STATUS_PENDING

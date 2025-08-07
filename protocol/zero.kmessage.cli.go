@@ -10,10 +10,10 @@ import (
 	"github.com/0meet1/zero-framework/server"
 )
 
-type xZeroV1ClientListener struct{}
+type kZeroKMessageClientListener struct{}
 
-func (xListener *xZeroV1ClientListener) OnConnect(conn server.ZeroClientConnect) error {
-	connectMessage, err := NewV1Message(MESSAGE_TYPE_CONNECT, make([]byte, 0))
+func (xListener *kZeroKMessageClientListener) OnConnect(conn server.ZeroClientConnect) error {
+	connectMessage, err := NewKMessage(MESSAGE_TYPE_CONNECT, make([]byte, 0))
 	if err != nil {
 		return err
 	}
@@ -21,19 +21,19 @@ func (xListener *xZeroV1ClientListener) OnConnect(conn server.ZeroClientConnect)
 	if err != nil {
 		return err
 	}
-	conn.(*xZeroV1Client).connectMessage = connectMessage
+	conn.(*kZeroKMessageClient).connectMessage = connectMessage
 
 	<-time.After(time.Duration(time.Second * 1))
-	err = conn.(*xZeroV1Client).Write(connectMessage.Bytes())
+	err = conn.(*kZeroKMessageClient).Write(connectMessage.Bytes())
 	if err != nil {
 		return err
 	}
-	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send connect message \n%s", conn.(*xZeroV1Client).RemoteAddr(), connectMessage.String()))
+	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send connect message \n%s", conn.(*kZeroKMessageClient).RemoteAddr(), connectMessage.String()))
 	return nil
 }
 
-func (xListener *xZeroV1ClientListener) OnHeartbeat(conn server.ZeroClientConnect) error {
-	beatMessage, err := NewV1Message(MESSAGE_TYPE_HEARTBEAT, make([]byte, 0))
+func (xListener *kZeroKMessageClientListener) OnHeartbeat(conn server.ZeroClientConnect) error {
+	beatMessage, err := NewKMessage(MESSAGE_TYPE_HEARTBEAT, make([]byte, 0))
 	if err != nil {
 		return err
 	}
@@ -42,39 +42,38 @@ func (xListener *xZeroV1ClientListener) OnHeartbeat(conn server.ZeroClientConnec
 		return err
 	}
 
-	err = conn.(*xZeroV1Client).PushMessage(beatMessage)
+	err = conn.(*kZeroKMessageClient).PushMessage(beatMessage)
 	if err != nil {
 		return err
 	}
-	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send heartbeat message \n%s", conn.(*xZeroV1Client).RemoteAddr(), beatMessage.String()))
+	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send heartbeat message \n%s", conn.(*kZeroKMessageClient).RemoteAddr(), beatMessage.String()))
 	return nil
 }
 
-type xZeroV1Client struct {
+type kZeroKMessageClient struct {
 	server.TCPClient
 
-	operator ZeroV1MessageOperator
+	operator ZeroKMessageOperator
 
-	request *ZeroV1Message
-	// response     *ZeroV1Message
+	request      *ZeroKMessage
 	requestMutex sync.Mutex
-	responseChan chan *ZeroV1Message
+	responseChan chan *ZeroKMessage
 
-	connectMessage *ZeroV1Message
+	connectMessage *ZeroKMessage
 }
 
-func (client *xZeroV1Client) This() interface{} {
+func (client *kZeroKMessageClient) This() interface{} {
 	if client.ZeroMeta.This() == nil {
 		client.ThisDef(client)
 	}
 	return client.ZeroMeta.This()
 }
 
-func (client *xZeroV1Client) Active() bool {
+func (client *kZeroKMessageClient) Active() bool {
 	return client.connectMessage == nil
 }
 
-func (client *xZeroV1Client) ExecMessage(message *ZeroV1Message, withSecond int) (*ZeroV1Message, error) {
+func (client *kZeroKMessageClient) ExecMessage(message *ZeroKMessage, withSecond int) (*ZeroKMessage, error) {
 	if client.responseChan != nil {
 		return nil, fmt.Errorf("0protocol/1.0 client connect %s is busying", client.RemoteAddr())
 	}
@@ -86,7 +85,7 @@ func (client *xZeroV1Client) ExecMessage(message *ZeroV1Message, withSecond int)
 	client.requestMutex.Lock()
 	client.request = message
 	client.requestMutex.Unlock()
-	client.responseChan = make(chan *ZeroV1Message, 1)
+	client.responseChan = make(chan *ZeroKMessage, 1)
 	select {
 	case resp := <-client.responseChan:
 		client.requestMutex.Lock()
@@ -103,13 +102,13 @@ func (client *xZeroV1Client) ExecMessage(message *ZeroV1Message, withSecond int)
 	}
 }
 
-func (client *xZeroV1Client) PushMessage(message *ZeroV1Message) error {
+func (client *kZeroKMessageClient) PushMessage(message *ZeroKMessage) error {
 	return client.Write(message.Bytes())
 }
 
-func (client *xZeroV1Client) OnMessage(datas []byte) error {
+func (client *kZeroKMessageClient) OnMessage(datas []byte) error {
 	client.TCPClient.OnMessage(datas)
-	uMessage := ParseV1Message(datas)
+	uMessage := ParseKMessage(datas)
 
 	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s on message \n%s", client.RemoteAddr(), uMessage.String()))
 	if uMessage.MessageType() == MESSAGE_TYPE_CONNACK {
@@ -141,14 +140,14 @@ func (client *xZeroV1Client) OnMessage(datas []byte) error {
 	return nil
 }
 
-func (client *xZeroV1Client) Connect() {
-	client.AddListener(&xZeroV1ClientListener{})
-	client.AddChecker(&xZeroV1DataChecker{})
+func (client *kZeroKMessageClient) Connect() {
+	client.AddListener(&kZeroKMessageClientListener{})
+	client.AddChecker(&kZeroKMessageChecker{})
 	client.TCPClient.Connect()
 }
 
-func RunZeroV1Client(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroV1MessageOperator) {
-	zerov1cli := &xZeroV1Client{
+func RunKMessageClient(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroKMessageOperator) {
+	kMessageCli := &kZeroKMessageClient{
 		TCPClient: *server.NewTCPClient(
 			addr,
 			xDEFAULT_AUTH_WAIT,
@@ -158,7 +157,7 @@ func RunZeroV1Client(addr string, heartbeatTime int, heartbeatCheckInterval int,
 		),
 		operator: operator,
 	}
-	zerov1cli.ThisDef(zerov1cli)
-	global.Key(ZEROV1SERV_CLIENT, zerov1cli)
-	zerov1cli.Connect()
+	kMessageCli.ThisDef(kMessageCli)
+	global.Key(ZEROKMSG_CLIENT, kMessageCli)
+	kMessageCli.Connect()
 }

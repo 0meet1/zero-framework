@@ -22,7 +22,7 @@ const (
 	MESSAGE_TYPE_BEATACK = 0x12
 )
 
-type ZeroV1Message struct {
+type ZeroKMessage struct {
 	head        []byte
 	version     []byte
 	dataLength  []byte
@@ -34,13 +34,13 @@ type ZeroV1Message struct {
 	end         []byte
 }
 
-func NewV1Message(messageType byte, xBody []byte) (*ZeroV1Message, error) {
+func NewKMessage(messageType byte, xBody []byte) (*ZeroKMessage, error) {
 	uid, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
-	return &ZeroV1Message{
-		head:        xZERO_MESSAGE_HEAD,
+	return &ZeroKMessage{
+		head:        kZERO_MESSAGE_HEAD,
 		version:     xV1_VERSION,
 		dataLength:  []byte{0x00, 0x00, 0x00, 0x00},
 		messageId:   []byte(strings.ReplaceAll(uid.String(), "-", "")),
@@ -48,13 +48,13 @@ func NewV1Message(messageType byte, xBody []byte) (*ZeroV1Message, error) {
 		bodyLength:  []byte{0x00, 0x00, 0x00, 0x00},
 		messageBody: xBody,
 		checkSum:    []byte{0x00, 0x00},
-		end:         xZERO_MESSAGE_END,
+		end:         kZERO_MESSAGE_END,
 	}, nil
 }
 
-func NewV1AckMessage(messageType byte, messageId string, xBody []byte) *ZeroV1Message {
-	return &ZeroV1Message{
-		head:        xZERO_MESSAGE_HEAD,
+func NewAckKMessage(messageType byte, messageId string, xBody []byte) *ZeroKMessage {
+	return &ZeroKMessage{
+		head:        kZERO_MESSAGE_HEAD,
 		version:     xV1_VERSION,
 		dataLength:  []byte{0x00, 0x00, 0x00, 0x00},
 		messageId:   []byte(messageId),
@@ -62,13 +62,23 @@ func NewV1AckMessage(messageType byte, messageId string, xBody []byte) *ZeroV1Me
 		bodyLength:  []byte{0x00, 0x00, 0x00, 0x00},
 		messageBody: xBody,
 		checkSum:    []byte{0x00, 0x00},
-		end:         xZERO_MESSAGE_END,
+		end:         kZERO_MESSAGE_END,
 	}
 }
 
-func ParseV1Message(datas []byte) *ZeroV1Message {
+func ParseKMessageLength(datas []byte) int {
+	if len(datas) < 10 {
+		return -1
+	}
+	if !reflect.DeepEqual(datas[0:4], kZERO_MESSAGE_HEAD) {
+		return -1
+	}
+	return int(binary.BigEndian.Uint32(datas[6:10]))
+}
+
+func ParseKMessage(datas []byte) *ZeroKMessage {
 	xDatasLength := len(datas)
-	return &ZeroV1Message{
+	return &ZeroKMessage{
 		head:        datas[0:4],
 		version:     datas[4:6],
 		dataLength:  datas[6:10],
@@ -81,47 +91,47 @@ func ParseV1Message(datas []byte) *ZeroV1Message {
 	}
 }
 
-func (v1msg *ZeroV1Message) Head() []byte {
+func (v1msg *ZeroKMessage) Head() []byte {
 	return v1msg.head
 }
 
-func (v1msg *ZeroV1Message) HeadString() string {
+func (v1msg *ZeroKMessage) HeadString() string {
 	return string(v1msg.head)
 }
 
-func (v1msg *ZeroV1Message) End() []byte {
+func (v1msg *ZeroKMessage) End() []byte {
 	return v1msg.end
 }
 
-func (v1msg *ZeroV1Message) EndString() string {
+func (v1msg *ZeroKMessage) EndString() string {
 	return string(v1msg.end)
 }
 
-func (v1msg *ZeroV1Message) MessageId() string {
+func (v1msg *ZeroKMessage) MessageId() string {
 	return string(v1msg.messageId)
 }
 
-func (v1msg *ZeroV1Message) Version() int {
+func (v1msg *ZeroKMessage) Version() int {
 	return int(binary.BigEndian.Uint16(v1msg.version))
 }
 
-func (v1msg *ZeroV1Message) DataLength() int {
+func (v1msg *ZeroKMessage) DataLength() int {
 	return int(binary.BigEndian.Uint32(v1msg.dataLength))
 }
 
-func (v1msg *ZeroV1Message) MessageType() int {
+func (v1msg *ZeroKMessage) MessageType() int {
 	return int(v1msg.messageType)
 }
 
-func (v1msg *ZeroV1Message) BodyLength() int {
+func (v1msg *ZeroKMessage) BodyLength() int {
 	return int(binary.BigEndian.Uint32(v1msg.bodyLength))
 }
 
-func (v1msg *ZeroV1Message) MessageBody() []byte {
+func (v1msg *ZeroKMessage) MessageBody() []byte {
 	return v1msg.messageBody
 }
 
-func (v1msg *ZeroV1Message) Complete() error {
+func (v1msg *ZeroKMessage) Complete() error {
 	binary.BigEndian.PutUint32(v1msg.bodyLength, uint32(len(v1msg.messageBody)))
 	binary.BigEndian.PutUint32(v1msg.dataLength, uint32(53+len(v1msg.messageBody)))
 
@@ -142,7 +152,7 @@ func (v1msg *ZeroV1Message) Complete() error {
 	return nil
 }
 
-func (v1msg *ZeroV1Message) Check() error {
+func (v1msg *ZeroKMessage) Check() error {
 	bodys := make([]byte, 0)
 	bodys = append(bodys, v1msg.head...)
 	bodys = append(bodys, v1msg.version...)
@@ -154,11 +164,11 @@ func (v1msg *ZeroV1Message) Check() error {
 	bodys = append(bodys, 0x00, 0x00)
 	bodys = append(bodys, v1msg.end...)
 
-	if !reflect.DeepEqual(xZERO_MESSAGE_HEAD, v1msg.head) {
+	if !reflect.DeepEqual(kZERO_MESSAGE_HEAD, v1msg.head) {
 		return fmt.Errorf("\n### err message head %s ### message datas \n%s", structs.BytesString(v1msg.head...), structs.BytesString(bodys...))
 	}
 
-	if !reflect.DeepEqual(xZERO_MESSAGE_END, v1msg.end) {
+	if !reflect.DeepEqual(kZERO_MESSAGE_END, v1msg.end) {
 		return fmt.Errorf("\n### err message end %s ### message datas \n%s", structs.BytesString(v1msg.end...), structs.BytesString(bodys...))
 	}
 
@@ -187,7 +197,7 @@ func (v1msg *ZeroV1Message) Check() error {
 	return nil
 }
 
-func (v1msg *ZeroV1Message) Bytes() []byte {
+func (v1msg *ZeroKMessage) Bytes() []byte {
 	bodys := make([]byte, 0)
 	bodys = append(bodys, v1msg.head...)
 	bodys = append(bodys, v1msg.version...)
@@ -201,6 +211,6 @@ func (v1msg *ZeroV1Message) Bytes() []byte {
 	return bodys
 }
 
-func (v1msg *ZeroV1Message) String() string {
+func (v1msg *ZeroKMessage) String() string {
 	return structs.BytesString(v1msg.Bytes()...)
 }
