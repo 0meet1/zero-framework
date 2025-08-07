@@ -68,6 +68,39 @@ var XhttpZeroRequest = func(req *http.Request) (*structs.ZeroRequest, error) {
 	return &request, nil
 }
 
+var XhttpEachQuerys = func(req *http.Request, performer func(*structs.ZeroRequest, []byte)) (*structs.ZeroRequest, error) {
+	xRequest, err := XhttpZeroRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	for _, xQuery := range xRequest.Querys {
+		jsonbytes, err := json.Marshal(xQuery)
+		if err != nil {
+			return nil, err
+		}
+		performer(xRequest, jsonbytes)
+	}
+	return xRequest, nil
+}
+
+var XhttpUnitaryQuerys = func(req *http.Request) (*structs.ZeroRequest, []byte, error) {
+	xRequest, err := XhttpZeroRequest(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(xRequest.Querys) <= 0 {
+		return nil, nil, fmt.Errorf("no operation required")
+	}
+	if len(xRequest.Querys) > 1 {
+		return nil, nil, fmt.Errorf("operation not supported")
+	}
+	jsonbytes, err := json.Marshal(xRequest.Querys[0])
+	if err != nil {
+		return nil, nil, err
+	}
+	return xRequest, jsonbytes, nil
+}
+
 var XhttpZeroQuery = func(xRequest *structs.ZeroRequest) (*processors.ZeroQuery, error) {
 	if len(xRequest.Querys) <= 0 {
 		return nil, errors.New("missing necessary parameter `query[0]`")
