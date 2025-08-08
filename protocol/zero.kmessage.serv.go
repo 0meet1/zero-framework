@@ -107,8 +107,7 @@ type kZeroKMessageConnect struct {
 
 	keeper *kZeroKMessageKeeper
 
-	request *ZeroKMessage
-	// response     *ZeroKMessage
+	request      *ZeroKMessage
 	requestMutex sync.Mutex
 	responseChan chan *ZeroKMessage
 }
@@ -131,7 +130,11 @@ func (v1conn *kZeroKMessageConnect) Authorized(datas ...byte) bool {
 	}
 
 	conn, err := v1conn.keeper.UseConnect(v1conn.RegisterId())
-	if err == nil && conn != nil {
+	if err != nil {
+		global.Logger().ErrorS(err)
+		return false
+	}
+	if conn != nil {
 		conn.Close()
 	}
 
