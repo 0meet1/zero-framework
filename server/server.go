@@ -263,7 +263,7 @@ func (sockServer *ZeroSocketServer) notifyOnConnect(conn ZeroConnect) {
 }
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
-	defer sockServer.notifyOnConnect(conn)
+	defer sockServer.notifyOnConnect(conn.This().(ZeroConnect))
 	clock := sockServer.acceptClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
 	conn.FlushClock(clock)
@@ -293,7 +293,7 @@ func (sockServer *ZeroSocketServer) notifyOnDisconnect(conn ZeroConnect) {
 }
 
 func (sockServer *ZeroSocketServer) OnDisconnect(conn ZeroConnect) error {
-	defer sockServer.notifyOnDisconnect(conn)
+	defer sockServer.notifyOnDisconnect(conn.This().(ZeroConnect))
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	sockServer.connectMutex.Lock()
 	_, ok := sockServer.connects[conn.This().(ZeroConnect).RegisterId()]
@@ -327,7 +327,7 @@ func (sockServer *ZeroSocketServer) notifyOnAuthorized(conn ZeroConnect) {
 }
 
 func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
-	defer sockServer.notifyOnAuthorized(conn)
+	defer sockServer.notifyOnAuthorized(conn.This().(ZeroConnect))
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	clock := sockServer.heartbeatClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
@@ -363,7 +363,7 @@ func (sockServer *ZeroSocketServer) notifyOnHeartbeat(conn ZeroConnect) {
 }
 
 func (sockServer *ZeroSocketServer) OnHeartbeat(conn ZeroConnect) error {
-	defer sockServer.notifyOnHeartbeat(conn)
+	defer sockServer.notifyOnHeartbeat(conn.This().(ZeroConnect))
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	clock := sockServer.heartbeatClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
@@ -491,7 +491,7 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 				if err != nil {
 					global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.This().(ZeroConnect).RegisterId(), err.Error()))
 				} else {
-					sockServer.notifyOnMessage(connect, messageData)
+					sockServer.notifyOnMessage(connect.This().(ZeroConnect), messageData)
 				}
 			}
 		}
