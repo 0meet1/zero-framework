@@ -102,19 +102,31 @@ func (checker *kZeroKMessageChecker) CheckPackageData(registerId string, data []
 	return nil
 }
 
+type ZeroKMessageConnect interface {
+	server.ZeroConnect
+
+	UniqueKey() string
+}
+
 type kZeroKMessageConnect struct {
 	server.ZeroSocketConnect
 
-	keeper *kZeroKMessageKeeper
+	uniquekey string
+	keeper    *kZeroKMessageKeeper
 
 	request      *ZeroKMessage
 	requestMutex sync.Mutex
 	responseChan chan *ZeroKMessage
 }
 
+func (v1conn *kZeroKMessageConnect) UniqueKey() string {
+	return v1conn.uniquekey
+}
+
 func (v1conn *kZeroKMessageConnect) Authorized(datas ...byte) bool {
 	authMessage := ParseKMessage(datas)
 
+	v1conn.uniquekey = authMessage.UniqueKey()
 	ackMessage := NewAckKMessage(MESSAGE_TYPE_CONNACK, authMessage.MessageId(), make([]byte, 0))
 	ackMessage.AddUniqueKey(authMessage.UniqueKey())
 	err := ackMessage.Complete()
@@ -256,7 +268,7 @@ func (keeper *kZeroKMessageKeeper) RunServer() {
 	keeper.TCPServer.RunServer()
 }
 
-func RunKMessageServer(addr string, heartbeatTime int, operator ZeroKMessageOperator, watchers ...server.ZeroServerWatcher) {
+var RunKMessageServer = func(addr string, heartbeatTime int, operator ZeroKMessageOperator, watchers ...server.ZeroServerWatcher) {
 	zerov1serv := &kZeroKMessageKeeper{
 		TCPServer: *server.NewTCPServer(
 			addr,

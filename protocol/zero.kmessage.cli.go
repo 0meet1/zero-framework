@@ -151,7 +151,7 @@ func (client *kZeroKMessageClient) Connect() {
 	client.TCPClient.Connect()
 }
 
-func RunKMessageClient(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroKMessageOperator, unk ...string) {
+var RunKMessageClient = func(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroKMessageOperator, unk ...string) {
 	_uniquekey := ""
 	if len(unk) > 0 {
 		_uniquekey = unk[0]

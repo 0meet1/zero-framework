@@ -153,11 +153,15 @@ var DefaultMqttChecker = server.DefaultMqttChecker
 const ZEROKMSG_SERVER = protocol.ZEROKMSG_SERVER
 const ZEROKMSG_CLIENT = protocol.ZEROKMSG_CLIENT
 
+var RunKMessageServer = protocol.RunKMessageServer
+var RunKMessageClient = protocol.RunKMessageClient
+
 type ZeroKMessageServer = protocol.ZeroKMessageServer
 type ZeroKMessageClient = protocol.ZeroKMessageClient
 type ZeroKMessageOperator = protocol.ZeroKMessageOperator
 
 type ZeroKMessage = protocol.ZeroKMessage
+type ZeroKMessageConnect = protocol.ZeroKMessageConnect
 
 const WORKER_MONO_STATUS_READY = mfgrc.WORKER_MONO_STATUS_READY
 const WORKER_MONO_STATUS_PENDING = mfgrc.WORKER_MONO_STATUS_PENDING
