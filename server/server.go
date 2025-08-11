@@ -209,6 +209,15 @@ func (xDefault *xDefaultConnectBuilder) NewConnect() ZeroConnect {
 	return &ZeroSocketConnect{}
 }
 
+type ZeroServerWatcher interface {
+	WatcherName() string
+	OnConnect(ZeroConnect) error
+	OnAuthorized(ZeroConnect) error
+	OnDisconnect(ZeroConnect) error
+	OnHeartbeat(ZeroConnect) error
+	OnMessage(ZeroConnect, []byte) error
+}
+
 type ZeroSocketServer struct {
 	authWaitSeconds  int64
 	heartbeatSeconds int64
@@ -221,9 +230,40 @@ type ZeroSocketServer struct {
 
 	acceptClock    *ring.Ring
 	heartbeatClock *ring.Ring
+
+	watchers []ZeroServerWatcher
+}
+
+func (sockServer *ZeroSocketServer) AddWatchers(watchers ...ZeroServerWatcher) {
+	if sockServer.watchers == nil {
+		sockServer.watchers = make([]ZeroServerWatcher, 0)
+	}
+	sockServer.watchers = append(sockServer.watchers, watchers...)
+}
+
+func (sockServer *ZeroSocketServer) notifyOnConnect(conn ZeroConnect) {
+	if len(sockServer.watchers) <= 0 {
+		return
+	}
+	call := func(watcher ZeroServerWatcher) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				global.Logger().Errorf("watcher `%s` on error: %s", watcher.WatcherName(), err.(error))
+			}
+		}()
+		err := watcher.OnConnect(conn)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, watcher := range sockServer.watchers {
+		call(watcher)
+	}
 }
 
 func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
+	defer sockServer.notifyOnConnect(conn)
 	clock := sockServer.acceptClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
 	conn.FlushClock(clock)
@@ -231,7 +271,29 @@ func (sockServer *ZeroSocketServer) OnConnect(conn ZeroConnect) error {
 	return nil
 }
 
+func (sockServer *ZeroSocketServer) notifyOnDisconnect(conn ZeroConnect) {
+	if len(sockServer.watchers) <= 0 {
+		return
+	}
+	call := func(watcher ZeroServerWatcher) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				global.Logger().Errorf("watcher `%s` on error: %s", watcher.WatcherName(), err.(error))
+			}
+		}()
+		err := watcher.OnDisconnect(conn)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, watcher := range sockServer.watchers {
+		call(watcher)
+	}
+}
+
 func (sockServer *ZeroSocketServer) OnDisconnect(conn ZeroConnect) error {
+	defer sockServer.notifyOnDisconnect(conn)
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	sockServer.connectMutex.Lock()
 	_, ok := sockServer.connects[conn.This().(ZeroConnect).RegisterId()]
@@ -243,8 +305,29 @@ func (sockServer *ZeroSocketServer) OnDisconnect(conn ZeroConnect) error {
 	return nil
 }
 
-func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
+func (sockServer *ZeroSocketServer) notifyOnAuthorized(conn ZeroConnect) {
+	if len(sockServer.watchers) <= 0 {
+		return
+	}
+	call := func(watcher ZeroServerWatcher) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				global.Logger().Errorf("watcher `%s` on error: %s", watcher.WatcherName(), err.(error))
+			}
+		}()
+		err := watcher.OnAuthorized(conn)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, watcher := range sockServer.watchers {
+		call(watcher)
+	}
+}
 
+func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
+	defer sockServer.notifyOnAuthorized(conn)
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	clock := sockServer.heartbeatClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
@@ -258,7 +341,29 @@ func (sockServer *ZeroSocketServer) OnAuthorized(conn ZeroConnect) error {
 	return nil
 }
 
+func (sockServer *ZeroSocketServer) notifyOnHeartbeat(conn ZeroConnect) {
+	if len(sockServer.watchers) <= 0 {
+		return
+	}
+	call := func(watcher ZeroServerWatcher) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				global.Logger().Errorf("watcher `%s` on error: %s", watcher.WatcherName(), err.(error))
+			}
+		}()
+		err := watcher.OnHeartbeat(conn)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, watcher := range sockServer.watchers {
+		call(watcher)
+	}
+}
+
 func (sockServer *ZeroSocketServer) OnHeartbeat(conn ZeroConnect) error {
+	defer sockServer.notifyOnHeartbeat(conn)
 	conn.Clock().Value.(*structs.ZeroLinked).Remove(conn.Node())
 	clock := sockServer.heartbeatClock.Prev()
 	node := clock.Value.(*structs.ZeroLinked).PushBack(conn)
@@ -334,6 +439,27 @@ func (sockServer *ZeroSocketServer) runHeartbeatLoop() {
 	}
 }
 
+func (sockServer *ZeroSocketServer) notifyOnMessage(conn ZeroConnect, datas []byte) {
+	if len(sockServer.watchers) <= 0 {
+		return
+	}
+	call := func(watcher ZeroServerWatcher) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				global.Logger().Errorf("watcher `%s` on error: %s", watcher.WatcherName(), err.(error))
+			}
+		}()
+		err := watcher.OnMessage(conn, datas)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, watcher := range sockServer.watchers {
+		call(watcher)
+	}
+}
+
 func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 	connect := sockServer.ConnectBuilder.NewConnect()
 	connect.Accept(sockServer, conn)
@@ -364,6 +490,8 @@ func (sockServer *ZeroSocketServer) accept(conn net.Conn) {
 				err = connect.OnMessage(messageData)
 				if err != nil {
 					global.Logger().Error(fmt.Sprintf("sock server connect %s on message error %s", connect.This().(ZeroConnect).RegisterId(), err.Error()))
+				} else {
+					sockServer.notifyOnMessage(connect, messageData)
 				}
 			}
 		}

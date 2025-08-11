@@ -116,7 +116,7 @@ func (v1conn *kZeroKMessageConnect) Authorized(datas ...byte) bool {
 	authMessage := ParseKMessage(datas)
 
 	ackMessage := NewAckKMessage(MESSAGE_TYPE_CONNACK, authMessage.MessageId(), make([]byte, 0))
-
+	ackMessage.AddUniqueKey(authMessage.UniqueKey())
 	err := ackMessage.Complete()
 	if err != nil {
 		global.Logger().ErrorS(err)
@@ -196,7 +196,7 @@ func (v1conn *kZeroKMessageConnect) OnMessage(datas []byte) error {
 	} else if uMessage.MessageType() == MESSAGE_TYPE_HEARTBEAT {
 		v1conn.Heartbeat()
 		beatack := NewAckKMessage(MESSAGE_TYPE_BEATACK, uMessage.MessageId(), make([]byte, 0))
-
+		beatack.AddUniqueKey(uMessage.UniqueKey())
 		err := beatack.Complete()
 		if err != nil {
 			return err
@@ -256,13 +256,14 @@ func (keeper *kZeroKMessageKeeper) RunServer() {
 	keeper.TCPServer.RunServer()
 }
 
-func RunKMessageServer(addr string, heartbeatTime int, operator ZeroKMessageOperator) {
+func RunKMessageServer(addr string, heartbeatTime int, operator ZeroKMessageOperator, watchers ...server.ZeroServerWatcher) {
 	zerov1serv := &kZeroKMessageKeeper{
 		TCPServer: *server.NewTCPServer(
 			addr,
 			xDEFAULT_AUTH_WAIT,
 			int64(heartbeatTime),
 			xDEFAULT_BUFFER_SIZE,
+			watchers...,
 		),
 		operator: operator,
 	}

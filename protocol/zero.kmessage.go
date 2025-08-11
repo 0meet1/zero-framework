@@ -12,6 +12,12 @@ import (
 
 var (
 	xV1_VERSION = []byte{0x00, 0x01}
+
+	defaultUniqueKey = []byte{
+		'`', '`', '`', '`', '`', '`', '`', '`',
+		'`', '`', '`', '`', '`', '`', '`', '`',
+		'`', '`', '`', '`', '`', '`', '`', '`',
+		'`', '`', '`', '`', '`', '`', '`', '`'}
 )
 
 const (
@@ -26,6 +32,7 @@ type ZeroKMessage struct {
 	head        []byte
 	version     []byte
 	dataLength  []byte
+	uniquekey   []byte
 	messageId   []byte
 	messageType byte
 	bodyLength  []byte
@@ -43,6 +50,7 @@ func NewKMessage(messageType byte, xBody []byte) (*ZeroKMessage, error) {
 		head:        kZERO_MESSAGE_HEAD,
 		version:     xV1_VERSION,
 		dataLength:  []byte{0x00, 0x00, 0x00, 0x00},
+		uniquekey:   defaultUniqueKey,
 		messageId:   []byte(strings.ReplaceAll(uid.String(), "-", "")),
 		messageType: messageType,
 		bodyLength:  []byte{0x00, 0x00, 0x00, 0x00},
@@ -57,6 +65,7 @@ func NewAckKMessage(messageType byte, messageId string, xBody []byte) *ZeroKMess
 		head:        kZERO_MESSAGE_HEAD,
 		version:     xV1_VERSION,
 		dataLength:  []byte{0x00, 0x00, 0x00, 0x00},
+		uniquekey:   defaultUniqueKey,
 		messageId:   []byte(messageId),
 		messageType: messageType,
 		bodyLength:  []byte{0x00, 0x00, 0x00, 0x00},
@@ -82,10 +91,11 @@ func ParseKMessage(datas []byte) *ZeroKMessage {
 		head:        datas[0:4],
 		version:     datas[4:6],
 		dataLength:  datas[6:10],
-		messageId:   datas[10:42],
-		messageType: datas[42],
-		bodyLength:  datas[43:47],
-		messageBody: datas[47 : xDatasLength-6],
+		uniquekey:   datas[10:42],
+		messageId:   datas[42:74],
+		messageType: datas[74],
+		bodyLength:  datas[75:79],
+		messageBody: datas[79 : xDatasLength-6],
 		checkSum:    datas[xDatasLength-6 : xDatasLength-4],
 		end:         datas[xDatasLength-4:],
 	}
@@ -107,16 +117,36 @@ func (v1msg *ZeroKMessage) EndString() string {
 	return string(v1msg.end)
 }
 
-func (v1msg *ZeroKMessage) MessageId() string {
-	return string(v1msg.messageId)
-}
-
 func (v1msg *ZeroKMessage) Version() int {
 	return int(binary.BigEndian.Uint16(v1msg.version))
 }
 
 func (v1msg *ZeroKMessage) DataLength() int {
 	return int(binary.BigEndian.Uint32(v1msg.dataLength))
+}
+
+func (v1msg *ZeroKMessage) AddUniqueKey(uniquekey string) error {
+	if len(uniquekey) > 32 {
+		return fmt.Errorf(" uniquekey should <= 32 bytes ")
+	}
+	if strings.Contains(uniquekey, "`") {
+		return fmt.Errorf(" uniquekey cannot contains '`' ")
+	}
+	_uniquekey := make([]byte, 32)
+	copy(_uniquekey, defaultUniqueKey)
+	for i := 0; i < len(uniquekey); i++ {
+		_uniquekey[i] = uniquekey[i]
+	}
+	v1msg.uniquekey = _uniquekey
+	return nil
+}
+
+func (v1msg *ZeroKMessage) UniqueKey() string {
+	return strings.ReplaceAll(string(v1msg.uniquekey), "`", "")
+}
+
+func (v1msg *ZeroKMessage) MessageId() string {
+	return string(v1msg.messageId)
 }
 
 func (v1msg *ZeroKMessage) MessageType() int {
@@ -133,12 +163,13 @@ func (v1msg *ZeroKMessage) MessageBody() []byte {
 
 func (v1msg *ZeroKMessage) Complete() error {
 	binary.BigEndian.PutUint32(v1msg.bodyLength, uint32(len(v1msg.messageBody)))
-	binary.BigEndian.PutUint32(v1msg.dataLength, uint32(53+len(v1msg.messageBody)))
+	binary.BigEndian.PutUint32(v1msg.dataLength, uint32(85+len(v1msg.messageBody)))
 
 	bodys := make([]byte, 0)
 	bodys = append(bodys, v1msg.head...)
 	bodys = append(bodys, v1msg.version...)
 	bodys = append(bodys, v1msg.dataLength...)
+	bodys = append(bodys, v1msg.uniquekey...)
 	bodys = append(bodys, v1msg.messageId...)
 	bodys = append(bodys, v1msg.messageType)
 	bodys = append(bodys, v1msg.bodyLength...)
@@ -157,6 +188,7 @@ func (v1msg *ZeroKMessage) Check() error {
 	bodys = append(bodys, v1msg.head...)
 	bodys = append(bodys, v1msg.version...)
 	bodys = append(bodys, v1msg.dataLength...)
+	bodys = append(bodys, v1msg.uniquekey...)
 	bodys = append(bodys, v1msg.messageId...)
 	bodys = append(bodys, v1msg.messageType)
 	bodys = append(bodys, v1msg.bodyLength...)
@@ -202,6 +234,7 @@ func (v1msg *ZeroKMessage) Bytes() []byte {
 	bodys = append(bodys, v1msg.head...)
 	bodys = append(bodys, v1msg.version...)
 	bodys = append(bodys, v1msg.dataLength...)
+	bodys = append(bodys, v1msg.uniquekey...)
 	bodys = append(bodys, v1msg.messageId...)
 	bodys = append(bodys, v1msg.messageType)
 	bodys = append(bodys, v1msg.bodyLength...)

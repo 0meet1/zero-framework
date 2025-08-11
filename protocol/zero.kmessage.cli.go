@@ -10,25 +10,28 @@ import (
 	"github.com/0meet1/zero-framework/server"
 )
 
-type kZeroKMessageClientListener struct{}
+type kZeroKMessageClientListener struct {
+	uniquekey string
+}
 
 func (xListener *kZeroKMessageClientListener) OnConnect(conn server.ZeroClientConnect) error {
-	connectMessage, err := NewKMessage(MESSAGE_TYPE_CONNECT, make([]byte, 0))
+	cMessage, err := NewKMessage(MESSAGE_TYPE_CONNECT, make([]byte, 0))
 	if err != nil {
 		return err
 	}
-	err = connectMessage.Complete()
+	cMessage.AddUniqueKey(xListener.uniquekey)
+	err = cMessage.Complete()
 	if err != nil {
 		return err
 	}
-	conn.(*kZeroKMessageClient).connectMessage = connectMessage
+	conn.(*kZeroKMessageClient).connectMessage = cMessage
 
 	<-time.After(time.Duration(time.Second * 1))
-	err = conn.(*kZeroKMessageClient).Write(connectMessage.Bytes())
+	err = conn.(*kZeroKMessageClient).Write(cMessage.Bytes())
 	if err != nil {
 		return err
 	}
-	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send connect message \n%s", conn.(*kZeroKMessageClient).RemoteAddr(), connectMessage.String()))
+	global.Logger().Debug(fmt.Sprintf("0protocol/1.0 client connect %s send connect message \n%s", conn.(*kZeroKMessageClient).RemoteAddr(), cMessage.String()))
 	return nil
 }
 
@@ -37,6 +40,7 @@ func (xListener *kZeroKMessageClientListener) OnHeartbeat(conn server.ZeroClient
 	if err != nil {
 		return err
 	}
+	beatMessage.AddUniqueKey(xListener.uniquekey)
 	err = beatMessage.Complete()
 	if err != nil {
 		return err
@@ -53,7 +57,8 @@ func (xListener *kZeroKMessageClientListener) OnHeartbeat(conn server.ZeroClient
 type kZeroKMessageClient struct {
 	server.TCPClient
 
-	operator ZeroKMessageOperator
+	uniquekey string
+	operator  ZeroKMessageOperator
 
 	request      *ZeroKMessage
 	requestMutex sync.Mutex
@@ -141,12 +146,16 @@ func (client *kZeroKMessageClient) OnMessage(datas []byte) error {
 }
 
 func (client *kZeroKMessageClient) Connect() {
-	client.AddListener(&kZeroKMessageClientListener{})
+	client.AddListener(&kZeroKMessageClientListener{uniquekey: client.uniquekey})
 	client.AddChecker(&kZeroKMessageChecker{})
 	client.TCPClient.Connect()
 }
 
-func RunKMessageClient(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroKMessageOperator) {
+func RunKMessageClient(addr string, heartbeatTime int, heartbeatCheckInterval int, operator ZeroKMessageOperator, unk ...string) {
+	_uniquekey := ""
+	if len(unk) > 0 {
+		_uniquekey = unk[0]
+	}
 	kMessageCli := &kZeroKMessageClient{
 		TCPClient: *server.NewTCPClient(
 			addr,
@@ -155,7 +164,8 @@ func RunKMessageClient(addr string, heartbeatTime int, heartbeatCheckInterval in
 			int64(heartbeatCheckInterval),
 			xDEFAULT_BUFFER_SIZE,
 		),
-		operator: operator,
+		uniquekey: _uniquekey,
+		operator:  operator,
 	}
 	kMessageCli.ThisDef(kMessageCli)
 	global.Key(ZEROKMSG_CLIENT, kMessageCli)
