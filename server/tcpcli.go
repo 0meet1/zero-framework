@@ -36,7 +36,10 @@ func (client *TCPClient) initHeartbeatTimer() {
 	client.heartbeatTimer = time.NewTimer(time.Second * time.Duration(client.heartbeatCheckInterval))
 	for {
 		<-client.heartbeatTimer.C
-		if client.connect == nil || !client.HeartbeatCheck(client.heartbeatSeconds) {
+		if client.connect == nil {
+			client.heartbeatTimer = nil
+			break
+		} else if !client.HeartbeatCheck(client.heartbeatSeconds) {
 			client.connect.Close()
 			client.heartbeatTimer = nil
 			break
