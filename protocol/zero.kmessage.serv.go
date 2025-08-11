@@ -142,12 +142,13 @@ func (v1conn *kZeroKMessageConnect) Authorized(datas ...byte) bool {
 	}
 
 	conn, err := v1conn.keeper.UseConnect(v1conn.RegisterId())
-	if err != nil {
-		global.Logger().ErrorS(err)
+	if err == nil && conn != nil {
+		global.Logger().Warnf(fmt.Sprintf("zerov1 connect %s already exists, will close now", v1conn.RemoteAddr()))
+		err = conn.Close()
+		if err != nil {
+			global.Logger().ErrorS(err)
+		}
 		return false
-	}
-	if conn != nil {
-		conn.Close()
 	}
 
 	global.Logger().Info(fmt.Sprintf("zerov1 connect %s authorized", v1conn.RemoteAddr()))
