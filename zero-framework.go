@@ -105,6 +105,7 @@ type ZeroConnect = server.ZeroConnect
 
 type ZeroSocketConnect = server.ZeroSocketConnect
 type ZeroSocketServer = server.ZeroSocketServer
+type ZeroServerWatcher = server.ZeroServerWatcher
 type ZeroClientListener = server.ZeroClientListener
 type ZeroClientConnect = server.ZeroClientConnect
 
