@@ -529,10 +529,31 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 			if err != nil {
 				return err
 			}
-			if field.Type.Kind() == reflect.Pointer {
-				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct))
+
+			if field.Tag.Get(XSAC_FIELD) != "" {
+				if field.Type.Kind() == reflect.Pointer {
+					_inline := reflect.New(field.Type.Elem())
+					_, ok := field.Type.Elem().FieldByName("ID")
+					if ok {
+						reflect.Value(_inline).FieldByName("ID").
+							Set(reflect.ValueOf(ParseStringField(row, autoParser.ColumnName)))
+						data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(_inline))
+					}
+				} else {
+					_inline := reflect.New(field.Type)
+					_, ok := field.Type.Elem().FieldByName("ID")
+					if ok {
+						reflect.Value(_inline).FieldByName("ID").
+							Set(reflect.ValueOf(ParseStringField(row, autoParser.ColumnName)))
+						data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(_inline).Elem())
+					}
+				}
 			} else {
-				data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct).Elem())
+				if field.Type.Kind() == reflect.Pointer {
+					data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct))
+				} else {
+					data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(newstruct).Elem())
+				}
 			}
 		}
 	}
