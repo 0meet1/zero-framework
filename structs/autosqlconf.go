@@ -529,14 +529,14 @@ func (autoParser *xZeroXsacAutoParser) ptrValue(row map[string]any, data reflect
 					_, ok := field.Type.Elem().FieldByName("ID")
 					if ok {
 						_inline.Elem().FieldByName("ID").Set(reflect.ValueOf(contents))
-						data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(_inline))
+						data.Elem().FieldByName(autoParser.FieldName).Set(_inline)
 					}
 				} else {
 					_inline := reflect.New(field.Type)
 					_, ok := field.Type.Elem().FieldByName("ID")
 					if ok {
 						_inline.Elem().FieldByName("ID").Set(reflect.ValueOf(contents))
-						data.Elem().FieldByName(autoParser.FieldName).Set(reflect.ValueOf(_inline).Elem())
+						data.Elem().FieldByName(autoParser.FieldName).Set(_inline.Elem())
 					}
 				}
 			} else {
