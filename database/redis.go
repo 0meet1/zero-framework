@@ -85,6 +85,7 @@ type RedisKeeper interface {
 	Set(string, string) error
 	SetEx(string, string, int) error
 	Get(string) (string, error)
+	Keys(string) ([]string, error)
 }
 
 type xRedisKeeper struct {
@@ -155,4 +156,8 @@ func (xrk *xRedisKeeper) Get(key string) (string, error) {
 		return "", nil
 	}
 	return xrk.redisClient.Get(xrk.redisContext, key).Result()
+}
+
+func (xrk *xRedisKeeper) Keys(key string) ([]string, error) {
+	return xrk.redisClient.Keys(xrk.redisContext, key).Result()
 }
