@@ -71,21 +71,21 @@ func (e *ZeroXsacXhttpStructs) Vremove(ds ...string) error {
 }
 
 func (e *ZeroXsacXhttpStructs) VTnew(transaction *sql.Tx) error {
-	processor := e.XhttpAutoProc()
+	processor := e.This().(ZeroXsacXhttpDeclares).XhttpAutoProc()
 	processor.AddFields(e.XsacFields())
 	processor.Build(transaction)
 	return processor.Insert(e.This())
 }
 
 func (e *ZeroXsacXhttpStructs) VTupdate(transaction *sql.Tx) error {
-	processor := e.XhttpAutoProc()
+	processor := e.This().(ZeroXsacXhttpDeclares).XhttpAutoProc()
 	processor.AddFields(e.XsacFields())
 	processor.Build(transaction)
 	return processor.Update(e.This())
 }
 
 func (e *ZeroXsacXhttpStructs) VTremove(transaction *sql.Tx) error {
-	processor := e.XhttpAutoProc()
+	processor := e.This().(ZeroXsacXhttpDeclares).XhttpAutoProc()
 	processor.AddFields(e.XsacFields())
 	processor.Build(transaction)
 	return processor.Delete(e.This())
