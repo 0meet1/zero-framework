@@ -360,7 +360,7 @@ func (processor *ZeroXsacMysqlAutoProcessor) FetchChildrens(field *structs.ZeroX
 		if field.IsArray() {
 			subdatas := reflect.MakeSlice(reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Type(), len(rows), len(rows))
 			for i, row := range rows {
-				data, err := structs.XautoLoad(field.Metatype().Elem(), row)
+				data, err := structs.XautoLoad(field.Metatype(), row)
 				if err != nil {
 					return err
 				}
