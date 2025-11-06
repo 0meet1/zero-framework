@@ -372,7 +372,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 		if field.IsArray() {
 			subdatas := reflect.MakeSlice(reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Type(), len(rows), len(rows))
 			for i, row := range rows {
-				data, err := structs.XautoLoad(processor.fields[0].Metatype(), row)
+				data, err := structs.XautoLoad(field.Metatype().Elem(), row)
 				if err != nil {
 					return err
 				}
@@ -380,7 +380,7 @@ func (processor *ZeroXsacPostgresAutoProcessor) FetchChildrens(field *structs.Ze
 			}
 			reflect.ValueOf(datas).Elem().FieldByName(field.FieldName()).Set(subdatas)
 		} else {
-			data, err := structs.XautoLoad(processor.fields[0].Metatype(), rows[0])
+			data, err := structs.XautoLoad(field.Metatype(), rows[0])
 			if err != nil {
 				return err
 			}
