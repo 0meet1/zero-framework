@@ -27,6 +27,7 @@ type ZeroXsacAutoParser = structs.ZeroXsacAutoParser
 
 var XreflectMeta = structs.XreflectMeta
 var Xalloc = structs.Xalloc
+var XautoLoad = structs.XautoLoad
 var Md5 = structs.Md5
 var Md5Bytes = structs.Md5Bytes
 var HmacSha256 = structs.HmacSha256
