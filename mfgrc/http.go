@@ -154,7 +154,7 @@ type MfgrcXhttpExecutor struct {
 	GroupStore  ZeroMfgrcGroupStore
 
 	OnGroupReady   func(MfgrcGroup, map[string]any)
-	OnGroupSuccess func(MfgrcGroup) any
+	OnGroupSuccess func(MfgrcGroup, map[string]any) any
 	OnGroupFailed  func(MfgrcGroup, map[string]any) string
 
 	MonoKeeper string
@@ -336,7 +336,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 	keeper *ZeroMfgrcGroupKeeper,
 	group MfgrcGroup,
 	onReady func(MfgrcGroup, map[string]any),
-	onSuccess func(MfgrcGroup) any,
+	onSuccess func(MfgrcGroup, map[string]any) any,
 	onFailed func(MfgrcGroup, map[string]any) string) {
 
 	expands := make(map[string]interface{})
@@ -359,12 +359,12 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 						err = errors.New(_err)
 					}
 				}
-				server.XhttpResponseMessages(writer, 500, err.Error())
+				server.XhttpResponseDatas(writer, 500, "success", make([]interface{}, 0), expands)
 				return
 			} else {
 				expands["state"] = "success"
 				if onSuccess != nil {
-					result := onSuccess(group)
+					result := onSuccess(group, expands)
 					if result != nil {
 						expands["result"] = result
 					}
