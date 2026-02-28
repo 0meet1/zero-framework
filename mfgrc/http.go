@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/0meet1/zero-framework/autohttpconf"
 	"github.com/0meet1/zero-framework/database"
 	"github.com/0meet1/zero-framework/global"
 	"github.com/0meet1/zero-framework/processors"
@@ -613,6 +614,17 @@ func (xhttpExecutor *MfgrcXhttpExecutor) checkzone(xRequest *structs.ZeroRequest
 	return startTime, endTime
 }
 
+var httpCompleteQueryOperation = func(xRequest *structs.ZeroRequest, xProcessor processors.ZeroQueryOperation, tableName string) (processors.ZeroQueryOperation, *processors.ZeroQuery, error) {
+	xQuery, err := server.XhttpZeroQuery(xRequest)
+	if err != nil {
+		return nil, nil, err
+
+	}
+	xProcessor.AddQuery(xQuery)
+	xProcessor.AddTableName(tableName)
+	return xProcessor, xQuery, nil
+}
+
 func (xhttpExecutor *MfgrcXhttpExecutor) grouphistory(writer http.ResponseWriter, req *http.Request) {
 	transaction := global.Value(xhttpExecutor.DataSource).(database.DataSource).Transaction()
 	defer func() {
@@ -632,7 +644,9 @@ func (xhttpExecutor *MfgrcXhttpExecutor) grouphistory(writer http.ResponseWriter
 	}
 
 	startTime, endTime := xhttpExecutor.checkzone(xRequest)
-	xOperation, _, err := server.XhttpPostgresQueryOperation(xRequest, xhttpExecutor.newGroup().(structs.ZeroXsacDeclares).XsacTableName())
+	declares := xhttpExecutor.newGroup()
+
+	xOperation, _, err := httpCompleteQueryOperation(xRequest, declares.(autohttpconf.ZeroXsacXhttpDeclares).XhttpQueryOperation(), declares.(structs.ZeroXsacDeclares).XsacTableName())
 	if err != nil {
 		panic(err)
 	}
@@ -696,10 +710,12 @@ func (xhttpExecutor *MfgrcXhttpExecutor) monohistory(writer http.ResponseWriter,
 	}
 
 	startTime, endTime := xhttpExecutor.checkzone(xRequest)
-	xOperation, _, err := server.XhttpPostgresQueryOperation(xRequest, xhttpExecutor.newMono().(structs.ZeroXsacDeclares).XsacTableName())
+	declares := xhttpExecutor.newMono()
+	xOperation, _, err := httpCompleteQueryOperation(xRequest, declares.(autohttpconf.ZeroXsacXhttpDeclares).XhttpQueryOperation(), declares.(structs.ZeroXsacDeclares).XsacTableName())
 	if err != nil {
 		panic(err)
 	}
+
 	xOperation.Build(transaction)
 	xOperation.AppendCondition(fmt.Sprintf("create_time BETWEEN '%s' AND '%s'", startTime, endTime))
 	datas, expands := xOperation.Exec()
