@@ -360,7 +360,7 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 						err = errors.New(_err)
 					}
 				}
-				server.XhttpResponseDatas(writer, 500, "success", make([]interface{}, 0), expands)
+				server.XhttpResponseDatas(writer, 500, err.Error(), make([]interface{}, 0), expands)
 				return
 			} else {
 				expands["state"] = "success"
