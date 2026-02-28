@@ -370,7 +370,6 @@ func (xhttpExecutor *MfgrcXhttpExecutor) uXgroupPerformed(
 						expands["result"] = result
 					}
 				}
-
 			}
 		case <-time.After(time.Second * time.Duration(waittime.(float64))):
 			expands["state"] = "timeout"
