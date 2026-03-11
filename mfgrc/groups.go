@@ -424,9 +424,11 @@ func (keeper *ZeroMfgrcGroupKeeper) AddGroup(group MfgrcGroup) error {
 	keeper.statusMutex.Lock()
 	xStatus := keeper.status
 	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
+
+	switch xStatus {
+	case xKEEPER_STATUS_STOPPED:
 		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
+	case xKEEPER_STATUS_STOPPING:
 		return errors.New("keeper is stopping now")
 	}
 
@@ -451,9 +453,11 @@ func (keeper *ZeroMfgrcGroupKeeper) Check(group MfgrcGroup) error {
 	keeper.statusMutex.Lock()
 	xStatus := keeper.status
 	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
+
+	switch xStatus {
+	case xKEEPER_STATUS_STOPPED:
 		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
+	case xKEEPER_STATUS_STOPPING:
 		return errors.New("keeper is stopping now")
 	}
 
