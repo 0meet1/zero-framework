@@ -41,7 +41,7 @@ var PostgresDatabase = func() {
 	global.Logger().Info(fmt.Sprintf(
 		"postgres connect pool init success with %s, maxIdleConns: %d, maxOpenConns: %d, maxLifetime: %d",
 		fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai",
-			global.StringValue("zero.myspostgresql.hostname"),
+			global.StringValue("zero.postgres.hostname"),
 			global.IntValue("zero.postgres.hostport"),
 			global.StringValue("zero.postgres.username"),
 			global.StringValue("zero.postgres.dbname")),
