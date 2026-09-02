@@ -17,96 +17,75 @@ type ZeroMfgrcFlux struct {
 
 	keeper *ZeroMfgrcKeeper
 	worker *ZeroMfgrcWorker
+
+	active bool
 }
 
-func newMfgrcFlux(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
-	flux := &ZeroMfgrcFlux{}
-	flux.open(keeper)
+func createMfgrcf(mono MfgrcMono, keeper *ZeroMfgrcKeeper) *ZeroMfgrcFlux {
+	flux := &ZeroMfgrcFlux{
+		keeper:  keeper,
+		monoMap: make(map[string]MfgrcMono),
+		monos:   make(chan MfgrcMono, keeper.maxQueueLimit),
+		active:  true,
+	}
 	flux.UniqueId = mono.XuniqueCode()
-	err := flux.Push(mono, keeper)
-	if err != nil {
-		return err
-	}
-	keeper.mfgrcMap[flux.UniqueId] = flux
-	go func() { keeper.mfgrcChan <- flux }()
-	return nil
+	return flux
 }
 
-func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) error {
-	flux.monoMutex.Lock()
-	_, ok := flux.monoMap[mono.XmonoId()]
-	flux.monoMutex.Unlock()
-	if ok {
-		return fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
-	}
-
-	if len(flux.monoMap) >= flux.keeper.maxQueueLimit {
-		return fmt.Errorf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit)
-	}
-
-	flux.monoMap[mono.XmonoId()] = mono
-	err := mono.Pending(flux)
-	if err != nil {
-		delete(flux.monoMap, mono.XmonoId())
-		mono.Failed(err)
-		return err
-	}
+func (flux *ZeroMfgrcFlux) Push(mono MfgrcMono, keeper *ZeroMfgrcKeeper) (bool, error) {
 
 	flux.monoMutex.Lock()
-	if flux.monos != nil {
+	if !flux.active {
+		flux.monoMutex.Unlock()
+		return false, nil
+	} else {
+		_, ok := flux.monoMap[mono.XmonoId()]
+		if ok {
+			return true, fmt.Errorf("flux `%s` mono `%s` is already exists", flux.UniqueId, mono.XmonoId())
+		}
+
+		if len(flux.monoMap) >= flux.keeper.maxQueueLimit {
+			return true, fmt.Errorf("flux `%s` has been exceeded maximum number of mono = %d", flux.UniqueId, flux.keeper.maxQueueLimit)
+		}
+		flux.monoMap[mono.XmonoId()] = mono
+		err := mono.Pending(flux)
+		if err != nil {
+			delete(flux.monoMap, mono.XmonoId())
+			mono.Failed(err)
+		}
+		flux.monoMutex.Unlock()
+		if err != nil {
+			return true, err
+		}
 		go func() { flux.monos <- mono }()
+		return true, nil
 	}
-	flux.monoMutex.Unlock()
-	return nil
 }
 
 func (flux *ZeroMfgrcFlux) Revoke(mono MfgrcMono) error {
 	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
+	var err error = nil
 	mono, ok := flux.monoMap[mono.XmonoId()]
 	if !ok {
-		return fmt.Errorf("mono `%s` not found", mono.XmonoId())
+		err = fmt.Errorf("mono `%s` not found", mono.XmonoId())
+	} else {
+		err = mono.Revoke()
 	}
-	return mono.Revoke()
+	flux.monoMutex.Unlock()
+	return err
 }
 
 func (flux *ZeroMfgrcFlux) Check(mono MfgrcMono) bool {
 	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
 	monoLen := len(flux.monoMap)
+	flux.monoMutex.Unlock()
 	return !(monoLen >= flux.keeper.maxQueueLimit)
 }
 
-func (flux *ZeroMfgrcFlux) open(keeper *ZeroMfgrcKeeper) {
-	flux.keeper = keeper
-
-	flux.monoMutex.Lock()
-	defer flux.monoMutex.Unlock()
-
-	flux.monoMap = make(map[string]MfgrcMono)
-	flux.monos = make(chan MfgrcMono, flux.keeper.maxQueueLimit)
-}
-
-func (flux *ZeroMfgrcFlux) close() bool {
-	defer func() {
-		<-time.After(time.Duration(500) * time.Millisecond)
-		flux.monoMutex.Lock()
-		for _, mono := range flux.monoMap {
-			if mono != nil {
-				err := flux.keeper.AddMono(mono)
-				if err != nil {
-					global.Logger().Error(err.Error())
-				}
-			}
-		}
-		flux.monoMap = nil
-		flux.monoMutex.Unlock()
-	}()
-
+func (flux *ZeroMfgrcFlux) close() {
 	flux.keeper.mfgrcMutex.Lock()
 	delete(flux.keeper.mfgrcMap, flux.UniqueId)
 	flux.keeper.mfgrcMutex.Unlock()
-	return false
 }
 
 func (flux *ZeroMfgrcFlux) cleanMono(mono MfgrcMono) {
@@ -162,7 +141,17 @@ func (flux *ZeroMfgrcFlux) runLoop() bool {
 		}
 		return true
 	case <-time.After(time.Millisecond * time.Duration(500)):
-		return flux.close()
+		flux.monoMutex.Lock()
+		if len(flux.monoMap) > 0 {
+			flux.monoMutex.Unlock()
+			return true
+		} else {
+			flux.active = false
+			flux.monoMutex.Unlock()
+			flux.close()
+			return false
+		}
+
 	}
 }
 
@@ -344,6 +333,19 @@ func (keeper *ZeroMfgrcKeeper) ShutdownWorker() {
 	keeper.status = xKEEPER_STATUS_STOPPING
 }
 
+func (keeper *ZeroMfgrcKeeper) checkStare() error {
+	keeper.statusMutex.RLock()
+	defer keeper.statusMutex.RUnlock()
+	switch keeper.status {
+	case xKEEPER_STATUS_STOPPED:
+		return errors.New("keeper not yet ready")
+	case xKEEPER_STATUS_STOPPING:
+		return errors.New("keeper is stopping now")
+	default:
+		return nil
+	}
+}
+
 func (keeper *ZeroMfgrcKeeper) resumeMonos() {
 	if keeper.keeperOpts != nil {
 		<-time.After(time.Second * time.Duration(3))
@@ -384,99 +386,78 @@ func (keeper *ZeroMfgrcKeeper) TaskWaitSeconds() int {
 }
 
 func (keeper *ZeroMfgrcKeeper) AddMono(mono MfgrcMono) error {
-	keeper.statusMutex.Lock()
-	xStatus := keeper.status
-	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
-		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
-		return errors.New("keeper is stopping now")
+	err := keeper.checkStare()
+	if err != nil {
+		return err
 	}
-
 	keeper.mfgrcMutex.Lock()
-	defer keeper.mfgrcMutex.Unlock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
 	if !ok {
-		return newMfgrcFlux(mono, keeper)
-	} else {
-		return flux.Push(mono, keeper)
+		keeper.mfgrcMap[mono.XuniqueCode()] = createMfgrcf(mono, keeper)
+		flux = keeper.mfgrcMap[mono.XuniqueCode()]
+		go func() { keeper.mfgrcChan <- flux }()
 	}
+	onPending, err := flux.Push(mono, keeper)
+	keeper.mfgrcMutex.Unlock()
+	if !onPending {
+		return keeper.AddMono(mono)
+	}
+	return err
 }
 
 func (keeper *ZeroMfgrcKeeper) RevokeMono(mono MfgrcMono) error {
-	keeper.statusMutex.Lock()
-	xStatus := keeper.status
-	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
-		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
-		return errors.New("keeper is stopping now")
+	err := keeper.checkStare()
+	if err != nil {
+		return err
 	}
-
 	keeper.mfgrcMutex.Lock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
-	keeper.mfgrcMutex.Unlock()
-
 	if !ok {
-		return fmt.Errorf("unique code `%s` flux not found", mono.XuniqueCode())
+		err = fmt.Errorf("unique code `%s` flux not found", mono.XuniqueCode())
 	} else {
-		err := flux.Revoke(mono)
-		if err != nil {
-			return err
-		}
+		err = flux.Revoke(mono)
 	}
-	return nil
+	keeper.mfgrcMutex.Unlock()
+	return err
 }
 
 func (keeper *ZeroMfgrcKeeper) AddMonosQueue(monos ...MfgrcMono) error {
-	keeper.statusMutex.Lock()
-	xStatus := keeper.status
-	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
-		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
-		return errors.New("keeper is stopping now")
+	err := keeper.checkStare()
+	if err != nil {
+		return err
 	}
-
 	if len(monos) > keeper.maxQueueLimit {
 		return fmt.Errorf("exceeding maximum number of monos = %d", keeper.maxQueueLimit)
 	}
-
-	keeper.mfgrcMutex.Lock()
-	defer keeper.mfgrcMutex.Unlock()
+	errors := ""
 	for _, mono := range monos {
-		flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
-		if !ok {
-			return newMfgrcFlux(mono, keeper)
-		} else {
-			return flux.Push(mono, keeper)
+		err = keeper.AddMono(mono)
+		if err != nil {
+			if errors == "" {
+				errors = fmt.Sprintf("%s:%s", mono.XuniqueCode(), err.Error())
+			} else {
+				errors = fmt.Sprintf("%s,%s:%s", errors, mono.XuniqueCode(), err.Error())
+			}
 		}
+	}
+	if errors != "" {
+		return fmt.Errorf(errors)
 	}
 	return nil
 }
 
 func (keeper *ZeroMfgrcKeeper) Check(mono MfgrcMono) error {
-	keeper.statusMutex.Lock()
-	xStatus := keeper.status
-	keeper.statusMutex.Unlock()
-	if xStatus == xKEEPER_STATUS_STOPPED {
-		return errors.New("keeper not yet ready")
-	} else if xStatus == xKEEPER_STATUS_STOPPING {
-		return errors.New("keeper is stopping now")
+	err := keeper.checkStare()
+	if err != nil {
+		return err
 	}
-
 	keeper.mfgrcMutex.Lock()
 	flux, ok := keeper.mfgrcMap[mono.XuniqueCode()]
-	keeper.mfgrcMutex.Unlock()
-
-	if !ok {
-		return nil
-	} else {
-		if flux.Check(mono) {
-			return nil
-		}
-		return errors.New("exceeding maximum limit")
+	if ok && !flux.Check(mono) {
+		err = errors.New("exceeding maximum limit")
 	}
+	keeper.mfgrcMutex.Unlock()
+	return err
 }
 
 func (keeper *ZeroMfgrcKeeper) Export() (map[string]interface{}, error) {
