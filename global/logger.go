@@ -31,7 +31,7 @@ const (
 type LogFormatter struct{}
 
 func (s *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	return []byte(fmt.Sprintf("[%s][%s] %s\n", time.Now().Format("2006-01-02 15:04:05.000"), strings.ToUpper(entry.Level.String()), entry.Message)), nil
+	return fmt.Appendf(nil, "[%s][%s] %s\n", time.Now().Format("2006-01-02 15:04:05.000"), strings.ToUpper(entry.Level.String()), entry.Message), nil
 }
 
 type ConsoleWriter struct{}
