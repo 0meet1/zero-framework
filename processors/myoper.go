@@ -23,6 +23,8 @@ type ZeroMysqlQueryOperation struct {
 
 	Start  int
 	Length int
+
+	parameters []any
 }
 
 func NewZeroMysqlQueryOperation(xQuery *ZeroQuery, xTableName string) *ZeroMysqlQueryOperation {
@@ -66,7 +68,7 @@ func (opera *ZeroMysqlQueryOperation) jsonColumnName(name string) string {
 func (opera *ZeroMysqlQueryOperation) parserConditions(condition *ZeroCondition) (string, error) {
 	if len(condition.Relation) <= 0 {
 		if strings.HasPrefix(condition.Column, "@!") {
-			return fmt.Sprintf("(%s %s)", strings.ReplaceAll(condition.Column, "@!", ""), condition.Value), nil
+			return fmt.Sprintf("(`%s` %s)", strings.ReplaceAll(condition.Column, "@!", ""), condition.Value), nil
 		} else {
 			symbol, ok := symbols()[condition.Symbol]
 			if !ok {
@@ -74,12 +76,14 @@ func (opera *ZeroMysqlQueryOperation) parserConditions(condition *ZeroCondition)
 			}
 
 			if strings.HasPrefix(condition.Column, "@") {
-				return fmt.Sprintf("(%s %s '%s')", strings.ReplaceAll(condition.Column, "@", ""), symbol, condition.Value), nil
+				opera.parameters = append(opera.parameters, condition.Value)
+				return fmt.Sprintf("(%s %s ?)", strings.ReplaceAll(condition.Column, "@", ""), symbol), nil
 			} else {
 				if strings.Index(condition.Column, ".") > 1 {
 					return fmt.Sprintf("(%s %s '%s')", opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
 				} else {
-					return fmt.Sprintf("(`%s` %s '%s')", exHumpToLine(condition.Column), symbol, condition.Value), nil
+					opera.parameters = append(opera.parameters, condition.Value)
+					return fmt.Sprintf("(`%s` %s ?)", exHumpToLine(condition.Column), symbol), nil
 				}
 			}
 		}
@@ -230,7 +234,7 @@ func (opera *ZeroMysqlQueryOperation) makeQueryCountSQL() string {
 func (opera *ZeroMysqlQueryOperation) Exec() ([]map[string]interface{}, map[string]interface{}) {
 	queryCountSQL := opera.makeQueryCountSQL()
 
-	rows, err := opera.PreparedStmt(queryCountSQL).Query()
+	rows, err := opera.PreparedStmt(queryCountSQL).Query(opera.parameters...)
 	defer func() {
 		if rows != nil {
 			rows.Close()
@@ -250,7 +254,7 @@ func (opera *ZeroMysqlQueryOperation) Exec() ([]map[string]interface{}, map[stri
 	rows.Close()
 
 	querySQL := opera.makeQuerySQL()
-	rows, err = opera.PreparedStmt(querySQL).Query()
+	rows, err = opera.PreparedStmt(querySQL).Query(opera.parameters...)
 	if err != nil {
 		panic(err)
 	}

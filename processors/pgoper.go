@@ -23,12 +23,15 @@ type ZeroPostgresQueryOperation struct {
 
 	Start  int
 	Length int
+
+	parameters []any
 }
 
 func NewZeroPostgresQueryOperation(xQuery *ZeroQuery, xTableName string) *ZeroPostgresQueryOperation {
 	return &ZeroPostgresQueryOperation{
-		query:     xQuery,
-		tableName: xTableName,
+		query:      xQuery,
+		tableName:  xTableName,
+		parameters: []any{},
 	}
 }
 
@@ -77,12 +80,14 @@ func (opera *ZeroPostgresQueryOperation) parserConditions(condition *ZeroConditi
 			}
 
 			if strings.HasPrefix(condition.Column, "@") {
-				return fmt.Sprintf(`("%s" %s '%s')`, strings.ReplaceAll(condition.Column, "@", ""), symbol, condition.Value), nil
+				opera.parameters = append(opera.parameters, condition.Value)
+				return fmt.Sprintf(`("%s" %s $%d)`, strings.ReplaceAll(condition.Column, "@", ""), symbol, len(opera.parameters)), nil
 			} else {
 				if strings.Index(condition.Column, ".") > 1 {
 					return fmt.Sprintf(`(%s %s '%s')`, opera.jsonColumnName(condition.Column), symbol, condition.Value), nil
 				} else {
-					return fmt.Sprintf(`("%s" %s '%s')`, exHumpToLine(condition.Column), symbol, condition.Value), nil
+					opera.parameters = append(opera.parameters, condition.Value)
+					return fmt.Sprintf(`("%s" %s $%d)`, exHumpToLine(condition.Column), symbol, len(opera.parameters)), nil
 				}
 			}
 		}
@@ -225,7 +230,7 @@ func (opera *ZeroPostgresQueryOperation) makeQueryCountSQL() string {
 func (opera *ZeroPostgresQueryOperation) Exec() ([]map[string]interface{}, map[string]interface{}) {
 	queryCountSQL := opera.makeQueryCountSQL()
 
-	rows, err := opera.PreparedStmt(queryCountSQL).Query()
+	rows, err := opera.PreparedStmt(queryCountSQL).Query(opera.parameters...)
 	defer func() {
 		if rows != nil {
 			rows.Close()
@@ -245,7 +250,7 @@ func (opera *ZeroPostgresQueryOperation) Exec() ([]map[string]interface{}, map[s
 	rows.Close()
 
 	querySQL := opera.makeQuerySQL()
-	rows, err = opera.PreparedStmt(querySQL).Query()
+	rows, err = opera.PreparedStmt(querySQL).Query(opera.parameters...)
 	if err != nil {
 		panic(err)
 	}
