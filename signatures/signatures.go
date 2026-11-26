@@ -124,7 +124,7 @@ func (zox *ZeroSignature) signature() (string, error) {
 	}
 
 	if len(zox.ZoXsecret) <= 0 {
-		return "", errors.New(fmt.Sprintf("invalid appname: %s", zox.ZoXappname))
+		return "", fmt.Errorf("invalid appname: %s", zox.ZoXappname)
 	}
 
 	keys := make([]string, 0)
@@ -143,7 +143,7 @@ func (zox *ZeroSignature) signature() (string, error) {
 	}
 
 	paramstr := ""
-	sort.Sort(sort.StringSlice(keys))
+	sort.Strings(sort.StringSlice(keys))
 	for _, key := range keys {
 		if len(paramstr) > 0 {
 			paramstr = fmt.Sprintf("%s&%s=%s", paramstr, key, sparams[key])
